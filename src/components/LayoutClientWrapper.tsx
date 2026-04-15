@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { Menu, X, LayoutDashboard, ListTodo, Activity, CheckSquare, FileBarChart2, Users, Info, HeartPulse } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import CirilaBotWidget from '@/components/CirilaBotWidget'
-import CallCirilaButton from '@/components/CallCirilaButton'
+import CirilaBotWidget from './CirilaBotWidget'
+import CallCirilaButton from './CallCirilaButton'
 
 export default function LayoutClientWrapper({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)

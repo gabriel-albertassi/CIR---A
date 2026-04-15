@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import LayoutClientWrapper from '@/components/LayoutClientWrapper'
+import LayoutClientWrapper from '../components/LayoutClientWrapper'
 
 export const metadata: Metadata = {
   title: 'CIR-A | Sistema de Regulação Assistida',
