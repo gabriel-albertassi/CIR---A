@@ -22,8 +22,8 @@ function formatHours(dateString: Date) {
 export default function DashboardQueue({ patients }: { patients: Patient[] }) {
   const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
 
-  // Filter only more critical/relevant cases for the dashboard (Sala Vermelha and CTI)
-  const priorityPatients = patients.filter(p => p.severity === 'SALA_VERMELHA' || p.severity === 'CTI');
+  // Show all relevant active patients on the dashboard
+  const priorityPatients = patients;
 
   return (
     <div style={{ marginTop: '1rem' }}>
