@@ -535,17 +535,11 @@ td select option {
 }
 
 .main-viewport {
-  margin-left: 280px;
+  flex: 1;
   padding: 2.5rem;
+  margin-left: 280px;
   min-height: 100vh;
   transition: margin 0.3s ease;
-  display: flex;
-  justify-content: center;
-}
-
-.content-container {
-  max-width: 1600px;
-  width: 100%;
 }
 
 @media (max-width: 1024px) {

@@ -30,6 +30,7 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
         background: 'rgba(8, 20, 35, 0.95)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(0, 180, 216, 0.2)',
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 1.5rem',
@@ -150,9 +151,7 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
 
         {/* MAIN CONTENT */}
         <main className="main-viewport">
-          <div className="content-container">
-            {children}
-          </div>
+          {children}
         </main>
       </div>
 
