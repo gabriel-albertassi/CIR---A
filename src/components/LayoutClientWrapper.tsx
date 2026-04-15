@@ -150,7 +150,9 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
 
         {/* MAIN CONTENT */}
         <main className="main-viewport">
-          {children}
+          <div className="content-container">
+            {children}
+          </div>
         </main>
       </div>
 
