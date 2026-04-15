@@ -186,28 +186,20 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
             alignItems: 'center',
             textAlign: 'center'
           }}>
-            {/* EMBLEM & PHRASES */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ 
-                width: '80px', 
-                height: '80px', 
-                background: 'rgba(0,216,255,0.06)', 
-                borderRadius: '50%', 
-                padding: '10px', 
-                border: '1.5px solid rgba(0,216,255,0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <img src="/cirila_icone.png" alt="Cirila Avatar" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }}>
-                  CIR-A: A inteligência que regula.
-                </span>
-                <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#00e5ff', lineHeight: 1.2 }}>
-                  Cirila: A inteligência que cuida.
-                </span>
+            {/* BRANDING: LOGO & PHRASE */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
+              <img 
+                src="/logo.png" 
+                alt="Logo CIR-A" 
+                style={{ 
+                  height: '60px', 
+                  width: 'auto',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 15px rgba(0,216,255,0.6))' 
+                }} 
+              />
+              <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#00d8ff', lineHeight: 1.4, textTransform: 'uppercase', letterSpacing: '1px', maxWidth: '280px' }}>
+                Central Inteligente de Regulação Automatizada
               </div>
             </div>
 
