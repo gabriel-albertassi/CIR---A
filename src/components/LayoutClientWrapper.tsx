@@ -39,8 +39,10 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
           src="/logo.png" 
           alt="Logo CIR-A" 
           style={{ 
-            height: '36px', 
-            filter: 'drop-shadow(0 0 12px rgba(0,216,255,0.8)) brightness(1.2) contrast(1.1)' 
+            height: '42px', 
+            width: 'auto',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 0 15px rgba(0,216,255,0.85)) brightness(1.2) contrast(1.1)' 
           }} 
         />
         <button 
@@ -75,10 +77,10 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
               alt="Logo CIR-A"
               style={{
                 width: '100%',
-                maxWidth: '160px',
+                maxWidth: '200px',
                 height: 'auto',
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 0 35px rgba(0,216,255,0.9)) brightness(1.2) contrast(1.1)',
+                filter: 'drop-shadow(0 0 45px rgba(0,216,255,1)) brightness(1.25) contrast(1.15)',
                 transition: 'transform 0.3s ease'
               }}
               className="logo-hover"
