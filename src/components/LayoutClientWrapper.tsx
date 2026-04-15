@@ -35,7 +35,14 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
         padding: '0 1.5rem',
         zIndex: 100
       }}>
-        <img src="/logo.png" alt="Logo CIR-A" style={{ height: '30px' }} />
+        <img 
+          src="/logo.png" 
+          alt="Logo CIR-A" 
+          style={{ 
+            height: '36px', 
+            filter: 'drop-shadow(0 0 12px rgba(0,216,255,0.8)) brightness(1.2) contrast(1.1)' 
+          }} 
+        />
         <button 
           onClick={toggleMobileMenu}
           style={{ background: 'none', border: 'none', color: '#00b4d8', cursor: 'pointer', padding: '5px' }}
@@ -71,8 +78,10 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
                 maxWidth: '160px',
                 height: 'auto',
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 0 28px rgba(0,216,255,0.75))'
+                filter: 'drop-shadow(0 0 35px rgba(0,216,255,0.9)) brightness(1.2) contrast(1.1)',
+                transition: 'transform 0.3s ease'
               }}
+              className="logo-hover"
             />
             <div style={{ width: '100%', height: '1px', background: 'linear-gradient(to right, transparent, rgba(0,180,216,0.3), transparent)', marginTop: '0.5rem' }} />
           </div>

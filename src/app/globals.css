@@ -600,3 +600,6 @@ td select option {
   -webkit-overflow-scrolling: touch;
   margin-bottom: 1rem;
 }
+.logo-hover:hover {
+  transform: scale(1.05);
+}
