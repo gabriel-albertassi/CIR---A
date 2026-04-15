@@ -31,13 +31,22 @@ Para a Vercel ler seu código, ele precisa estar no GitHub.
     - `DIRECT_URL`: (A mesma URL, mas mude a porta de `6543` para `5432` e remova o `?pgbouncer=true` no final)
 4.  Clique em **Deploy**.
 
-## 4. Popular os Dados (Seed)
-Como o banco na nuvem estará vazio, você precisará preenchê-lo uma única vez:
-1.  No seu computador (já com o `.env` configurado com a URL do Supabase), rode:
+## 4. Popular os Dados (Seed e Sincronização)
+Como o banco na nuvem estará vazio, você precisará prepará-lo uma única vez:
+1.  No seu computador (já com o `.env` configurado com a URL do Supabase), rode para criar as tabelas:
+    ```bash
+    npx prisma db push
+    ```
+2.  Agora, popule os dados de exemplo:
     ```bash
     npx prisma db seed
     ```
-    Isso criará os hospitais e pacientes de exemplo que eu preparei.
+
+## 5. Resolver Erro 404 / Página não encontrada
+Se você abriu o link da Vercel e deu erro 404:
+1.  Vá em **Deployments** no painel do seu projeto na Vercel.
+2.  Clique nos três pontinhos `...` do último deploy e selecione **Redeploy**.
+3.  Isso garante que o sistema suba já com as variáveis de ambiente que você configurou.
 
 ---
 
