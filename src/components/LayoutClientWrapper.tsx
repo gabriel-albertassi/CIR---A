@@ -26,7 +26,7 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
         top: 0,
         left: 0,
         right: 0,
-        height: '60px',
+        height: '80px',
         background: 'rgba(8, 20, 35, 0.95)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(0, 180, 216, 0.2)',
@@ -39,10 +39,10 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
           src="/logo.png" 
           alt="Logo CIR-A" 
           style={{ 
-            height: '42px', 
+            height: '56px', 
             width: 'auto',
             objectFit: 'contain',
-            filter: 'drop-shadow(0 0 15px rgba(0,216,255,0.85)) brightness(1.2) contrast(1.1)' 
+            filter: 'drop-shadow(0 0 18px rgba(0,216,255,0.9)) brightness(1.2) contrast(1.1)' 
           }} 
         />
         <button 

@@ -554,7 +554,7 @@ td select option {
   .main-viewport {
     margin-left: 0 !important;
     padding: 1.5rem !important;
-    padding-top: calc(60px + 1.5rem) !important;
+    padding-top: calc(80px + 1.5rem) !important;
     max-width: 100% !important;
   }
 
