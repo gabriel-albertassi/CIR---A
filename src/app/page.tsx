@@ -7,9 +7,15 @@ import PrivateHospitalsChart from '@/components/PrivateHospitalsChart'
 import InteractiveCirilaPanel from '@/components/InteractiveCirilaPanel'
 import { PRIVATE_HOSPITALS } from '@/lib/constants'
 import DashboardQueue from '@/components/DashboardQueue'
+import { createClient } from '@/lib/supabase/server'
+
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
+  const supabase = await createClient()
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  const dbUser = authUser ? await prisma.user.findUnique({ where: { id: authUser.id } }) : null
+
   const [
     totalWaiting,
     totalOffered,
@@ -139,7 +145,7 @@ export default async function DashboardPage() {
           <Link href="/patients/new" className="btn btn-primary no-print" style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem', borderRadius: '8px', boxShadow: '0 4px 10px rgba(37,99,235,0.2)' }}>
             + Nova Regulação
           </Link>
-          <PrintButton />
+          <PrintButton user={dbUser} />
         </div>
       </div>
 
@@ -295,7 +301,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* DASHBOARD QUEUE: Fila em Tempo Real */}
-      <DashboardQueue patients={patients} />
+      <DashboardQueue patients={patients} user={dbUser} />
 
       {/* ABOUT SECTION: Conheça a Cirila */}
       <div className="about-cirila-section" style={{ padding: '3rem 2rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '3rem', background: 'rgba(8,20,40,0.7)', border: '1px solid rgba(0,180,216,0.2)', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.3)', backdropFilter: 'blur(20px)' }}>

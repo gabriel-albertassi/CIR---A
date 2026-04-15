@@ -8,13 +8,22 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum UserRole {
+  ADMIN
+  ADMINISTRATIVO
+  ENFERMEIRO_AUDITOR
+  REGULADOR
+}
+
 model User {
-  id            String  @id @default(uuid())
-  name          String
-  email         String  @unique
-  password_hash String
-  role          String  @default("REGULATOR") // ADMIN, REGULATOR
-  logs          Log[]
+  id               String   @id // Supabase Auth UID
+  name             String
+  email            String   @unique
+  role             UserRole @default(REGULADOR)
+  canCancelPatient Boolean  @default(false)
+  canPrintReports  Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  logs             Log[]
 }
 
 model Patient {

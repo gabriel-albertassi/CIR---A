@@ -20,9 +20,11 @@ function formatHours(dateString: Date) {
   return `${(diffHours/24).toFixed(1)} dias`;
 }
 
-export default function DashboardQueue({ patients }: { patients: Patient[] }) {
+export default function DashboardQueue({ patients, user }: { patients: Patient[], user: any }) {
   const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
+
+  const canAction = user?.role === 'ADMIN' || user?.canCancelPatient;
 
   // Show all relevant active patients on the dashboard
   const priorityPatients = patients;
@@ -96,21 +98,24 @@ export default function DashboardQueue({ patients }: { patients: Patient[] }) {
                         </button>
                         
                         <button 
-                          onClick={() => setBlastModal({ id: p.id, severity: p.severity })}
+                          onClick={() => {
+                            if (canAction) setBlastModal({ id: p.id, severity: p.severity })
+                          }}
                           style={{ 
-                            background: 'rgba(0, 180, 216, 0.15)', 
-                            color: '#00e5ff', 
-                            border: '1px solid rgba(0, 180, 216, 0.3)', 
+                            background: canAction ? 'rgba(0, 180, 216, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
+                            color: canAction ? '#00e5ff' : '#64748b', 
+                            border: `1px solid ${canAction ? 'rgba(0, 180, 216, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
                             padding: '0.4rem 0.8rem', 
                             borderRadius: '8px', 
                             fontSize: '0.8rem', 
                             fontWeight: 700, 
-                            cursor: 'pointer',
+                            cursor: canAction ? 'pointer' : 'not-allowed',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px'
+                            gap: '6px',
+                            opacity: canAction ? 1 : 0.6
                           }}
-                          title="Disparo (Busca de Vaga)"
+                          title={canAction ? "Disparo (Busca de Vaga)" : "Acesso Restrito: Requer liberação do Administrador"}
                         >
                           <Send size={14} /> Disparo
                         </button>

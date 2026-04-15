@@ -1,23 +1,49 @@
-/**
- * Página de Login / Splash Screen — CIR-A
- * Opção 2: Hero cinematográfico com Cirila em destaque
- */
-import Link from 'next/link'
-import { ShieldCheck, Brain, Zap, HeartPulse, ArrowRight } from 'lucide-react'
+'use client'
+
+import { useState } from 'react'
+import { ShieldCheck, Brain, Zap, HeartPulse, ArrowRight, UserPlus, LogIn, Mail, Lock, User } from 'lucide-react'
+import { login, signup } from '@/app/auth/actions'
 
 export default function LoginPage() {
+  const [isLogin, setIsLogin] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [msg, setMsg] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setMsg(null)
+
+    const formData = new FormData(e.currentTarget)
+    
+    if (isLogin) {
+      const res = await login(formData)
+      if (res?.error) {
+        setError(res.error)
+        setLoading(false)
+      }
+    } else {
+      const res = await signup(formData)
+      setLoading(false)
+      if (res.error) {
+        setError(res.error)
+      } else {
+        setMsg('Conta criada com sucesso! Faça login para acessar.')
+        setIsLogin(true)
+      }
+    }
+  }
+
   return (
     <div className="login-root">
 
       {/* ── CAMADA DE FUNDO ── */}
       <div className="login-bg-layer">
-        {/* Foto de processo — hospital blurred */}
         <div className="login-bg-photo" />
-        {/* Overlay gradiente escuro */}
         <div className="login-bg-overlay" />
-        {/* Rede neural animada */}
         <div className="login-bg-network" />
-        {/* Partículas hex */}
         <div className="login-bg-hex" />
       </div>
 
@@ -54,42 +80,54 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Features rápidas */}
-          <div className="login-features">
-            <div className="login-feature">
-              <div className="login-feature-icon" style={{ background: 'rgba(0,180,216,0.15)', color: '#00d8ff' }}>
-                <Brain size={20} />
-              </div>
-              <div>
-                <strong>IA Integrada</strong>
-                <span>Decisões clínicas inteligentes e em tempo real</span>
-              </div>
+          {/* FORMULÁRIO DE ACESSO */}
+          <div className="login-form-container">
+            <div className="form-toggle-tabs">
+              <button 
+                className={`tab-btn ${isLogin ? 'active' : ''}`} 
+                onClick={() => { setIsLogin(true); setError(null); setMsg(null); }}
+              >
+                <LogIn size={18} /> Entrar
+              </button>
+              <button 
+                className={`tab-btn ${!isLogin ? 'active' : ''}`} 
+                onClick={() => { setIsLogin(false); setError(null); setMsg(null); }}
+              >
+                <UserPlus size={18} /> Criar Conta
+              </button>
             </div>
-            <div className="login-feature">
-              <div className="login-feature-icon" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
-                <Zap size={20} />
-              </div>
-              <div>
-                <strong>Alta Performance</strong>
-                <span>Regulação de pacientes em segundos</span>
-              </div>
-            </div>
-            <div className="login-feature">
-              <div className="login-feature-icon" style={{ background: 'rgba(5,150,105,0.15)', color: '#34d399' }}>
-                <ShieldCheck size={20} />
-              </div>
-              <div>
-                <strong>Seguro e Auditável</strong>
-                <span>Histórico completo e rastreável</span>
-              </div>
-            </div>
-          </div>
 
-          {/* CTA */}
-          <Link href="/" className="login-cta-btn">
-            Acessar o Sistema
-            <ArrowRight size={20} />
-          </Link>
+            <form onSubmit={handleSubmit} className="login-actual-form">
+              {!isLogin && (
+                <div className="input-group">
+                  <label><User size={16} /> Nome Completo</label>
+                  <input type="text" name="name" placeholder="Ex: Dr. João Silva" required />
+                </div>
+              )}
+              <div className="input-group">
+                <label><Mail size={16} /> E-mail Institucional</label>
+                <input type="email" name="email" placeholder="nome@voltaredonda.rj.gov.br" required />
+              </div>
+              <div className="input-group">
+                <label><Lock size={16} /> Senha</label>
+                <input type="password" name="password" placeholder="••••••••" required />
+              </div>
+
+              {error && <div className="login-error-msg">{error}</div>}
+              {msg && <div className="login-success-msg">{msg}</div>}
+
+              <button type="submit" className="login-submit-btn" disabled={loading}>
+                {loading ? 'Processando...' : (isLogin ? 'Acessar o Sistema' : 'Solicitar Acesso')}
+                <ArrowRight size={20} />
+              </button>
+            </form>
+
+            <p className="form-help-text">
+              {isLogin 
+                ? 'Novos operadores devem realizar o cadastro para acesso restrito.' 
+                : 'Seu acesso inicial será limitado até a aprovação de um administrador.'}
+            </p>
+          </div>
 
           {/* Rodapé */}
           <p className="login-footer-text">
@@ -100,36 +138,14 @@ export default function LoginPage() {
 
         {/* === COLUNA DIREITA — CIRILA HERO === */}
         <div className="login-right">
-
-          {/* Aura glow atrás da Cirila */}
           <div className="login-cirila-aura" />
+          <div className="login-holo holo-1"><span className="holo-dot" /><span>3 Pacientes em Oferta</span></div>
+          <div className="login-holo holo-2"><HeartPulse size={14} /><span>2 Críticos Ativos</span></div>
+          <div className="login-holo holo-3"><span className="holo-dot green" /><span>IA Online</span></div>
+          <div className="login-holo holo-4"><Brain size={14} /><span>Cirila Ativa</span></div>
 
-          {/* Elementos holográficos flutuantes */}
-          <div className="login-holo holo-1">
-            <span className="holo-dot" />
-            <span>3 Pacientes em Oferta</span>
-          </div>
-          <div className="login-holo holo-2">
-            <HeartPulse size={14} />
-            <span>2 Críticos Ativos</span>
-          </div>
-          <div className="login-holo holo-3">
-            <span className="holo-dot green" />
-            <span>IA Online</span>
-          </div>
-          <div className="login-holo holo-4">
-            <Brain size={14} />
-            <span>Cirila Ativa</span>
-          </div>
+          <img src="/cirila_1.png" alt="Cirila" className="login-cirila-img" />
 
-          {/* Cirila */}
-          <img
-            src="/cirila_1.png"
-            alt="Cirila — Assistente de Regulação"
-            className="login-cirila-img"
-          />
-
-          {/* Fala da Cirila */}
           <div className="login-cirila-speech">
             <img src="/cirila_icone.png" alt="ícone Cirila" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0,216,255,0.4)' }} />
             <div>
@@ -291,210 +307,151 @@ export default function LoginPage() {
           max-width: 440px;
         }
 
-        .login-features {
+        /* ===== FORM CONTAINER ===== */
+        .login-form-container {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          padding: 2rem;
+          backdrop-filter: blur(16px);
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 1.5rem;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+          max-width: 440px;
+          animation: form-entry 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .login-feature {
+        @keyframes form-entry {
+          0% { opacity: 0; transform: translateY(20px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-toggle-tabs {
           display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 0.85rem 1.25rem;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.07);
-          border-radius: 14px;
-          backdrop-filter: blur(8px);
-          transition: background 0.25s;
+          background: rgba(0,0,0,0.2);
+          padding: 0.35rem;
+          border-radius: 12px;
+          gap: 0.25rem;
         }
 
-        .login-feature:hover {
-          background: rgba(255,255,255,0.07);
-        }
-
-        .login-feature-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+        .tab-btn {
+          flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
+          gap: 0.5rem;
+          padding: 0.6rem;
+          border-radius: 9px;
+          border: none;
+          background: transparent;
+          color: #94a3b8;
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
         }
 
-        .login-feature > div:last-child {
+        .tab-btn.active {
+          background: rgba(0, 180, 216, 0.15);
+          color: #00d8ff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .login-actual-form {
           display: flex;
           flex-direction: column;
-          gap: 0.15rem;
+          gap: 1.25rem;
         }
 
-        .login-feature strong {
-          font-size: 0.9rem;
-          color: #e2e8f0;
-          font-weight: 700;
-        }
-
-        .login-feature span {
-          font-size: 0.8rem;
-          color: #64748b;
-        }
-
-        /* CTA Button */
-        .login-cta-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.75rem;
-          background: linear-gradient(135deg, #00b4d8, #0096c7);
-          color: white;
-          font-weight: 700;
-          font-size: 1rem;
-          padding: 1rem 2rem;
-          border-radius: 14px;
-          text-decoration: none;
-          width: fit-content;
-          box-shadow: 0 8px 24px rgba(0,180,216,0.35), 0 0 0 1px rgba(0,216,255,0.2);
-          transition: all 0.3s ease;
-          letter-spacing: 0.02em;
-        }
-
-        .login-cta-btn:hover {
-          box-shadow: 0 12px 32px rgba(0,180,216,0.5), 0 0 0 1px rgba(0,216,255,0.35);
-          transform: translateY(-2px);
-          background: linear-gradient(135deg, #00c4ec, #00b4d8);
-        }
-
-        .login-footer-text {
-          font-size: 0.75rem;
-          color: #475569;
-          margin: 0;
-          line-height: 1.6;
-        }
-
-        .login-footer-text a {
-          color: #00b4d8;
-          text-decoration: none;
-        }
-
-        /* ===== RIGHT COLUMN ===== */
-        .login-right {
-          position: relative;
+        .input-group {
           display: flex;
-          align-items: flex-end;
-          justify-content: center;
-          overflow: hidden;
+          flex-direction: column;
+          gap: 0.5rem;
         }
 
-        .login-cirila-aura {
-          position: absolute;
-          bottom: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 500px;
-          height: 500px;
-          background: radial-gradient(ellipse at bottom, rgba(0,180,216,0.25) 0%, rgba(0,180,216,0.08) 40%, transparent 70%);
-          pointer-events: none;
-        }
-
-        .login-cirila-img {
-          position: relative;
-          z-index: 2;
-          width: 85%;
-          max-width: 480px;
-          object-fit: contain;
-          filter: drop-shadow(0 -10px 40px rgba(0,180,216,0.3)) drop-shadow(0 20px 40px rgba(0,0,0,0.5));
-          animation: cirila-float 4s ease-in-out infinite;
-        }
-
-        @keyframes cirila-float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-12px); }
-        }
-
-        /* Elementos holográficos */
-        .login-holo {
-          position: absolute;
+        .input-group label {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          background: rgba(8, 20, 35, 0.75);
-          border: 1px solid rgba(0,180,216,0.3);
-          backdrop-filter: blur(12px);
-          color: #e2e8f0;
-          font-size: 0.78rem;
+          font-size: 0.8rem;
           font-weight: 600;
-          padding: 0.5rem 0.9rem;
-          border-radius: 10px;
-          z-index: 3;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,216,255,0.1);
-          animation: holo-pulse 3s ease-in-out infinite;
+          color: #94a3b8;
+          margin-left: 0.25rem;
         }
 
-        @keyframes holo-pulse {
-          0%, 100% { opacity: 0.85; transform: translateY(0); }
-          50% { opacity: 1; transform: translateY(-3px); }
+        .input-group input {
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          padding: 0.85rem 1rem;
+          color: white;
+          font-size: 0.9rem;
+          transition: all 0.2s;
+          outline: none;
         }
 
-        .holo-1 { top: 12%; right: 10%; animation-delay: 0s; }
-        .holo-2 { top: 28%; left: 8%; animation-delay: 0.8s; }
-        .holo-3 { top: 48%; right: 8%; animation-delay: 1.6s; }
-        .holo-4 { top: 64%; left: 10%; animation-delay: 2.4s; }
-
-        .holo-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #00d8ff;
-          box-shadow: 0 0 6px #00d8ff;
-          animation: dot-blink 1.5s ease-in-out infinite;
-          flex-shrink: 0;
+        .input-group input:focus {
+          border-color: rgba(0, 216, 255, 0.5);
+          background: rgba(15, 23, 42, 0.8);
+          box-shadow: 0 0 0 4px rgba(0, 216, 255, 0.1);
         }
 
-        .holo-dot.green {
-          background: #34d399;
-          box-shadow: 0 0 6px #34d399;
-        }
-
-        @keyframes dot-blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-
-        /* Fala da Cirila */
-        .login-cirila-speech {
-          position: absolute;
-          bottom: 2rem;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 4;
+        .login-submit-btn {
+          margin-top: 0.5rem;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 0.75rem;
-          background: rgba(8, 20, 35, 0.85);
-          border: 1px solid rgba(0,180,216,0.3);
-          backdrop-filter: blur(16px);
-          padding: 0.85rem 1.25rem;
-          border-radius: 16px;
-          width: max-content;
-          max-width: 90%;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-        }
-
-        .login-cirila-speech > div {
-          display: flex;
-          flex-direction: column;
-          gap: 0.1rem;
-        }
-
-        .login-cirila-speech strong {
-          font-size: 0.85rem;
-          color: #00d8ff;
+          background: linear-gradient(135deg, #00b4d8, #0096c7);
+          color: white;
+          border: none;
+          padding: 1rem;
+          border-radius: 12px;
+          font-size: 1rem;
           font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s;
+          box-shadow: 0 8px 20px rgba(0, 180, 216, 0.3);
         }
 
-        .login-cirila-speech span {
-          font-size: 0.78rem;
-          color: #94a3b8;
+        .login-submit-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 25px rgba(0, 180, 216, 0.4);
+          filter: brightness(1.1);
+        }
+
+        .login-submit-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .login-error-msg {
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          color: #fca5a5;
+          padding: 0.75rem;
+          border-radius: 10px;
+          font-size: 0.8rem;
+          text-align: center;
+        }
+
+        .login-success-msg {
+          background: rgba(52, 211, 153, 0.1);
+          border: 1px solid rgba(52, 211, 153, 0.2);
+          color: #6ee7b7;
+          padding: 0.75rem;
+          border-radius: 10px;
+          font-size: 0.8rem;
+          text-align: center;
+        }
+
+        .form-help-text {
+          font-size: 0.75rem;
+          color: #64748b;
+          text-align: center;
+          line-height: 1.5;
+          margin: 0;
         }
 
         /* Responsive */
@@ -507,7 +464,15 @@ export default function LoginPage() {
           }
           .login-left {
             border-right: none;
-            padding: 3rem 2rem;
+            padding: 2.5rem 1.5rem;
+            align-items: center;
+            text-align: center;
+          }
+          .login-titles {
+            align-items: center;
+          }
+          .login-form-container {
+            width: 100%;
           }
         }
       `}</style>
