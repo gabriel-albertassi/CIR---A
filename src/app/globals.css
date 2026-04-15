@@ -512,6 +512,10 @@ td select option {
    NEW LAYOUT SYSTEM (Robust Responsive)
    ================================ */
 
+.mobile-only {
+  display: none;
+}
+
 .sidebar-main {
   width: 280px;
   background: rgba(8, 20, 35, 0.95);
@@ -533,8 +537,7 @@ td select option {
 .main-viewport {
   flex: 1;
   padding: 2.5rem;
-  max-width: 1600px;
-  margin: 0 auto;
+  max-width: 2000px;
   width: 100%;
   margin-left: 280px; /* Space for sidebar on desktop */
   min-height: 100vh;
