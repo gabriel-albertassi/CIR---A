@@ -187,18 +187,18 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
             textAlign: 'center'
           }}>
             {/* BRANDING: LOGO & PHRASE */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
               <img 
                 src="/logo.png" 
                 alt="Logo CIR-A" 
                 style={{ 
-                  height: '60px', 
+                  height: '80px', 
                   width: 'auto',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0 0 15px rgba(0,216,255,0.6))' 
+                  filter: 'drop-shadow(0 0 20px rgba(0,216,255,0.7))' 
                 }} 
               />
-              <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#00d8ff', lineHeight: 1.4, textTransform: 'uppercase', letterSpacing: '1px', maxWidth: '280px' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', lineHeight: 1.4, textTransform: 'uppercase', letterSpacing: '2px', maxWidth: '240px' }}>
                 Central Inteligente de Regulação Automatizada
               </div>
             </div>
