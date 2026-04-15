@@ -382,11 +382,6 @@ export default async function DashboardPage() {
   )
 }
 
-      {/* Floating launcher was moved to layout.tsx */}
-
-    </div>
-  )
-}
 
 const gridCardsStyle: React.CSSProperties = {
   display: 'grid',
