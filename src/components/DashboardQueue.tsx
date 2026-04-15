@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Send, Clock, Ambulance, AlertCircle } from 'lucide-react'
+import { Send, Clock, Ambulance, AlertCircle, MessageCircle, Mail } from 'lucide-react'
 import MassBlastModal from './MassBlastModal'
+import ChargeEvolutionModal from './ChargeEvolutionModal'
 
 type Patient = {
   id: string
@@ -21,6 +22,7 @@ function formatHours(dateString: Date) {
 
 export default function DashboardQueue({ patients }: { patients: Patient[] }) {
   const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
+  const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
 
   // Show all relevant active patients on the dashboard
   const priorityPatients = patients;
@@ -30,14 +32,14 @@ export default function DashboardQueue({ patients }: { patients: Patient[] }) {
       <div className="card" style={{ padding: '1.5rem 1.25rem', background: 'rgba(8, 20, 40, 0.65)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AlertCircle size={18} color="#f87171" strokeWidth={3} /> Caso Críticos em Tempo Real
+            <AlertCircle size={18} color="#f87171" strokeWidth={3} /> Fila de Regulação em Tempo Real
           </h2>
-          <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>{priorityPatients.length} casos prioritários</span>
+          <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>{priorityPatients.length} pacientes na fila</span>
         </div>
 
         {priorityPatients.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
-            Não há pacientes em estado crítico na fila no momento.
+            Não há pacientes na fila no momento.
           </div>
         ) : (
           <div className="table-container">
@@ -48,7 +50,7 @@ export default function DashboardQueue({ patients }: { patients: Patient[] }) {
                   <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Paciente</th>
                   <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Origem</th>
                   <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Espera</th>
-                  <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', textAlign: 'right' }}>Ações</th>
+                  <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', textAlign: 'right' }}>Ações de Comunicação</th>
                 </tr>
               </thead>
               <tbody>
@@ -72,24 +74,47 @@ export default function DashboardQueue({ patients }: { patients: Patient[] }) {
                       </div>
                     </td>
                     <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
-                      <button 
-                        onClick={() => setBlastModal({ id: p.id, severity: p.severity })}
-                        style={{ 
-                          background: 'rgba(0, 180, 216, 0.15)', 
-                          color: '#00e5ff', 
-                          border: '1px solid rgba(0, 180, 216, 0.3)', 
-                          padding: '0.4rem 0.8rem', 
-                          borderRadius: '8px', 
-                          fontSize: '0.8rem', 
-                          fontWeight: 700, 
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}
-                      >
-                        <Send size={14} /> Disparo
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button 
+                          onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
+                          style={{ 
+                            background: 'rgba(34, 197, 94, 0.15)', 
+                            color: '#4ade80', 
+                            border: '1px solid rgba(34, 197, 94, 0.3)', 
+                            padding: '0.4rem 0.8rem', 
+                            borderRadius: '8px', 
+                            fontSize: '0.8rem', 
+                            fontWeight: 700, 
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                          title="Cobrar Evolução (WhatsApp/Email)"
+                        >
+                          <MessageCircle size={14} /> Cobrar
+                        </button>
+                        
+                        <button 
+                          onClick={() => setBlastModal({ id: p.id, severity: p.severity })}
+                          style={{ 
+                            background: 'rgba(0, 180, 216, 0.15)', 
+                            color: '#00e5ff', 
+                            border: '1px solid rgba(0, 180, 216, 0.3)', 
+                            padding: '0.4rem 0.8rem', 
+                            borderRadius: '8px', 
+                            fontSize: '0.8rem', 
+                            fontWeight: 700, 
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                          title="Disparo (Busca de Vaga)"
+                        >
+                          <Send size={14} /> Disparo
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -104,6 +129,14 @@ export default function DashboardQueue({ patients }: { patients: Patient[] }) {
           patientId={blastModal.id} 
           severity={blastModal.severity} 
           onClose={() => setBlastModal(null)} 
+        />
+      )}
+
+      {chargeModal && (
+        <ChargeEvolutionModal
+          patientId={chargeModal.id}
+          originHospital={chargeModal.origin}
+          onClose={() => setChargeModal(null)}
         />
       )}
     </div>
