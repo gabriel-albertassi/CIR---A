@@ -40,99 +40,101 @@ export default async function TransferidosPage() {
       </div>
 
       {/* TABELA */}
-      <div className="card" style={{ overflowX: 'auto', padding: '0', backgroundColor: 'var(--surface)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          
-          <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '2px solid var(--border)' }}>
-            <tr>
-              <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Paciente</th>
-              <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Diagnóstico</th>
-              <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Hospital de Origem</th>
-              <th style={{ padding: '1rem 1.5rem', fontWeight: 600, borderLeft: '1px dashed var(--border)' }}>Hospital de Destino</th>
-              <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data da Transferência</th>
-              <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data da Alta/Óbito</th>
-              <th className="no-print" style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Status Final</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {patients.length === 0 ? (
+      <div className="card" style={{ padding: '0', backgroundColor: 'var(--surface)' }}>
+        <div className="table-container">
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            
+            <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '2px solid var(--border)' }}>
               <tr>
-                <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  Nenhum paciente transferido ainda.
-                </td>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Paciente</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Diagnóstico</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Hospital de Origem</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600, borderLeft: '1px dashed var(--border)' }}>Hospital de Destino</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data da Transferência</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data da Alta/Óbito</th>
+                <th className="no-print" style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Status Final</th>
               </tr>
-            ) : null}
+            </thead>
 
-            {patients.map((p, idx) => {
-              const eventLog = p.logs && p.logs.length > 0 ? p.logs[0] : null;
-              
-              let destination = 'Não registrado';
-              if (p.status === 'ALTA') destination = 'Alta Médica';
-              else if (p.status === 'FALECIMENTO') destination = 'Falecimento';
-              else if (eventLog && eventLog.action === 'TRANSFER') destination = eventLog.details || '';
-
-              const transferDateToUse = p.transfer_date ? new Date(p.transfer_date) : 
-                                        (eventLog && eventLog.action === 'TRANSFER' ? new Date(eventLog.timestamp) : new Date(p.created_at));
-              
-              const outcomeDateToUse = p.outcome_date ? new Date(p.outcome_date) : 
-                                       (p.status === 'ALTA' || p.status === 'FALECIMENTO' ? 
-                                          (eventLog && eventLog.action === 'FINAL_STATUS' ? new Date(eventLog.timestamp) : null) 
-                                          : null);
-
-              return (
-                <tr key={p.id} style={{ 
-                  borderBottom: '1px solid var(--border)',
-                  backgroundColor: idx % 2 === 0 ? 'transparent' : 'var(--surface-hover)' 
-                }}>
-                  
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    <div style={{ fontWeight: 600 }}>{p.name}</div>
-                    <span className={`badge badge-${p.severity}`} style={{ marginTop: '0.5rem', display: 'inline-block' }}>
-                      {p.severity}
-                    </span>
+            <tbody>
+              {patients.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    Nenhum paciente transferido ainda.
                   </td>
-
-                  <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
-                    {p.diagnosis}
-                  </td>
-
-                  <td style={{ padding: '1.25rem 1.5rem', fontWeight: 500 }}>
-                    {p.origin_hospital}
-                  </td>
-
-                  <td style={{ padding: '1.25rem 1.5rem', fontWeight: 600, color: '#16a34a', borderLeft: '1px dashed var(--border)' }}>
-                    {destination}
-                  </td>
-
-                  <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
-                    {transferDateToUse.toLocaleDateString('pt-BR')} 
-                    <br/>
-                    <small>{transferDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
-                  </td>
-
-                  <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
-                    {outcomeDateToUse ? (
-                      <>
-                        {outcomeDateToUse.toLocaleDateString('pt-BR')}
-                        <br/>
-                        <small>{outcomeDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
-                      </>
-                    ) : (
-                      <span style={{ color: '#94a3b8' }}>-</span>
-                    )}
-                  </td>
-
-                  <td className="no-print" style={{ padding: '1.25rem 1.5rem' }}>
-                    <FinalStatusActions patientId={p.id} currentStatus={p.status} />
-                  </td>
-
                 </tr>
-              )
-            })}
-          </tbody>
+              ) : null}
 
-        </table>
+              {patients.map((p, idx) => {
+                const eventLog = p.logs && p.logs.length > 0 ? p.logs[0] : null;
+                
+                let destination = 'Não registrado';
+                if (p.status === 'ALTA') destination = 'Alta Médica';
+                else if (p.status === 'FALECIMENTO') destination = 'Falecimento';
+                else if (eventLog && eventLog.action === 'TRANSFER') destination = eventLog.details || '';
+
+                const transferDateToUse = p.transfer_date ? new Date(p.transfer_date) : 
+                                          (eventLog && eventLog.action === 'TRANSFER' ? new Date(eventLog.timestamp) : new Date(p.created_at));
+                
+                const outcomeDateToUse = p.outcome_date ? new Date(p.outcome_date) : 
+                                         (p.status === 'ALTA' || p.status === 'FALECIMENTO' ? 
+                                            (eventLog && eventLog.action === 'FINAL_STATUS' ? new Date(eventLog.timestamp) : null) 
+                                            : null);
+
+                return (
+                  <tr key={p.id} style={{ 
+                    borderBottom: '1px solid var(--border)',
+                    backgroundColor: idx % 2 === 0 ? 'transparent' : 'var(--surface-hover)' 
+                  }}>
+                    
+                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                      <div style={{ fontWeight: 600 }}>{p.name}</div>
+                      <span className={`badge badge-${p.severity}`} style={{ marginTop: '0.5rem', display: 'inline-block' }}>
+                        {p.severity}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
+                      {p.diagnosis}
+                    </td>
+
+                    <td style={{ padding: '1.25rem 1.5rem', fontWeight: 500 }}>
+                      {p.origin_hospital}
+                    </td>
+
+                    <td style={{ padding: '1.25rem 1.5rem', fontWeight: 600, color: '#16a34a', borderLeft: '1px dashed var(--border)' }}>
+                      {destination}
+                    </td>
+
+                    <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
+                      {transferDateToUse.toLocaleDateString('pt-BR')} 
+                      <br/>
+                      <small>{transferDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                    </td>
+
+                    <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
+                      {outcomeDateToUse ? (
+                        <>
+                          {outcomeDateToUse.toLocaleDateString('pt-BR')}
+                          <br/>
+                          <small>{outcomeDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                        </>
+                      ) : (
+                        <span style={{ color: '#94a3b8' }}>-</span>
+                      )}
+                    </td>
+
+                    <td className="no-print" style={{ padding: '1.25rem 1.5rem' }}>
+                      <FinalStatusActions patientId={p.id} currentStatus={p.status} />
+                    </td>
+
+                  </tr>
+                )
+              })}
+            </tbody>
+
+          </table>
+        </div>
       </div>
     </div>
   )

@@ -70,6 +70,7 @@ export default function CallCirilaButton() {
 
   return (
     <div 
+      className="cirila-trigger-btn"
       style={{ 
         position: 'fixed', 
         bottom: '2rem', 
@@ -117,6 +118,17 @@ export default function CallCirilaButton() {
           )}
         </button>
       </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 768px) {
+          .cirila-trigger-btn {
+            left: auto !important;
+            right: 1.5rem !important;
+            bottom: 1.5rem !important;
+            transform: translate(${offset.x}px, ${offset.y}px) !important;
+          }
+        }
+      `}} />
     </div>
   );
 }

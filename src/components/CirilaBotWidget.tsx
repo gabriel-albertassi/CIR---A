@@ -82,7 +82,7 @@ export default function CirilaBotWidget() {
   }
 
   return (
-    <div className="card" style={{ 
+    <div className="card cirila-chat-container" style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       height: isMinimized ? '0' : '85vh', 
@@ -213,6 +213,19 @@ export default function CirilaBotWidget() {
 
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        @media (max-width: 768px) {
+          .cirila-chat-container {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: none !important;
+            border-radius: 0 !important;
+            top: 0 !important;
+            left: 0 !important;
+            transform: none !important;
+            height: 100dvh !important; /* Dynamic viewport height for mobile browsers */
+          }
+        }
       `}} />
     </div>
   );

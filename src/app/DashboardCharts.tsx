@@ -66,7 +66,7 @@ export default function DashboardCharts({ transferredData, severityData }: Props
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
 
         {/* GRÁFICO 1: Destinos de Transferência */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '480px', padding: '1.5rem', overflow: 'hidden' }}>
+        <div className="card chart-card" style={{ display: 'flex', flexDirection: 'column', height: '480px', padding: '1.5rem', overflow: 'hidden' }}>
           
           {/* Header */}
           <div style={{ flexShrink: 0, marginBottom: '0.5rem' }}>
@@ -136,7 +136,7 @@ export default function DashboardCharts({ transferredData, severityData }: Props
         </div>
 
         {/* GRÁFICO 2: Carga da Fila por Retaguarda Médica */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '480px', padding: '1.5rem' }}>
+        <div className="card chart-card" style={{ display: 'flex', flexDirection: 'column', height: '480px', padding: '1.5rem' }}>
           <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#e2e8f0', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>
             Carga da Fila por Retaguarda Médica
           </h3>
@@ -205,4 +205,18 @@ export default function DashboardCharts({ transferredData, severityData }: Props
       </div>
     </>
   );
+}
+
+const responsiveStyles = `
+  @media (max-width: 640px) {
+    .chart-card {
+      height: 400px !important;
+    }
+  }
+`;
+
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = responsiveStyles;
+  document.head.appendChild(style);
 }

@@ -34,6 +34,12 @@ html {
   font-size: 14px; /* Simulates ~87% global zoom */
 }
 
+@media (max-width: 768px) {
+  html {
+    font-size: 13px;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -500,4 +506,96 @@ td select option {
   strong {
     color: #0f172a !important;
   }
+}
+
+/* ================================
+   NEW LAYOUT SYSTEM (Robust Responsive)
+   ================================ */
+
+.sidebar-main {
+  width: 280px;
+  background: rgba(8, 20, 35, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(0, 180, 216, 0.18);
+  box-shadow: 4px 0 32px rgba(0,0,0,0.4);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 150;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.main-viewport {
+  flex: 1;
+  padding: 2.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+  margin-left: 280px; /* Space for sidebar on desktop */
+  min-height: 100vh;
+  transition: margin 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .sidebar-main {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-main.open {
+    transform: translateX(0);
+  }
+
+  .main-viewport {
+    margin-left: 0 !important;
+    padding: 1.5rem !important;
+    padding-top: calc(60px + 1.5rem) !important;
+    max-width: 100% !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+/* Specific fix for jumbled cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1280px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 2rem;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
 }

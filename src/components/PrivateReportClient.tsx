@@ -255,7 +255,7 @@ export default function PrivateReportClient({ byHospital, totalTransfers, genera
                 Nenhuma transferência registrada para este hospital.
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
+              <div className="table-container">
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
                   <thead>
                     <tr style={{ background: 'rgba(0,0,0,0.2)', borderBottom: `1px solid ${col.border}` }}>
