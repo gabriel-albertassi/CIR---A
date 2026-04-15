@@ -133,18 +133,24 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
               <div style={{
                 background: 'linear-gradient(135deg, rgba(0,180,216,0.15), rgba(0,150,200,0.1))',
                 color: '#00d8ff',
-                padding: '0.5rem 1rem',
+                padding: '0.75rem 1rem',
                 borderRadius: '12px',
                 fontWeight: 900,
                 fontSize: '0.9rem',
                 letterSpacing: '1px',
                 border: '1px solid rgba(0,180,216,0.25)',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 gap: '0.4rem'
               }}>
-                <HeartPulse size={16} color="#00d8ff" />
-                SMSVR
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <HeartPulse size={16} color="#00d8ff" />
+                  SMSVR
+                </div>
+                <div style={{ fontSize: '0.62rem', fontWeight: 700, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Secretaria Municipal de Saúde
+                </div>
               </div>
             </a>
             <div style={{
@@ -152,9 +158,15 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
               border: '1px solid rgba(0,216,255,0.18)',
               borderRadius: '12px',
               padding: '0.9rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.25rem'
             }}>
               <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase' }}>Desenvolvido por</div>
-              <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: '0.9rem' }}>Gabriel Albertassi</div>
+              <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: '0.92rem' }}>Gabriel Albertassi</div>
+              <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '4px' }}>
+                Volta Redonda • Versão 1.0.0
+              </div>
             </div>
           </div>
         </aside>
@@ -162,6 +174,85 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
         {/* MAIN CONTENT */}
         <main className="main-viewport">
           {children}
+
+          {/* MOBILE ONLY FOOTER */}
+          <footer className="mobile-only" style={{
+            marginTop: '3rem',
+            padding: '2rem 1rem',
+            flexDirection: 'column',
+            gap: '2rem',
+            background: 'rgba(8, 20, 35, 0.4)',
+            borderTop: '1px solid rgba(0, 180, 216, 0.15)',
+            alignItems: 'center',
+            textAlign: 'center'
+          }}>
+            {/* EMBLEM & PHRASES */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ 
+                width: '80px', 
+                height: '80px', 
+                background: 'rgba(0,216,255,0.06)', 
+                borderRadius: '50%', 
+                padding: '10px', 
+                border: '1.5px solid rgba(0,216,255,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <img src="/cirila_icone.png" alt="Cirila Avatar" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }}>
+                  CIR-A: A inteligência que regula.
+                </span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#00e5ff', lineHeight: 1.2 }}>
+                  Cirila: A inteligência que cuida.
+                </span>
+              </div>
+            </div>
+
+            {/* CREDITS BLOCK */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '300px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(0,180,216,0.15), rgba(0,150,200,0.1))',
+                color: '#00d8ff',
+                padding: '0.75rem 1rem',
+                borderRadius: '12px',
+                fontWeight: 900,
+                fontSize: '0.85rem',
+                letterSpacing: '0.5px',
+                border: '1px solid rgba(0,180,216,0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.3rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <HeartPulse size={14} color="#00d8ff" />
+                  SMSVR
+                </div>
+                <div style={{ fontSize: '0.58rem', fontWeight: 700, opacity: 0.8, textTransform: 'uppercase' }}>
+                  Secretaria Municipal de Saúde
+                </div>
+              </div>
+
+              <div style={{
+                background: 'rgba(0,216,255,0.05)',
+                border: '1px solid rgba(0,216,255,0.18)',
+                borderRadius: '12px',
+                padding: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.25rem'
+              }}>
+                <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase' }}>Desenvolvido por</div>
+                <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: '0.9rem' }}>Gabriel Albertassi</div>
+                <div style={{ fontSize: '0.6rem', color: '#94a3b8', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '4px' }}>
+                  Volta Redonda • Versão 1.0.0
+                </div>
+              </div>
+            </div>
+          </footer>
         </main>
       </div>
 
