@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIR-A | Fila dinâmica de Pacientes</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-deep: #020617;
+            --surface: rgba(15, 23, 42, 0.7);
+            --primary: #00d8ff;
+            --secondary: #818cf8;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(0, 216, 255, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            background-image: radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.15) 0px, transparent 50%);
+        }
+
+        aside {
+            width: 260px;
+            background: rgba(8, 20, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: fixed;
+            z-index: 100;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.85rem 1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover, nav a.active { background: rgba(255, 255, 255, 0.05); color: var(--text); }
+        nav a.active { background: rgba(0, 216, 255, 0.1); color: var(--primary); border: 1px solid var(--glass-border); }
+
+        main { margin-left: 260px; flex: 1; padding: 2.5rem; max-width: 1400px; }
+
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { 
+            padding: 1.25rem 1.5rem; 
+            background: rgba(255,255,255,0.03); 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            color: var(--text-dim); 
+            border-bottom: 1px solid var(--border);
+        }
+        td { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .badge-CRITICAL { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-HIGH { background: rgba(249, 115, 22, 0.2); color: #fdba74; border: 1px solid rgba(249,115,22,0.3); }
+        .badge-MEDIUM { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-action:hover { background: var(--primary); color: #000; }
+
+        /* Animation */
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        tr { animation: slideIn 0.4s ease forwards; }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div style="font-weight: 800; font-size: 1.4rem; color: #fff; margin-bottom: 2rem; display: flex; gap: 10px; align-items: center;">
+            <i data-lucide="shield-check" color="#00d8ff"></i> CIR-A
+        </div>
+        <nav>
+            <a href="index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="fila.html" class="active"><i data-lucide="users"></i> Fila de Pacientes</a>
+            <a href="relatorio.html"><i data-lucide="file-bar-chart"></i> Contratos Privados</a>
+            <a href="apresentacao.html"><i data-lucide="presentation"></i> Slides Institucionais</a>
+        </nav>
+    </aside>
+
+    <main>
+        <div style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h1 style="font-size: 1.875rem; font-weight: 800; color: #f1f5f9; margin-bottom: 0.5rem;">Fila Dinâmica</h1>
+                <p style="color: var(--text-dim); font-weight: 500;">Ordenação inteligente baseada em gravidade e tempo.</p>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-bottom: 5px;">
+                <div style="background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--border); font-size: 0.9rem;">
+                    <strong>Total:</strong> 22 Pacientes
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Gravidade</th>
+                        <th>Paciente</th>
+                        <th>Diagnóstico / Origem</th>
+                        <th>Tempo de Espera</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--danger);">
+                        <td><span class="badge badge-CRITICAL">Crítico (Vaga Zero)</span></td>
+                        <td><strong>Ricardo Alvez</strong><br><small style="color: var(--danger); font-weight: 700;">Score: 120 pts</small></td>
+                        <td>Infarto Agudo do Miocárdio<br><small style="color: var(--text-dim);">Origem: HSJB</small></td>
+                        <td><i data-lucide="clock" size="14" style="vertical-align: middle;"></i> 45 min</td>
+                        <td>
+                            <button class="btn-action" style="background: var(--primary); color: #000; border: none;">Solicitar Leito</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-HIGH">Alta Gravidade (CTI)</span></td>
+                        <td><strong>Elza Pereira</strong><br><small style="color: var(--text-dim);">Score: 45 pts</small></td>
+                        <td>Insuficiência Respiratória<br><small style="color: var(--text-dim);">Origem: UPA Sto Agostinho</small></td>
+                        <td><i data-lucide="clock" size="14" style="vertical-align: middle;"></i> 4.2h</td>
+                        <td>
+                            <button class="btn-action">Evoluir</button>
+                            <button class="btn-action">Solicitar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-MEDIUM">Médio Risco (Clínica)</span></td>
+                        <td><strong>Fabio Souza</strong><br><small style="color: var(--text-dim);">Score: 15 pts</small></td>
+                        <td>Pneumonia Bacteriana<br><small style="color: var(--text-dim);">Origem: Hospital Retiro</small></td>
+                        <td><i data-lucide="clock" size="14" style="vertical-align: middle;"></i> 18.5h</td>
+                        <td>
+                            <button class="btn-action">Solicitar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 2rem; padding: 2rem; background: rgba(129, 140, 248, 0.05); border: 1px dashed var(--secondary); border-radius: 20px; display: flex; align-items: center; gap: 2rem;">
+            <div style="width: 60px; height: 60px; background: rgba(129, 140, 248, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--secondary);">
+                <i data-lucide="brain"></i>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="color: var(--secondary); margin-bottom: 0.5rem;">Inteligência Cirila na Fila</h3>
+                <p style="color: var(--text-dim); font-size: 0.95rem;">A fila é atualizada a cada minuto. O score pondera o estado clínico (gravidade) multiplicado pelo tempo de espera, garantindo que nenhum paciente crítico seja esquecido.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

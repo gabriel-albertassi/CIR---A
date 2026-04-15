@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIR-A | Relatório de Contratos Privados</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-deep: #020617;
+            --surface: rgba(15, 23, 42, 0.7);
+            --primary: #00d8ff;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(0, 216, 255, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            background-image: radial-gradient(at 100% 0%, rgba(30, 58, 138, 0.15) 0px, transparent 50%);
+        }
+
+        aside {
+            width: 260px;
+            background: rgba(8, 20, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: fixed;
+            z-index: 100;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.85rem 1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover, nav a.active { background: rgba(255, 255, 255, 0.05); color: var(--text); }
+        nav a.active { background: rgba(0, 216, 255, 0.1); color: var(--primary); border: 1px solid var(--glass-border); }
+
+        main { margin-left: 260px; flex: 1; padding: 2.5rem; max-width: 1400px; }
+
+        .report-section {
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .report-header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hosp-badge {
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { padding: 1rem 1.5rem; color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); text-align: left; }
+        td { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+        .btn-print {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-print:hover { background: var(--text); color: #000; }
+
+        @media print {
+            .no-print { display: none !important; }
+            aside { display: none !important; }
+            main { margin-left: 0 !important; padding: 0 !important; }
+            .report-section { border: 1px solid #000 !important; background: #fff !important; color: #000 !important; }
+            td, th { color: #000 !important; border-bottom: 1px solid #eee !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="no-print">
+        <div style="font-weight: 800; font-size: 1.4rem; color: #fff; margin-bottom: 2rem; display: flex; gap: 10px; align-items: center;">
+            <i data-lucide="shield-check" color="#00d8ff"></i> CIR-A
+        </div>
+        <nav>
+            <a href="index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="fila.html"><i data-lucide="users"></i> Fila de Pacientes</a>
+            <a href="relatorio.html" class="active"><i data-lucide="file-bar-chart"></i> Contratos Privados</a>
+            <a href="apresentacao.html"><i data-lucide="presentation"></i> Slides Institucionais</a>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="no-print" style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h1 style="font-size: 1.875rem; font-weight: 800; color: #f1f5f9; margin-bottom: 0.5rem;">Relatórios de Contratos</h1>
+                <p style="color: var(--text-dim); font-weight: 500;">Monitoramento de transferências para rede privada.</p>
+            </div>
+            <button class="btn-print" onclick="window.print()">
+                <i data-lucide="printer"></i> Imprimir Tudo
+            </button>
+        </div>
+
+        <!-- FOA SECTION -->
+        <div class="report-section">
+            <div class="report-header" style="background: rgba(245, 158, 11, 0.1);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i data-lucide="building-2" color="#f59e0b"></i>
+                    <h2 style="font-size: 1.1rem; font-weight: 800;">Hospital H.FOA</h2>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <span class="hosp-badge" style="background: rgba(245,158,11,0.2); color: #f59e0b;">14 Transferências</span>
+                    <button class="btn-print no-print" style="font-size: 0.75rem; padding: 5px 10px;">Imprimir NIR</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Diagnóstico</th>
+                        <th>Origem</th>
+                        <th>Permanência</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Antonio C.</strong></td>
+                        <td>Sepse Foco Abdominal</td>
+                        <td>Uerj</td>
+                        <td>12 dias</td>
+                        <td><span style="color: #4ade80; font-weight: 700;">Concluído</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Marlene R.</strong></td>
+                        <td>Pós-Operatório Ortopédico</td>
+                        <td>HSJB</td>
+                        <td>5 dias</td>
+                        <td><span style="color: #60a5fa; font-weight: 700;">Em Leito</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SANTA CECILIA SECTION -->
+        <div class="report-section">
+            <div class="report-header" style="background: rgba(139, 92, 246, 0.1);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i data-lucide="building-2" color="#8b5cf6"></i>
+                    <h2 style="font-size: 1.1rem; font-weight: 800;">Hospital Santa Cecília</h2>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <span class="hosp-badge" style="background: rgba(139,92,246,0.2); color: #8b5cf6;">08 Transferências</span>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Diagnóstico</th>
+                        <th>Origem</th>
+                        <th>Permanência</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Igor Lima</strong></td>
+                        <td>Acidente Vascular Cerebral</td>
+                        <td>UPC</td>
+                        <td>22 dias</td>
+                        <td><span style="color: #4ade80; font-weight: 700;">Concluído</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

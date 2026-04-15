@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIR-A | Apresentação (Slides)</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-deep: #020617;
+            --surface: rgba(15, 23, 42, 0.7);
+            --primary: #00d8ff;
+            --secondary: #818cf8;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        aside {
+            width: 260px;
+            background: rgba(8, 20, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 100;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.85rem 1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        nav a:hover, nav a.active { background: rgba(255, 255, 255, 0.05); color: var(--text); }
+        nav a.active { background: rgba(0, 216, 255, 0.1); color: var(--primary); border: 1px solid rgba(0, 216, 255, 0.2); }
+
+        .presentation-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+        }
+
+        .slide {
+            position: absolute;
+            width: 90%;
+            height: 80%;
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .slide h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .slide p {
+            font-size: 1.4rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            max-width: 800px;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 3rem;
+            right: 4rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 200;
+        }
+
+        .btn-slide {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-slide:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px rgba(0, 216, 255, 0.4); border-color: transparent; }
+
+        .slide-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        .indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transition: 0.3s;
+        }
+        .indicator-dot.active { background: var(--primary); width: 24px; border-radius: 4px; }
+        
+        .highlight { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div style="font-weight: 800; font-size: 1.4rem; color: #fff; margin-bottom: 2rem; display: flex; gap: 10px; align-items: center;">
+            <i data-lucide="shield-check" color="#00d8ff"></i> CIR-A
+        </div>
+        <nav>
+            <a href="index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="fila.html"><i data-lucide="users"></i> Fila de Pacientes</a>
+            <a href="relatorio.html"><i data-lucide="file-bar-chart"></i> Contratos Privados</a>
+            <a href="apresentacao.html" class="active"><i data-lucide="presentation"></i> Slides Institucionais</a>
+        </nav>
+    </aside>
+
+    <div class="presentation-container">
+        <!-- SLIDE 1: Capa -->
+        <div class="slide active">
+            <h2 style="font-size: 4.5rem;">O Futuro da <span class="highlight">Regulação</span> Municipal</h2>
+            <p>Projeto CIR-A: Central Inteligente de Regulação Automatizada. Eficiência, Transparência e Cuidado no centro da gestão de vagas.</p>
+        </div>
+
+        <!-- SLIDE 2: O Desafio -->
+        <div class="slide">
+            <h2>O <span class="highlight">Desafio</span> Atual</h2>
+            <p>Processos manuais, falta de visibilidade em tempo real e lentidão na priorização de casos críticos geram insegurança tanto para o profissional quanto para o paciente.</p>
+        </div>
+
+        <!-- SLIDE 3: A Solução -->
+        <div class="slide">
+            <h2>A Solução: <span class="highlight">CIR-A</span></h2>
+            <p>Um ecossistema digital que automatiza o score de gravidade, cruza dados hospitalares em segundos e monitora contratos privados de forma proativa.</p>
+        </div>
+
+        <!-- SLIDE 4: Cirila -->
+        <div class="slide">
+            <h2>Conheça a <span class="highlight">Cirila</span></h2>
+            <p>Nossa interface inteligente. A humanização da IA aplicada à saúde. Ela prevê gargalos, dispara comunicados urgentes e garante que a prioridade seja sempre de quem mais precisa.</p>
+        </div>
+
+        <!-- SLIDE 5: Transparência -->
+        <div class="slide">
+            <h2>Gestão de <span class="highlight">Contratos</span></h2>
+            <p>Monitoramento rigoroso dos leitos contratualizados na rede privada (H.FOA, HSC, Viver Mais). Transparência total sobre para onde o recurso municipal está sendo direcionado.</p>
+        </div>
+
+        <!-- SLIDE 6: Conclusão -->
+        <div class="slide">
+            <h2>Saúde com <span class="highlight">Tecnologia</span></h2>
+            <p>O CIR-A não é apenas software, é uma nova cultura de regulação. Mais rápida, mais justa e focada em salvar vidas através da inteligência de dados.</p>
+        </div>
+
+        <div class="controls">
+            <div class="btn-slide" onclick="prevSlide()"><i data-lucide="chevron-left"></i></div>
+            <div class="btn-slide" onclick="nextSlide()"><i data-lucide="chevron-right"></i></div>
+        </div>
+
+        <div class="slide-indicator" id="indicators"></div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const indicatorsContainer = document.getElementById('indicators');
+
+        // Create dots
+        slides.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = `indicator-dot ${i === 0 ? 'active' : ''}`;
+            indicatorsContainer.appendChild(dot);
+        });
+
+        function showSlide(index) {
+            slides.forEach((s, i) => {
+                s.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.indicator-dot').forEach((d, i) => {
+                d.classList.toggle('active', i === index);
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+</html>

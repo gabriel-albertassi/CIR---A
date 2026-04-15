@@ -1,0 +1,21 @@
+PACOTE DE APRESENTAÇÃO CIR-A (PORTÁTIL)
+=====================================
+
+Esta pasta contém a versão demonstrativa para ser aberta em qualquer computador.
+
+ONDE ESTÁ: 
+Você a encontrará em: \public\apresentacao
+
+COMO USAR:
+1. Copie a pasta 'apresentacao' inteira para o seu pendrive.
+2. No computador da Regulação, abra o arquivo 'index.html'.
+3. Use o menu lateral para navegar entre o Dashboard, a Fila e os Slides.
+
+CONTEÚDO:
+- index.html: Dashboard Geral
+- apresentacao.html: Slides da Apresentação
+- fila.html: Mockup da Fila inteligente
+- relatorio.html: Monitoramento de Hospitais
+
+IMPORTANTE:
+Para a 'Cirila' aparecer, lembre-se de copiar o arquivo 'cirila_1.png' (da pasta public original) para dentro desta pasta 'apresentacao'.

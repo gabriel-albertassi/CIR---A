@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String  @id @default(uuid())
+  name          String
+  email         String  @unique
+  password_hash String
+  role          String  @default("REGULATOR") // ADMIN, REGULATOR
+  logs          Log[]
+}
+
+model Patient {
+  id               String   @id @default(uuid())
+  name             String
+  origin_hospital  String
+  diagnosis        String
+  severity         String   // LOW, MEDIUM, HIGH, CRITICAL
+  status           String   @default("WAITING") // WAITING, OFFERED, TRANSFERRED, CANCELLED
+  created_at       DateTime @default(now())
+  attempts_count   Int      @default(0)
+  last_offer_date  DateTime?
+  observations     String?
+  transfer_date    DateTime?
+  outcome_date     DateTime?
+  logs             Log[]
+}
+
+model Log {
+  id         String   @id @default(uuid())
+  patient    Patient  @relation(fields: [patient_id], references: [id])
+  patient_id String
+  user       User?    @relation(fields: [user_id], references: [id])
+  user_id    String?
+  action     String   // REGISTER, OFFER, TRANSFER, CANCEL, STATUS_UPDATE
+  details    String?
+  timestamp  DateTime @default(now())
+}
+
+model BedAvailability {
+  id             String   @id @default(uuid())
+  hospital_name  String   @unique
+  cti_masc       Int      @default(0)
+  cti_fem        Int      @default(0)
+  clinica_masc   Int      @default(0)
+  clinica_fem    Int      @default(0)
+  sem_vagas      Boolean  @default(false)
+  updated_at     DateTime @updatedAt
+}
