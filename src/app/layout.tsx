@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import LayoutClientWrapper from '../components/LayoutClientWrapper'
-import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
+import { createClient } from '../lib/supabase/server'
+import { prisma } from '../lib/prisma'
 
 export const metadata: Metadata = {
   title: 'CIR-A | Sistema de Regulação Assistida',
