@@ -1,4 +1,4 @@
-import { prisma } from '../../lib/prisma'
+import { prisma } from '../../lib/db'
 import ClientQueue from './ClientQueue'
 import { calculatePatientScore } from '../../lib/scoring'
 import Link from 'next/link'

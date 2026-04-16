@@ -1,4 +1,4 @@
-import { prisma } from '../../lib/prisma'
+import { prisma } from '../../lib/db'
 import { ALL_HOSPITALS } from '../../lib/constants'
 import VagasForm from './VagasForm'
 

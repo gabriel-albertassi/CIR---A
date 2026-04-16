@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma'
+import { prisma } from '../lib/db'
 import { Clock, Ambulance, AlertCircle, CheckCircle2, Bot, Sparkles, Zap, Brain, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import DashboardCharts from './DashboardCharts'
@@ -7,7 +7,7 @@ import PrivateHospitalsChart from '@/components/PrivateHospitalsChart'
 import InteractiveCirilaPanel from '@/components/InteractiveCirilaPanel'
 import { PRIVATE_HOSPITALS } from '@/lib/constants'
 import DashboardQueue from '@/components/DashboardQueue'
-import { createClient } from '../lib/supabase/server'
+import { createClient } from '../lib/supabase/sb-server'
 
 export const dynamic = 'force-dynamic'
 

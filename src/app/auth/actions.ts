@@ -1,7 +1,7 @@
 'use server'
 
-import { createClient } from '../../lib/supabase/server'
-import { prisma } from '../../lib/prisma'
+import { createClient } from '../../lib/supabase/sb-server'
+import { prisma } from '../../lib/db'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 

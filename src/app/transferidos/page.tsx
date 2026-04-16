@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma'
-import PrintButton from '@/components/PrintButton'
+import { prisma } from '../../lib/prisma'
+import { PrintButton } from '../../components/PrintButton'
 import FinalStatusActions from './FinalStatusActions'
 
 export const dynamic = 'force-dynamic'
