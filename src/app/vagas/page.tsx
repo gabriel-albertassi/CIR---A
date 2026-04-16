@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma'
-import { ALL_HOSPITALS } from '@/lib/constants'
+import { prisma } from '../../lib/prisma'
+import { ALL_HOSPITALS } from '../../lib/constants'
 import VagasForm from './VagasForm'
 
 export const dynamic = 'force-dynamic'

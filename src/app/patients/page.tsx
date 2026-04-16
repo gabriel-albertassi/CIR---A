@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '../../lib/prisma'
 import ClientQueue from './ClientQueue'
-import { calculatePatientScore } from '@/lib/scoring'
+import { calculatePatientScore } from '../../lib/scoring'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
