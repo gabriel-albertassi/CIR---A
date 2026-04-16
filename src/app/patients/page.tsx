@@ -2,10 +2,18 @@ import { prisma } from '../../lib/db'
 import ClientQueue from './ClientQueue'
 import { calculatePatientScore } from '../../lib/scoring'
 import Link from 'next/link'
+import { createClient } from '../../lib/supabase/sb-server'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PatientsPage() {
+  const supabase = await createClient()
+  const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+  
+  const user = await prisma.user.findUnique({
+    where: { id: supabaseUser?.id }
+  })
+
   const patientsDB = await prisma.patient.findMany({
     where: {
       status: {
@@ -56,7 +64,7 @@ export default async function PatientsPage() {
         </div>
       </div>
 
-      <ClientQueue initialPatients={processedPatients} />
+      <ClientQueue initialPatients={processedPatients} user={user} />
     </div>
   )
 }

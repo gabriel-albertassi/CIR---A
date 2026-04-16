@@ -1,10 +1,18 @@
 import { prisma } from '../../lib/db'
-import { PrintButton } from '../../components/PrintButton'
+import PrintButton from '../../components/PrintButton'
 import FinalStatusActions from './FinalStatusActions'
+import { createClient } from '../../lib/supabase/sb-server'
 
 export const dynamic = 'force-dynamic'
 
 export default async function TransferidosPage() {
+  const supabase = await createClient()
+  const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+  
+  const user = await prisma.user.findUnique({
+    where: { id: supabaseUser?.id }
+  })
+
   const patients = await prisma.patient.findMany({
     where: {
       status: { in: ['TRANSFERRED', 'ALTA', 'FALECIMENTO'] }
@@ -35,7 +43,7 @@ export default async function TransferidosPage() {
           </p>
         </div>
         <div className="no-print" style={{ paddingTop: '0.5rem' }}>
-          <PrintButton />
+          <PrintButton user={user} />
         </div>
       </div>
 

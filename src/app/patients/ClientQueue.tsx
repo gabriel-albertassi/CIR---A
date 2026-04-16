@@ -37,7 +37,7 @@ function formatHours(dateString: Date) {
   return `${(diffHours/24).toFixed(1)} dias`;
 }
 
-export default function ClientQueue({ initialPatients }: { initialPatients: PatientData[] }) {
+export default function ClientQueue({ initialPatients, user }: { initialPatients: PatientData[], user: any }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [aiSuggestion, setAiSuggestion] = useState<Record<string, string>>({});
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
@@ -183,7 +183,7 @@ export default function ClientQueue({ initialPatients }: { initialPatients: Pati
         </div>
         
         <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-end' }}>
-          <PrintButton />
+          <PrintButton user={user} />
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <div style={{ position: 'relative', minWidth: '280px' }}>
               <div style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', left: '12px', color: '#94a3b8' }}>
