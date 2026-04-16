@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ShieldCheck, Brain, Zap, HeartPulse, ArrowRight, UserPlus, LogIn, Mail, Lock, User } from 'lucide-react'
-import { login, signup } from '@/app/auth/actions'
+import { login, signup } from '../auth/actions'
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)

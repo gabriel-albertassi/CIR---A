@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import CirilaBotWidget from './CirilaBotWidget'
 import CallCirilaButton from './CallCirilaButton'
-import { logout } from '@/app/auth/actions'
+import { logout } from '../app/auth/actions'
 
 interface User {
   id: string
