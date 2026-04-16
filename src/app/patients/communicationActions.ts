@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '../../lib/db'
 import { HOSPITAL_CONTACTS, PRIVATE_HOSPITALS } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
 

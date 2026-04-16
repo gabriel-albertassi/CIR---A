@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '../../lib/db'
 import { PRIVATE_HOSPITALS } from '@/lib/constants'
 import PrivateReportClient from '@/components/PrivateReportClient'
 
