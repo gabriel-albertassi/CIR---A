@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { askCirila, CirilaResponse } from '@/app/api/cirilaActions';
+import { askCirila, CirilaResponse } from '../app/api/cirilaActions';
 import { Send, Paperclip, Bot, Bell, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 

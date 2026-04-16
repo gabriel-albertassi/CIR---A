@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { sendMassBedRequest } from '@/app/patients/communicationActions';
+import { sendMassBedRequest } from '../app/patients/communicationActions';
 import { X, Send } from 'lucide-react';
 
 export default function MassBlastModal({ patientId, severity, onClose }: { patientId: string, severity: string, onClose: () => void }) {

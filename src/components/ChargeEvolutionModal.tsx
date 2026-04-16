@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { sendEvolutionCharge } from '@/app/patients/communicationActions';
+import { sendEvolutionCharge } from '../app/patients/communicationActions';
 import { X, MessageCircle, Mail } from 'lucide-react';
 
 export default function ChargeEvolutionModal({ patientId, originHospital, onClose }: { patientId: string, originHospital: string, onClose: () => void }) {
