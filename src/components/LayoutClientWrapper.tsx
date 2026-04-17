@@ -40,11 +40,22 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
   return (
     <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
       
+      {/* BOTÃO HAMBÚRGUER FLUTUANTE PARA MOBILE */}
+      {!isLoginPage && (
+        <button 
+          className="mobile-toggle"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Abrir Menu"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      )}
+
       <div style={{ display: 'flex', flex: 1, paddingTop: '0' }}>
         {/* SIDEBAR */}
         <aside className={`sidebar-main ${isMobileMenuOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
           {/* LOGO & BRANDING */}
-          <div className="logo-container-glow" style={{ marginBottom: '2rem', marginTop: '1.5rem', position: 'relative', height: '100px', width: '100%' }}>
+          <div className="logo-container-glow" style={{ marginBottom: '1.5rem', marginTop: '1rem', position: 'relative', height: '80px', width: '100%' }}>
             <Image
               src="/logo.png"
               alt="Logo CIR-A"
@@ -52,9 +63,8 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               priority
               style={{
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 0 12px rgba(0,216,255,0.3))'
+                filter: 'drop-shadow(0 0 10px rgba(0,216,255,0.2))'
               }}
-              className="logo-hover"
             />
           </div>
 

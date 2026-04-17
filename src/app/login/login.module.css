@@ -92,10 +92,11 @@
 }
 
 .loginTitle {
-  font-size: 1.5rem; /* Mais compacto */
+  font-size: 1.6rem;
   font-weight: 900;
-  color: #ffffff;
+  color: #f8fafc;
   line-height: 1.1;
+  letter-spacing: -1px;
   margin-bottom: 0.5rem;
 }
 
@@ -106,7 +107,7 @@
 }
 
 .loginSubtitle {
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   color: #94a3b8;
   line-height: 1.5;
   margin: 0.2rem 0 0;
@@ -115,10 +116,10 @@
 
 /* ── FORM ── */
 .loginFormContainer {
-  background: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(0, 216, 255, 0.15);
   border-radius: 20px;
-  padding: 1.25rem;
+  padding: 1.5rem;
   backdrop-filter: blur(12px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
@@ -159,38 +160,38 @@
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.6rem; /* Mais espaçamento para não embaralhar */
-  margin-bottom: 4px;
+  gap: 0.5rem;
+  margin-bottom: 6px;
 }
 
 .inputGroup label svg {
   color: #00d8ff;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .loginSubmitBtn {
   margin-top: 1rem;
-  background: rgba(0, 216, 255, 0.1);
-  height: 52px;
-  border-radius: 12px;
-  font-weight: 800;
+  background: rgba(0, 216, 255, 0.05);
+  height: 48px;
+  border-radius: 10px;
+  font-weight: 700;
   color: #00d8ff;
   border: 1px solid rgba(0, 216, 255, 0.3);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  transition: all 0.3s;
+  gap: 0.75rem;
+  transition: all 0.2s;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
 }
 
 .loginSubmitBtn:hover {
-  background: rgba(0, 216, 255, 0.2);
+  background: rgba(0, 216, 255, 0.15);
   border-color: #00d8ff;
-  color: #fff;
-  box-shadow: 0 0 20px rgba(0, 216, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 216, 255, 0.2);
 }
 
 .loginSubmitBtn svg {

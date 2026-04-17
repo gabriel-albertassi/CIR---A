@@ -535,22 +535,22 @@ td select option {
 }
 
 .sidebar-main {
-  width: 280px;
-  background: rgba(8, 20, 35, 0.96);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-right: 1px solid rgba(0, 180, 216, 0.15);
-  box-shadow: 2px 0 20px rgba(0,0,0,0.3);
-  padding: 2rem 1.5rem;
+  width: 260px; /* Reduzido de 280px para ficar mais leve */
+  background: rgba(8, 20, 35, 0.98);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(0, 180, 216, 0.2);
+  box-shadow: 4px 0 30px rgba(0,0,0,0.4);
+  padding: 2rem 1.25rem;
   display: flex;
   flex-direction: column;
   position: fixed;
   height: 100vh;
   left: 0;
   top: 0;
-  z-index: 150;
+  z-index: 1000;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow-y: auto; /* Permite rolagem se os itens não couberem */
+  overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 216, 255, 0.2) transparent;
 }
@@ -571,13 +571,61 @@ td select option {
 .main-viewport {
   flex: 1;
   padding: 2.5rem;
-  margin-left: 280px;
+  margin-left: 260px; /* Ajustado para acompanhar a sidebar */
   min-height: 100vh;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sidebar-main.collapsed + .main-viewport {
   margin-left: 80px;
+}
+
+/* BOTÃO HAMBÚRGUER FLUTUANTE (Discreto) */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 1100;
+  background: rgba(0, 216, 255, 0.15);
+  border: 1px solid rgba(0, 216, 255, 0.3);
+  backdrop-filter: blur(8px);
+  color: #00d8ff;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: all 0.2s;
+}
+
+.mobile-toggle:hover {
+  background: rgba(0, 216, 255, 0.25);
+  transform: scale(1.05);
+}
+
+@media (max-width: 1024px) {
+  .sidebar-main {
+    top: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    width: 280px !important; /* Mobile volta ao padrão seguro */
+  }
+  
+  .sidebar-main.open {
+    transform: translateX(0);
+  }
+  
+  .main-viewport {
+    margin-left: 0 !important;
+    padding: 1.5rem;
+  }
+  
+  .mobile-toggle {
+    display: flex;
+  }
 }
 
 /* No mobile, as classes mudam */
