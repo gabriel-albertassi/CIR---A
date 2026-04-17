@@ -37,6 +37,7 @@ export async function signup(formData: FormData) {
       data: {
         full_name: name,
       },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://cir-a-fo1k.vercel.app'}/auth/callback`,
     },
   })
 

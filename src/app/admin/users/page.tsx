@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getAllUsers, updateUserPermissions } from '../actions'
-import { ShieldCheck, ShieldAlert, User, Check, X, Loader2, Search, Filter } from 'lucide-react'
+import { getAllUsers, updateUserPermissions, deleteUserAction } from '../actions'
+import { ShieldCheck, ShieldAlert, User, Check, X, Loader2, Search, Filter, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export default function AdminUsersPage() {
@@ -34,6 +34,18 @@ export default function AdminUsersPage() {
   async function handleToggle(userId: string, field: string, value: any) {
     setUpdatingId(`${userId}-${field}`)
     const res = await updateUserPermissions(userId, { [field]: value })
+    if (res.error) alert(res.error)
+    else await fetchUsers()
+    setUpdatingId(null)
+  }
+
+  async function handleDelete(userId: string, userName: string) {
+    if (!confirm(`Tem certeza que deseja excluir o operador "${userName}"?\n\nEsta ação removerá o acesso dele ao sistema, mas você ainda precisará removê-lo manualmente no painel do Supabase se desejar deletar a conta permanentemente.`)) {
+      return
+    }
+
+    setUpdatingId(`${userId}-delete`)
+    const res = await deleteUserAction(userId)
     if (res.error) alert(res.error)
     else await fetchUsers()
     setUpdatingId(null)
@@ -95,6 +107,7 @@ export default function AdminUsersPage() {
                 <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Cargo (Role)</th>
                 <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Cancelar Pac.</th>
                 <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Imprimir Rel.</th>
+                <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', textAlign: 'center' }}>Excluir</th>
               </tr>
             </thead>
             <tbody>
@@ -149,6 +162,24 @@ export default function AdminUsersPage() {
                         isLoading={updatingId === `${u.id}-canPrintReports`}
                         onClick={() => handleToggle(u.id, 'canPrintReports', !u.canPrintReports)}
                       />
+                    </td>
+                    <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center' }}>
+                      <button
+                        onClick={() => handleDelete(u.id, u.name)}
+                        disabled={updatingId === `${u.id}-delete`}
+                        style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                          color: '#f87171',
+                          padding: '0.5rem',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        title="Excluir Operador"
+                      >
+                        {updatingId === `${u.id}-delete` ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                      </button>
                     </td>
                   </tr>
                 ))

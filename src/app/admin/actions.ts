@@ -48,3 +48,36 @@ export async function getAllUsers() {
     orderBy: { createdAt: 'desc' }
   })
 }
+
+export async function deleteUserAction(userId: string) {
+  const supabase = await createClient()
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+
+  if (!currentUser) return { error: 'Não autenticado.' }
+
+  // 1. Verificar se quem executa é ADMIN
+  const admin = await prisma.user.findUnique({
+    where: { id: currentUser.id }
+  })
+
+  if (admin?.role !== 'ADMIN') {
+    return { error: 'Acesso negado. Apenas administradores podem excluir usuários.' }
+  }
+
+  // 2. Impedir que o admin se exclua
+  if (userId === currentUser.id) {
+    return { error: 'Você não pode excluir sua própria conta administrativa.' }
+  }
+
+  try {
+    // 3. Remover do Prisma (o Auth do Supabase precisará ser removido no painel se não houver service key)
+    await prisma.user.delete({
+      where: { id: userId }
+    })
+    
+    revalidatePath('/admin/users')
+    return { success: true }
+  } catch (error: any) {
+    return { error: `Erro ao remover usuário: ${error.message}` }
+  }
+}
