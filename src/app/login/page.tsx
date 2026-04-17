@@ -214,7 +214,10 @@ export default function LoginPage() {
         {/* === COLUNA DIREITA — CIRILA HERO === */}
         <div className={styles.loginRight}>
           <div className={styles.loginRightContainer}>
-            <div className={`${styles.loginHolo} ${styles.holo3}`}><span className={`${styles.holoDot} ${styles.holoDotGreen}`} /><span>IA Online</span></div>
+            <div className={`${styles.loginHolo} ${styles.holo3}`}>
+              <span className={`${styles.holoDot} ${styles.holoDotGreen}`} />
+              <span>I.A Online</span>
+            </div>
             <div className={`${styles.loginHolo} ${styles.holo4}`}><Brain size={14} /><span>Cirila Ativa</span></div>
             <div className={`${styles.loginHolo} ${styles.holo5}`}><Sparkles size={14} /><span>Conte sempre comigo</span></div>
             <div className={`${styles.loginHolo} ${styles.holo6}`}><HeartPulse size={14} /><span>Sempre pronta para te ajudar</span></div>

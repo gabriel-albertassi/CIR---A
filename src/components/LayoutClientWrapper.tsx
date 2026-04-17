@@ -40,65 +40,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
   return (
     <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
       
-      {/* HEADER PRINCIPAL (Contém o Hambúrguer) */}
-      <header className="main-app-header" style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '70px',
-        background: 'rgba(8, 20, 35, 0.8)',
-        backdropFilter: 'blur(12px)',
-        zIndex: 200,
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 1.5rem',
-        borderBottom: '1px solid rgba(0, 180, 216, 0.15)',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button 
-            onClick={() => {
-              if (window.innerWidth <= 1024) {
-                setIsMobileMenuOpen(!isMobileMenuOpen)
-              } else {
-                setIsSidebarCollapsed(!isSidebarCollapsed)
-              }
-            }}
-            className="hamburger-btn"
-            style={{
-              background: 'rgba(0, 216, 255, 0.1)',
-              border: '1px solid rgba(0, 216, 255, 0.2)',
-              borderRadius: '8px',
-              padding: '8px',
-              color: '#00d8ff',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s'
-            }}
-          >
-            {isMobileMenuOpen || (!isSidebarCollapsed && window.innerWidth > 1024) ? <X size={24} /> : <Menu size={24} />}
-          </button>
-
-          <div className="mobile-only" style={{ height: '40px', width: '120px', position: 'relative' }}>
-             <Image src="/logo.png" alt="CIR-A" fill style={{ objectFit: 'contain' }} />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }} className="no-mobile">
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#f1f5f9' }}>{user?.name}</span>
-              <span style={{ fontSize: '0.6rem', color: '#00d8ff', textTransform: 'uppercase', letterSpacing: '1px' }}>{user?.role}</span>
-           </div>
-           <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(0,180,216,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00d8ff' }}>
-              <UserIcon size={18} />
-           </div>
-        </div>
-      </header>
-
-      <div style={{ display: 'flex', flex: 1, paddingTop: '70px' }}>
+      <div style={{ display: 'flex', flex: 1, paddingTop: '0' }}>
         {/* SIDEBAR */}
         <aside className={`sidebar-main ${isMobileMenuOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
           {/* LOGO & BRANDING */}
