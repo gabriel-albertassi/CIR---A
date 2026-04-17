@@ -24,10 +24,15 @@ export default async function RootLayout({
   const { data: { user } } = await supabase.auth.getUser()
   
   let dbUser = null
-  if (user) {
-    dbUser = await prisma.user.findUnique({
-      where: { id: user.id }
-    })
+  try {
+    if (user) {
+      dbUser = await prisma.user.findUnique({
+        where: { id: user.id }
+      })
+    }
+  } catch (error) {
+    console.error("Database not ready in layout:", error)
+    // Se o banco falhar (ex: tabelas não existem), dbUser continua null
   }
 
   return (

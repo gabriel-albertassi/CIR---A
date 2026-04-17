@@ -373,95 +373,135 @@
 /* Responsive */
 @media (max-width: 1100px) {
   .loginContent { 
-    display: flex; /* Troca grid por flex para controle absoluto de ordem */
+    display: flex;
     flex-direction: column;
     overflow-y: auto;
     height: auto;
     min-height: 100vh;
-    padding: 0;
+    padding: 0 0 4rem 0; /* Espaço no fim para scroll confortável */
+    background: radial-gradient(circle at center, rgba(0,216,255,0.05) 0%, transparent 70%);
   }
   
   .loginLeft {
     width: 100%;
-    padding: 2rem 1rem;
-    order: 1; /* Form e Logo no topo */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    padding: 1.25rem 1rem; /* Mais compacto ainda */
+    order: 1;
   }
 
   .loginRight {
     width: 100%;
-    order: 2; /* Cirila e Hologramas embaixo */
-    min-height: auto;
-    padding: 0 1rem 3rem 1rem;
+    order: 2;
+    min-height: 320px;
+    padding: 0 1rem;
     background: transparent;
     display: flex;
     justify-content: center;
-    margin-top: -1rem; /* Aproxima os blocos */
+    margin-top: -1.5rem; /* Sobe a Cirila para ficar mais próxima */
   }
 
   .loginLeftInner {
-    max-width: 400px;
+    max-width: 360px;
     width: 100%;
-    gap: 1.5rem;
+    gap: 0.5rem;
   }
 
   .loginTitle {
-    font-size: 1.25rem;
-    line-height: 1.2;
-    margin-bottom: 0.25rem;
+    font-size: 1.05rem;
+    line-height: 1.1;
+    margin-bottom: 0.1rem;
   }
 
   .loginSubtitle {
-    font-size: 0.75rem;
-    margin: 0 auto;
-    max-width: 250px;
+    font-size: 0.6rem;
+    max-width: 200px;
   }
 
   .loginLogoWrapper {
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.1rem !important;
   }
 
   .loginLogoWrapper img {
-    max-width: 150px !important; /* Logo bem menor no mobile */
+    max-width: 100px !important; /* Logo discreto */
   }
 
-  /* Deixa Cirila proporcional no mobile */
+  .loginFormContainer {
+    padding: 0.85rem;
+    gap: 0.5rem;
+    border-radius: 14px;
+    border-color: rgba(255,255,255,0.08); /* Suaviza borda */
+  }
+
+  .formToggleTabs {
+    margin-bottom: 0.5rem;
+  }
+
+  .tabBtn {
+    padding: 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .inputGroup label {
+    font-size: 0.65rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .inputGroup input {
+    height: 38px;
+    font-size: 0.8rem;
+    padding: 0 0.75rem;
+  }
+
+  .loginSubmitBtn {
+    height: 44px;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+    border-radius: 10px;
+  }
+
+  .formHelpText {
+    font-size: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  .loginSmsvrBadge {
+    font-size: 0.5rem;
+    padding: 0.25rem 0.6rem;
+  }
+
   .loginRightContainer {
-    transform: scale(0.9);
+    transform: scale(0.8);
     margin: 0 auto;
+    width: 100%;
   }
 
   .loginCirilaSpeech {
     position: relative;
     bottom: 0;
-    margin-top: 1rem;
-    min-width: 280px;
+    margin-top: 0.5rem;
+    min-width: 260px;
     width: 100%;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.75rem;
   }
 
-  /* Ajusta hologramas para não flutuarem fora da tela */
+  .loginCirilaSpeech strong { font-size: 0.8rem; }
+
+  /* Hologramas Compactos no Mobile */
   .loginHolo {
-    display: none; /* Esconde hologramas flutuantes no mobile para limpar visual */
+    display: flex;
+    position: absolute;
+    scale: 0.7;
+    white-space: nowrap;
   }
   
-  .holo4 { /* Mantém apenas um badge importante se quiser */
-    display: flex;
-    position: relative;
-    top: 0;
-    left: 0;
-    margin: 0 auto 0.5rem auto;
-    width: fit-content;
-  }
+  .holo3 { top: -25%; left: -5%; }
+  .holo5 { top: -25%; right: -5%; }
+  .holo6 { bottom: 15%; left: -10%; }
+  .holo4 { display: none; }
 }
 
 @media (max-width: 480px) {
-  .loginTitle { font-size: 1.15rem; }
+  .loginTitle { font-size: 1rem; }
   .loginSubtitle { display: none; }
-  .loginFormContainer { 
-    padding: 1.25rem; 
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  }
+  .loginContent { padding-bottom: 5rem; }
 }
