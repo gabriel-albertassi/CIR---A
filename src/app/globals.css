@@ -645,10 +645,13 @@ body.no-scroll {
 @media (max-width: 1024px) {
   .sidebar-main {
     top: 0;
-    height: 100vh;
+    height: 100dvh; /* Altura dinâmica para mobile - Resolve o problema das barras do navegador */
     transform: translateX(-100%);
     width: 280px !important;
-    z-index: 1500;
+    z-index: 5000; /* Força estar acima de tudo */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 3rem; /* Espaço extra garantido no rodapé */
   }
   
   .sidebar-main.open {

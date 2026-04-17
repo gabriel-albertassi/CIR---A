@@ -104,15 +104,15 @@ export default function LoginPage() {
           <div className={styles.loginLeftInner}>
             
             {/* Bloco de Marca (Logo + Frase unidos, com espaçamento harmônico) */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem' }}>
-              <div className={`logo-container-glow ${styles.loginLogoWrapper}`} style={{ marginBottom: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+              <div className={`logo-container-glow ${styles.loginLogoWrapper}`} style={{ marginBottom: '-0.5rem' }}>
                 <Image
                   src="/logo.png"
                   alt="CIR-A Logo"
-                  width={260}
-                  height={80}
+                  width={220}
+                  height={70}
                   priority
-                  style={{ width: '100%', maxWidth: '260px', height: 'auto', filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.3))' }}
+                  style={{ width: '100%', maxWidth: '220px', height: 'auto', filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.3))' }}
                 />
               </div>
 
@@ -121,7 +121,7 @@ export default function LoginPage() {
                   Central Inteligente de<br />
                   <span className={styles.loginTitleAccent}>Regulação Automatizada</span>
                 </h1>
-                <p className={styles.loginSubtitle}>
+                <p className={styles.loginSubtitle} style={{ maxWidth: '220px', margin: '0 auto', opacity: 0.85 }}>
                   Tecnologia de última geração a serviço da saúde pública de Volta Redonda.
                 </p>
               </div>

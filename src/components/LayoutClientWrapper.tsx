@@ -209,25 +209,29 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               </button>
             </div>
 
-            {/* Link Sobre e Recolher */}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {/* Link Sobre o Sistema */}
+            <div style={{ display: 'flex', width: '100%', padding: '0 0.5rem' }}>
               <Link 
                 href="/sobre" 
                 className={`sidebar-link ${pathname === '/sobre' ? 'active' : ''}`}
                 style={{ 
                   flex: 1,
-                  background: 'rgba(0,216,255,0.02)', 
-                  padding: '0.6rem',
-                  borderRadius: '10px',
+                  background: 'rgba(0,216,255,0.04)', 
+                  padding: '0.85rem 1rem',
+                  borderRadius: '12px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
-                  gap: '0.75rem',
-                  color: '#94a3b8',
-                  fontSize: '0.75rem'
+                  gap: '1rem',
+                  color: isSidebarCollapsed ? '#00b4d8' : '#e2e8f0',
+                  fontSize: '0.9rem',
+                  border: '1px solid rgba(0, 216, 255, 0.1)',
+                  transition: 'all 0.2s',
+                  width: '100%',
+                  fontWeight: 600
                 }}
               >
-                <Info size={18} color="#00b4d8" style={{ opacity: 0.7 }} />
+                <Info size={20} color="#00b4d8" style={{ opacity: 0.9 }} />
                 {!isSidebarCollapsed && <span>Sobre o Sistema</span>}
               </Link>
             </div>

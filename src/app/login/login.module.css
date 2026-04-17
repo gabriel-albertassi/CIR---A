@@ -77,10 +77,17 @@
 
 .loginLeftInner {
   width: 100%;
-  max-width: 380px; /* Afinado de 420px para um visual mais elegante */
+  max-width: 320px; /* Afinado conforme solicitado para um visual slim */
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  align-items: center; /* Garante centralização total */
+}
+
+.loginLogoWrapper {
+  margin-bottom: -1rem; /* Aproxima o logo do nome CIR-A */
+  display: flex;
+  justify-content: center;
 }
 
 .loginLogoWrapper {
@@ -93,11 +100,11 @@
 
 .loginTitle {
   font-size: 1.6rem;
-  font-weight: 900;
+  font-weight: 800; /* Levemente menos grosso */
   color: #f8fafc;
   line-height: 1.1;
-  letter-spacing: -1px;
-  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+  margin-bottom: 0.25rem;
 }
 
 .loginTitleAccent {
@@ -107,11 +114,13 @@
 }
 
 .loginSubtitle {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: #94a3b8;
-  line-height: 1.5;
-  margin: 0.2rem 0 0;
+  line-height: 1.4;
+  margin: 0 auto;
   text-align: center;
+  max-width: 240px; /* Estreitado para alinhar com o logo e harmonizar */
+  opacity: 0.8;
 }
 
 /* ── FORM ── */
