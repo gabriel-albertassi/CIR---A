@@ -67,20 +67,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 2.5rem;
   background: rgba(15, 23, 42, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 20px 0 40px rgba(0,0,0,0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 20px 0 50px rgba(0,0,0,0.3);
   z-index: 11;
 }
 
 .loginLeftInner {
   width: 100%;
-  max-width: 420px;
+  max-width: 380px; /* Afinado de 420px para um visual mais elegante */
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .loginLogoWrapper {
@@ -324,12 +324,12 @@
   }
 
   .loginLeftInner {
-    max-width: 380px;
-    gap: 0.75rem;
+    max-width: 340px;
+    gap: 1rem;
   }
 
-  .loginTitle { font-size: 1.2rem; }
-  .loginLogoWrapper img { max-width: 120px !important; }
+  .loginTitle { font-size: 1.25rem; }
+  .loginLogoWrapper img { max-width: 140px !important; }
 
   .loginRightContainer {
     display: flex;
@@ -339,6 +339,7 @@
     transform: none;
     width: 100%;
     height: auto;
+    margin-top: 1rem;
   }
 
   /* Avatar em cima no mobile */
@@ -347,19 +348,22 @@
     transform: scale(0.95);
   }
 
-  /* Balão de fala embaixo no mobile */
+  /* Balão de fala embaixo no mobile - AJUSTADO PARA FICAR MAIS PRÓXIMO E HARMONIOSO */
   .loginCirilaSpeech {
     position: relative;
     order: 2;
     bottom: auto;
     left: auto;
     transform: none;
-    min-width: 280px;
-    width: 100%;
-    margin-top: -0.5rem;
+    min-width: 260px;
+    width: 90%;
+    max-width: 300px;
+    margin-top: -2.5rem; /* Puxa para cima para ficar junto à ela */
+    padding: 0.6rem 1rem;
+    border-radius: 14px;
   }
 
-  /* Holograma Embaixo e Centralizado */
+  /* Holograma Único no Mobile (Apenas I.A Online) */
   .loginHolo {
     position: relative;
     order: 3;
@@ -372,7 +376,7 @@
     display: flex !important;
   }
   
-  .holo4, .holo3, .holo5, .holo6 { display: none !important; }
+  .holo4, .holo5, .holo6 { display: none !important; }
 }
 
 @media (max-width: 480px) {

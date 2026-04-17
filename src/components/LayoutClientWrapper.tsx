@@ -55,7 +55,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
         {/* SIDEBAR */}
         <aside className={`sidebar-main ${isMobileMenuOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
           {/* LOGO & BRANDING */}
-          <div className="logo-container-glow" style={{ marginBottom: '1.5rem', marginTop: '1rem', position: 'relative', height: '80px', width: '100%' }}>
+          <div className="logo-container-glow" style={{ marginBottom: '1.5rem', marginTop: '1.5rem', position: 'relative', height: '120px', width: '100%' }}>
             <Image
               src="/logo.png"
               alt="Logo CIR-A"
@@ -63,7 +63,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               priority
               style={{
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 0 10px rgba(0,216,255,0.2))'
+                filter: 'drop-shadow(0 0 12px rgba(0,216,255,0.3))'
               }}
             />
           </div>
@@ -72,101 +72,104 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
 
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
             <Link href="/" className={`sidebar-link ${pathname === '/' ? 'active' : ''}`}>
-              <LayoutDashboard size={22} color="#00b4d8" />
+              <LayoutDashboard size={20} color="#00b4d8" />
               <span>Painel Geral</span>
             </Link>
             <Link href="/patients" className={`sidebar-link ${pathname.startsWith('/patients') ? 'active' : ''}`}>
-              <ListTodo size={22} color="#00b4d8" />
+              <ListTodo size={20} color="#00b4d8" />
               <span>Fila de Pacientes</span>
             </Link>
             <Link href="/vagas" className={`sidebar-link ${pathname === '/vagas' ? 'active' : ''}`}>
-              <Layers size={22} color="#00b4d8" />
+              <Layers size={20} color="#00b4d8" />
               <span>Censo de Leitos</span>
             </Link>
             <Link href="/transferidos" className={`sidebar-link ${pathname === '/transferidos' ? 'active' : ''}`}>
-              <CheckCircle size={22} color="#00b4d8" />
+              <CheckCircle size={20} color="#00b4d8" />
               <span>Transferidos</span>
             </Link>
             <Link href="/relatorio-privados" className={`sidebar-link ${pathname === '/relatorio-privados' ? 'active' : ''}`}>
-              <Building2 size={22} color="#00b4d8" />
+              <Building2 size={20} color="#00b4d8" />
               <span>Hosp. Privados</span>
             </Link>
 
             <Link href="/pacientes" className={`sidebar-link ${pathname === '/pacientes' ? 'active' : ''}`}>
-              <Users size={22} color="#00b4d8" />
+              <Users size={20} color="#00b4d8" />
               <span>Prontuário Geral</span>
             </Link>
           </nav>
 
           {/* USER PROFILE & LOGOUT */}
-          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             
             {/* Bloco do Usuário */}
             <div style={{ 
-              background: 'rgba(255,255,255,0.04)', 
-              border: '1px solid rgba(255,255,255,0.08)', 
+              background: 'rgba(255,255,255,0.03)', 
+              border: '1px solid rgba(255,255,255,0.06)', 
               borderRadius: '16px', 
-              padding: '0.75rem',
+              padding: '0.65rem',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.6rem'
+              gap: '0.5rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                 <div style={{ 
-                  width: '36px', 
-                  height: '36px', 
+                  width: '32px', 
+                  height: '32px', 
                   borderRadius: '10px', 
-                  background: user?.role === 'ADMIN' ? 'rgba(99,102,241,0.2)' : 'rgba(0,180,216,0.15)',
+                  background: user?.role === 'ADMIN' ? 'rgba(99,102,241,0.15)' : 'rgba(0,180,216,0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: user?.role === 'ADMIN' ? '#818cf8' : '#00d8ff'
+                  color: user?.role === 'ADMIN' ? '#818cf8' : '#00d8ff',
+                  opacity: 0.8
                 }}>
-                  <UserIcon size={20} />
+                  <UserIcon size={18} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                    {user?.name || 'Carregando...'}
-                  </span>
-                  <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {user?.role || 'Acessando'}
-                  </span>
-                </div>
+                {!isSidebarCollapsed && (
+                  <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                      {user?.name || 'Sistema'}
+                    </span>
+                    <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {user?.role || 'Acesso'}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Status de Acesso / Gestão Admin */}
               {user?.role === 'ADMIN' ? (
                 <Link href="/admin/users" style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
+                  justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
                   gap: '0.6rem', 
-                  padding: '0.6rem', 
-                  borderRadius: '10px', 
-                  background: 'rgba(129,140,248,0.1)', 
+                  padding: '0.5rem', 
+                  borderRadius: '8px', 
+                  background: 'rgba(129,140,248,0.08)', 
                   color: '#a5b4fc', 
-                  fontSize: '0.75rem', 
+                  fontSize: '0.7rem', 
                   fontWeight: 700,
                   textDecoration: 'none',
-                  border: '1px solid rgba(129,140,248,0.2)',
+                  border: '1px solid rgba(129,140,248,0.15)',
                   transition: 'all 0.2s',
-                  marginTop: '0.2rem'
+                  opacity: 0.8
                 }}>
-                  <Settings size={14} /> Gestão Admin
+                  <Settings size={12} /> {!isSidebarCollapsed && 'Gestão Admin'}
                 </Link>
               ) : (
-                user && !user.canCancelPatient && (
+                user && !user.canCancelPatient && !isSidebarCollapsed && (
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
                     gap: '0.4rem', 
-                    fontSize: '0.62rem', 
+                    fontSize: '0.58rem', 
                     color: '#fbbf24', 
-                    background: 'rgba(251,191,36,0.1)', 
+                    background: 'rgba(251,191,36,0.08)', 
                     padding: '4px 8px', 
                     borderRadius: '6px',
                     fontWeight: 600
                   }}>
-                    <ShieldAlert size={12} /> ACESSO RESTRITO
+                    <ShieldAlert size={10} /> RESTRITO
                   </div>
                 )
               )}
@@ -178,67 +181,92 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.5rem',
-                  background: 'rgba(239,68,68,0.1)',
-                  border: '1px solid rgba(239,68,68,0.2)',
+                  background: 'rgba(239,68,68,0.05)',
+                  border: '1px solid rgba(239,68,68,0.15)',
                   color: '#fca5a5',
-                  fontSize: '0.75rem',
+                  fontSize: '0.7rem',
                   fontWeight: 700,
                   padding: '0.5rem',
                   borderRadius: '10px',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  marginTop: '0.2rem',
-                  marginBottom: '0.5rem'
+                  opacity: 0.7
                 }}
                 className="logout-btn"
               >
-                <LogOut size={14} /> Sair do Sistema
+                <LogOut size={12} /> {!isSidebarCollapsed && 'Sair'}
               </button>
             </div>
 
-            {/* Link Sobre o Sistema no Rodapé da Sidebar */}
-            <div style={{
-              background: 'rgba(0,216,255,0.03)',
-              border: '1px solid rgba(0,216,255,0.1)',
-              borderRadius: '12px',
-              padding: '0.4rem',
-              marginBottom: '0.5rem',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
+            {/* Link Sobre e Recolher */}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               <Link 
                 href="/sobre" 
                 className={`sidebar-link ${pathname === '/sobre' ? 'active' : ''}`}
                 style={{ 
-                  background: 'transparent', 
-                  border: 'none',
-                  padding: '0.6rem 0.8rem'
+                  flex: 1,
+                  background: 'rgba(0,216,255,0.02)', 
+                  padding: '0.6rem',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                  gap: '0.75rem',
+                  color: '#94a3b8',
+                  fontSize: '0.75rem'
                 }}
               >
-                <Info size={22} color="#00b4d8" />
-                <span>Sobre o Sistema</span>
+                <Info size={18} color="#00b4d8" style={{ opacity: 0.7 }} />
+                {!isSidebarCollapsed && <span>Sobre</span>}
               </Link>
+              <button 
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#94a3b8'
+                }}
+              >
+                <X size={16} />
+              </button>
             </div>
             
-            <div style={{ margin: '0.5rem 0 0.8rem 0', height: '1px', background: 'linear-gradient(to right, transparent, rgba(0,216,255,0.15), transparent)' }} />
+            <div style={{ margin: '0.25rem 0 0.5rem 0', height: '1px', background: 'linear-gradient(to right, transparent, rgba(0,216,255,0.1), transparent)' }} />
 
-            {/* Créditos Originais */}
+            {/* Créditos Atualizados 1.5 */}
             <div style={{
-              background: 'rgba(0,216,255,0.03)',
-              border: '1px solid rgba(0,216,255,0.1)',
-              borderRadius: '12px',
-              padding: '0.8rem',
+              padding: '0.5rem',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.3rem',
+              gap: '0.2rem',
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '0.68rem', color: '#00d8ff', fontWeight: 800, letterSpacing: '0.5px', marginBottom: '4px' }}>
+              <a 
+                href="https://www.instagram.com/gabriel.albertassi" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ 
+                  textDecoration: 'none',
+                  fontSize: '0.65rem', 
+                  color: '#00d8ff', 
+                  fontWeight: 800, 
+                  letterSpacing: '0.5px', 
+                  opacity: 0.8
+                }}
+              >
                 Desenvolvido por Gabriel Albertassi
-              </div>
-              <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>SMSVR • Volta Redonda</div>
-              <div style={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.7rem', opacity: 0.6 }}>v1.0.0</div>
+              </a>
+              <div style={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.6rem', opacity: 0.5 }}>v1.5 Premium</div>
             </div>
+          </div>
+        </aside>
           </div>
         </aside>
 

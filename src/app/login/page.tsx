@@ -223,8 +223,8 @@ export default function LoginPage() {
                 <span>SMSVR • Secretaria Municipal de Saúde</span>
               </div>
               <div className={styles.loginFooterText}>
-                Prefeitura de Volta Redonda • Versão 1.3<br />
-                Desenvolvido por <a href="https://github.com/gabriel-albertassi" target="_blank" rel="noopener noreferrer">Gabriel Albertassi</a>
+                Prefeitura de Volta Redonda • Versão 1.5 Premium<br />
+                Desenvolvido por <a href="https://www.instagram.com/gabriel.albertassi" target="_blank" rel="noopener noreferrer">Gabriel Albertassi</a>
               </div>
             </div>
           </div>

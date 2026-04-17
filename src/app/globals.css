@@ -628,28 +628,28 @@ td select option {
   }
 }
 
-/* No mobile, as classes mudam */
 @media (max-width: 1024px) {
   .sidebar-main {
-    top: 70px;
-    height: calc(100vh - 70px);
+    top: 0;
+    height: 100vh;
     transform: translateX(-100%);
-    width: 280px !important; /* Sempre cheia no mobile */
+    width: 280px !important;
+    z-index: 1500;
   }
   
   .sidebar-main.open {
     transform: translateX(0);
   }
-
-  .sidebar-main.collapsed + .main-viewport {
-    margin-left: 0;
-  }
-
+  
   .main-viewport {
     margin-left: 0 !important;
     padding: 1.25rem !important;
   }
-
+  
+  .mobile-toggle {
+    display: flex;
+  }
+  
   .no-mobile {
     display: none !important;
   }
