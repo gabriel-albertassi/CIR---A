@@ -1,9 +1,22 @@
 import { prisma } from '../../lib/db'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/sb-server'
+import DeletePatientButton from '@/components/DeletePatientButton'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PacientesTodosPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let isAdmin = false
+  if (user) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id }
+    })
+    isAdmin = dbUser?.role === 'ADMIN'
+  }
+
   const patients = await prisma.patient.findMany({
     orderBy: {
       created_at: 'desc'
@@ -44,7 +57,8 @@ export default async function PacientesTodosPage() {
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Gravidade</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Status Atual</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data do Cadastro</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Registro de Saída / Evento</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Saída / Evento</th>
+                {isAdmin && <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'center' }}>Ações</th>}
               </tr>
             </thead>
 
@@ -114,7 +128,7 @@ export default async function PacientesTodosPage() {
                             {lastLog.details}
                           </div>
                           <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-                            Registrado em: {new Date(lastLog.timestamp).toLocaleDateString('pt-BR')} às{' '}
+                            {new Date(lastLog.timestamp).toLocaleDateString('pt-BR')} às{' '}
                             {new Date(lastLog.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
@@ -130,6 +144,12 @@ export default async function PacientesTodosPage() {
                         <span style={{ color: '#475569', fontSize: '0.82rem' }}>—</span>
                       )}
                     </td>
+
+                    {isAdmin && (
+                      <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center' }}>
+                        <DeletePatientButton patientId={p.id} patientName={p.name} />
+                      </td>
+                    )}
 
                   </tr>
                 )

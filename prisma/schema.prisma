@@ -44,7 +44,7 @@ model Patient {
 
 model Log {
   id         String   @id @default(uuid())
-  patient    Patient  @relation(fields: [patient_id], references: [id])
+  patient    Patient  @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   patient_id String
   user       User?    @relation(fields: [user_id], references: [id])
   user_id    String?
