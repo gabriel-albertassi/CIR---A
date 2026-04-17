@@ -92,13 +92,11 @@
 }
 
 .loginTitle {
-  font-size: 1.6rem;
+  font-size: 1.5rem; /* Mais compacto */
   font-weight: 900;
-  color: #f8fafc;
+  color: #ffffff;
   line-height: 1.1;
-  letter-spacing: -1.2px;
-  margin: 0;
-  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
 .loginTitleAccent {
