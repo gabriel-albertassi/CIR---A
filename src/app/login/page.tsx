@@ -1,17 +1,30 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Sparkles, ShieldCheck, Brain, Zap, HeartPulse, ArrowRight, UserPlus, LogIn, Mail, Lock, User } from 'lucide-react'
 import { login, signup } from '../auth/actions'
 import CirilaAvatar from '@/components/CirilaAvatar'
 import Image from 'next/image'
 import styles from './login.module.css'
 
-export default function LoginPage() {
+function LoginForm() {
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const message = searchParams.get('message')
+    if (message === 'confirmed') {
+      setMsg('E-mail confirmado com sucesso! Agora você pode acessar o sistema.')
+    }
+    const err = searchParams.get('error')
+    if (err) {
+      setError('Houve um problema na autenticação. Tente novamente.')
+    }
+  }, [searchParams])
 
   // --- LÓGICA DE "VIDA" DA CIRILA ---
   const [phraseIndex, setPhraseIndex] = useState(0)
@@ -273,5 +286,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <LoginForm />
+    </Suspense>
   )
 }
