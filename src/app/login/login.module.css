@@ -24,26 +24,18 @@
   background-image: url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=1600&q=40&auto=format&fit=crop');
   background-position: center;
   background-size: cover;
-  filter: brightness(0.15) saturate(0.5); /* Removido blur caro aqui */
+  filter: brightness(0.15) saturate(0.5);
   transform: scale(1.05);
 }
 
 .loginBgOverlay {
   position: absolute;
   inset: 0;
-  /* Gradiente complexo que substitui as nebulas individuais para performance */
   background: 
     radial-gradient(circle at 10% 10%, rgba(0, 216, 255, 0.08) 0%, transparent 40%),
     radial-gradient(circle at 90% 90%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
     radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.05) 0%, transparent 60%),
     linear-gradient(135deg, rgba(2, 6, 23, 0.98) 0%, rgba(8, 18, 45, 0.92) 50%, rgba(2, 6, 23, 0.98) 100%);
-}
-
-.loginBgNetwork {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle at 50% 50%, rgba(0, 180, 216, 0.04) 0%, transparent 70%);
-  z-index: 2;
 }
 
 .loginBgHex {
@@ -81,49 +73,26 @@
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 20px 0 40px rgba(0,0,0,0.15);
   z-index: 11;
-  will-change: backdrop-filter;
 }
 
 .loginLeftInner {
   width: 100%;
-  max-width: 480px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
-}
-
-.loginSmsvrBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(0, 216, 255, 0.08);
-  border: 1px solid rgba(0, 216, 255, 0.2);
-  color: #00d8ff;
-  padding: 0.4rem 1rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  width: fit-content;
+  gap: 1.25rem;
 }
 
 .loginLogoWrapper {
   position: relative;
   width: fit-content;
-  animation: logo-entry 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  margin: 0 auto 0.2rem;
+  margin: 0 auto;
   display: flex;
   justify-content: center;
 }
 
-@keyframes logo-entry {
-  0% { transform: scale(0.9); opacity: 0; filter: blur(5px); }
-  100% { transform: scale(1); opacity: 1; filter: blur(0); }
-}
-
 .loginTitle {
-  font-size: 1.85rem;
+  font-size: 1.6rem;
   font-weight: 900;
   color: #f8fafc;
   line-height: 1.1;
@@ -139,10 +108,10 @@
 }
 
 .loginSubtitle {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: #94a3b8;
   line-height: 1.5;
-  margin: 0.5rem 0 0;
+  margin: 0.2rem 0 0;
   text-align: center;
 }
 
@@ -153,15 +122,7 @@
   border-radius: 20px;
   padding: 1.25rem;
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  animation: slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-  will-change: transform, opacity;
-}
-
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .formToggleTabs {
@@ -169,24 +130,23 @@
   background: rgba(0, 0, 0, 0.2);
   padding: 0.3rem;
   border-radius: 14px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .tabBtn {
   flex: 1;
-  padding: 0.6rem;
+  padding: 0.5rem;
   border-radius: 10px;
   border: none;
   background: transparent;
   color: #64748b;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .tabBtnActive {
@@ -197,73 +157,40 @@
 .loginActualForm {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .inputGroup label {
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 .inputGroup input {
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 1rem;
   color: #ffffff;
-  font-size: 0.95rem;
-  transition: all 0.2s;
-  outline: none;
-}
-
-.inputGroup input:focus {
-  border-color: #00d8ff;
-  background: rgba(0, 0, 0, 0.4);
+  font-size: 0.9rem;
 }
 
 .loginSubmitBtn {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   background: rgba(0, 216, 255, 0.1);
-  height: 50px;
+  height: 48px;
   border-radius: 12px;
   font-weight: 700;
   color: #00d8ff;
   border: 1px solid rgba(0, 216, 255, 0.25);
   cursor: pointer;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  transition: all 0.2s;
-}
-
-.loginSubmitBtn:hover:not(:disabled) {
-  background: rgba(0, 216, 255, 0.2);
-  border-color: #00d8ff;
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.formHelpText {
-  margin-top: 1rem;
-  font-size: 0.8rem;
-  color: #64748b;
-  text-align: center;
 }
 
 /* ── RIGHT COLUMN ── */
@@ -272,7 +199,6 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  background: rgba(0, 0, 0, 0.05);
 }
 
 .loginRightContainer {
@@ -290,8 +216,6 @@
   border: 1px solid rgba(0, 216, 255, 0.2);
   padding: 0.6rem 1rem;
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   font-size: 0.8rem;
   font-weight: 700;
   color: white;
@@ -299,30 +223,12 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-  will-change: transform;
 }
 
-.holo3 { top: 35%; left: 20%; animation: drift-1 15s infinite ease-in-out; }
-.holo4 { bottom: 38%; left: 22%; animation: drift-2 18s infinite ease-in-out; }
-.holo5 { top: 32%; right: 20%; animation: drift-3 16s infinite ease-in-out; }
-.holo6 { bottom: 40%; right: 22%; animation: drift-1 14s infinite ease-in-out reverse; }
-
-@keyframes drift-1 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(15px, -20px); }
-}
-@keyframes drift-2 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-10px, -15px); }
-}
-@keyframes drift-3 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(10px, 15px); }
-}
-
-.holoDot { width: 6px; height: 6px; border-radius: 50%; background: #00d8ff; box-shadow: 0 0 8px #00d8ff; }
-.holoDotGreen { background: #10b981; box-shadow: 0 0 8px #10b981; }
+.holo3 { top: 35%; left: 20%; }
+.holo4 { bottom: 38%; left: 22%; }
+.holo5 { top: 32%; right: 20%; }
+.holo6 { bottom: 40%; right: 22%; }
 
 .loginCirilaSpeech {
   position: absolute;
@@ -340,35 +246,26 @@
   min-width: 300px;
   max-width: 400px;
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-  animation: slide-in-bottom 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
-}
-
-@keyframes slide-in-bottom {
-  0% { transform: translate(-50%, 40px); opacity: 0; }
-  100% { transform: translate(-50%, 0); opacity: 1; }
 }
 
 .loginCirilaSpeech strong { color: #00d8ff; display: block; margin-bottom: 2px; }
 .loginCirilaSpeech span { font-size: 0.9rem; color: #f1f5f9; line-height: 1.4; font-weight: 500; }
 
-.typingIcon::after {
-  content: '';
-  width: 6px;
-  height: 14px;
-  background: #00d8ff;
-  display: inline-block;
-  margin-left: 4px;
-  animation: blink 0.8s infinite;
-  vertical-align: middle;
+.loginSmsvrBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 216, 255, 0.08);
+  border: 1px solid rgba(0, 216, 255, 0.2);
+  color: #00d8ff;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin: 0 auto;
 }
 
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
 .loginFooterText { margin-top: 0.75rem; font-size: 0.8rem; color: #475569; text-align: center; }
-.loginFooterText a { color: #64748b; text-decoration: none; border-bottom: 1px solid #334155; }
 
 /* Responsive */
 @media (max-width: 1100px) {
@@ -378,130 +275,82 @@
     overflow-y: auto;
     height: auto;
     min-height: 100vh;
-    padding: 0 0 4rem 0; /* Espaço no fim para scroll confortável */
-    background: radial-gradient(circle at center, rgba(0,216,255,0.05) 0%, transparent 70%);
+    padding: 0 0 4rem 0;
+    background: #020617;
   }
   
   .loginLeft {
     width: 100%;
-    padding: 1.25rem 1rem; /* Mais compacto ainda */
+    padding: 1.5rem 1rem;
     order: 1;
+    background: transparent;
+    backdrop-filter: none;
   }
 
   .loginRight {
     width: 100%;
     order: 2;
-    min-height: 320px;
-    padding: 0 1rem;
-    background: transparent;
+    min-height: auto;
+    padding: 1rem;
     display: flex;
     justify-content: center;
-    margin-top: -1.5rem; /* Sobe a Cirila para ficar mais próxima */
+    margin-top: 0;
   }
 
   .loginLeftInner {
-    max-width: 360px;
-    width: 100%;
-    gap: 0.5rem;
+    max-width: 380px;
+    gap: 0.75rem;
   }
 
-  .loginTitle {
-    font-size: 1.05rem;
-    line-height: 1.1;
-    margin-bottom: 0.1rem;
-  }
-
-  .loginSubtitle {
-    font-size: 0.6rem;
-    max-width: 200px;
-  }
-
-  .loginLogoWrapper {
-    margin-bottom: 0.1rem !important;
-  }
-
-  .loginLogoWrapper img {
-    max-width: 100px !important; /* Logo discreto */
-  }
-
-  .loginFormContainer {
-    padding: 0.85rem;
-    gap: 0.5rem;
-    border-radius: 14px;
-    border-color: rgba(255,255,255,0.08); /* Suaviza borda */
-  }
-
-  .formToggleTabs {
-    margin-bottom: 0.5rem;
-  }
-
-  .tabBtn {
-    padding: 0.5rem;
-    font-size: 0.7rem;
-  }
-
-  .inputGroup label {
-    font-size: 0.65rem;
-    margin-bottom: 0.2rem;
-  }
-
-  .inputGroup input {
-    height: 38px;
-    font-size: 0.8rem;
-    padding: 0 0.75rem;
-  }
-
-  .loginSubmitBtn {
-    height: 44px;
-    font-size: 0.8rem;
-    margin-top: 0.4rem;
-    border-radius: 10px;
-  }
-
-  .formHelpText {
-    font-size: 0.6rem;
-    margin-top: 0.4rem;
-  }
-
-  .loginSmsvrBadge {
-    font-size: 0.5rem;
-    padding: 0.25rem 0.6rem;
-  }
+  .loginTitle { font-size: 1.2rem; }
+  .loginLogoWrapper img { max-width: 120px !important; }
 
   .loginRightContainer {
-    transform: scale(0.8);
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    transform: none;
     width: 100%;
+    height: auto;
   }
 
+  /* Avatar em cima no mobile */
+  .loginRightContainer > div:not(.loginCirilaSpeech):not(.loginHolo) {
+    order: 1;
+    transform: scale(0.95);
+  }
+
+  /* Balão de fala embaixo no mobile */
   .loginCirilaSpeech {
     position: relative;
-    bottom: 0;
-    margin-top: 0.5rem;
-    min-width: 260px;
+    order: 2;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    min-width: 280px;
     width: 100%;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.75rem;
+    margin-top: -0.5rem;
   }
 
-  .loginCirilaSpeech strong { font-size: 0.8rem; }
-
-  /* Hologramas Compactos no Mobile */
+  /* Holograma Embaixo e Centralizado */
   .loginHolo {
-    display: flex;
-    position: absolute;
-    scale: 0.7;
-    white-space: nowrap;
+    position: relative;
+    order: 3;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    margin: 1rem auto;
+    width: fit-content;
+    display: flex !important;
   }
   
-  .holo3 { top: -25%; left: -5%; }
-  .holo5 { top: -25%; right: -5%; }
-  .holo6 { bottom: 15%; left: -10%; }
-  .holo4 { display: none; }
+  .holo4, .holo3, .holo5, .holo6 { display: none !important; }
 }
 
 @media (max-width: 480px) {
-  .loginTitle { font-size: 1rem; }
+  .loginTitle { font-size: 1.1rem; }
   .loginSubtitle { display: none; }
   .loginContent { padding-bottom: 5rem; }
 }

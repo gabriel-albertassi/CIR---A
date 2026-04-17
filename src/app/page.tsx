@@ -377,16 +377,21 @@ export default async function DashboardPage() {
   } catch (err) {
     console.error('Dashboard Fetch Error:', err);
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center', background: '#080e1a' }}>
-        <div className="card" style={{ maxWidth: '500px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-          <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '1.5rem' }} />
+      <div className={styles.dashboardContainer} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 150px)', padding: '2rem' }}>
+        <div className="card" style={{ maxWidth: '500px', border: '1px solid rgba(239, 68, 68, 0.3)', textAlign: 'center' }}>
+          <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '1.5rem', marginLeft: 'auto', marginRight: 'auto' }} />
           <h1 style={{ color: '#f1f5f9', fontSize: '1.5rem', marginBottom: '1rem' }}>Configuração do Banco de Dados Pendente</h1>
           <p style={{ color: '#94a3b8', lineHeight: 1.6, marginBottom: '2rem' }}>
             O sistema não conseguiu conectar às tabelas do banco de dados. 
             Isso é normal no primeiro deploy.
           </p>
           <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px', textAlign: 'left', marginBottom: '2rem' }}>
+            <p style={{ fontSize: '0.8rem', color: '#00d8ff', marginBottom: '0.5rem', fontWeight: 700 }}>ERRO TÉCNICO:</p>
+            <code style={{ fontSize: '0.9rem', color: '#fca5a5', wordBreak: 'break-all' }}>{err instanceof Error ? err.message : String(err)}</code>
+          </div>
+          <div style={{ background: 'rgba(0,216,255,0.05)', padding: '1rem', borderRadius: '8px', textAlign: 'left', marginBottom: '2rem', border: '1px solid rgba(0,216,255,0.1)' }}>
             <p style={{ fontSize: '0.8rem', color: '#00d8ff', marginBottom: '0.5rem', fontWeight: 700 }}>COMO RESOLVER:</p>
+            <p style={{ fontSize: '0.85rem', color: '#e2e8f0', margin: '0 0 0.5rem 0' }}>Se você já rodou o comando, verifique as <strong>Variáveis de Ambiente</strong> no painel da Vercel.</p>
             <code style={{ fontSize: '0.9rem', color: '#e2e8f0' }}>npx prisma db push</code>
           </div>
           <p style={{ fontSize: '0.85rem', color: '#64748b' }}>

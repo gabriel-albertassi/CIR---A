@@ -550,6 +550,9 @@ td select option {
   top: 70px;
   z-index: 150;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto; /* Permite rolagem se os itens não couberem */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 216, 255, 0.2) transparent;
 }
 
 .sidebar-main.collapsed {
