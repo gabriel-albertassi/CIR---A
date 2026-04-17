@@ -159,7 +159,9 @@ export default function LoginPage() {
                   </div>
                 )}
                 <div className={styles.inputGroup}>
-                  <label><Mail size={16} /> E-mail Institucional</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
+                    <Mail size={16} style={{ color: '#00d8ff' }} /> E-mail Institucional
+                  </label>
                   <input 
                     type="email" 
                     name="email" 
@@ -170,7 +172,9 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className={styles.inputGroup}>
-                  <label><Lock size={16} /> Senha</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
+                    <Lock size={16} style={{ color: '#00d8ff' }} /> Senha
+                  </label>
                   <input 
                     type="password" 
                     name="password" 
@@ -184,9 +188,24 @@ export default function LoginPage() {
                 {error && <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center' }}>{error}</div>}
                 {msg && <div style={{ color: '#10b981', fontSize: '0.85rem', textAlign: 'center' }}>{msg}</div>}
 
-                <button type="submit" className={styles.loginSubmitBtn} disabled={loading}>
+                <button 
+                  type="submit" 
+                  className={styles.loginSubmitBtn} 
+                  disabled={loading}
+                  style={{
+                    background: 'rgba(0, 216, 255, 0.05)',
+                    border: '1px solid rgba(0, 216, 255, 0.3)',
+                    color: '#00d8ff',
+                    height: '46px',
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    fontSize: '0.85rem',
+                    letterSpacing: '0.5px'
+                  }}
+                >
                   {loading ? 'Processando...' : (isLogin ? 'Acessar o Sistema' : 'Solicitar Acesso')}
-                  <ArrowRight size={20} />
+                  <ArrowRight size={18} />
                 </button>
               </form>
 
@@ -204,7 +223,7 @@ export default function LoginPage() {
                 <span>SMSVR • Secretaria Municipal de Saúde</span>
               </div>
               <div className={styles.loginFooterText}>
-                Prefeitura de Volta Redonda • Versão 1.2<br />
+                Prefeitura de Volta Redonda • Versão 1.3<br />
                 Desenvolvido por <a href="https://github.com/gabriel-albertassi" target="_blank" rel="noopener noreferrer">Gabriel Albertassi</a>
               </div>
             </div>
@@ -228,7 +247,10 @@ export default function LoginPage() {
               className={expression} 
             />
 
-            <div className={`${styles.loginCirilaSpeech} ${isTyping ? styles.typingIcon : ''}`}>
+            <div 
+              className={`${styles.loginCirilaSpeech} ${isTyping ? styles.typingIcon : ''}`}
+              style={{ bottom: '31%' }}
+            >
               <Image 
                 src="/cirila_3D_icon.png" 
                 alt="ícone Cirila" 
