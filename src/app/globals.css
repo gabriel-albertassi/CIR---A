@@ -530,12 +530,7 @@ td select option {
    NEW LAYOUT SYSTEM (Robust Responsive)
    ================================ */
 
-/* Trava de Scroll do Fundo */
-body.no-scroll {
-  overflow: hidden;
-  height: 100vh;
-}
-
+/* Estilos Base de Layout */
 .mobile-only {
   display: none;
 }

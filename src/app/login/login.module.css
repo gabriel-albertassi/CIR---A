@@ -77,15 +77,15 @@
 
 .loginLeftInner {
   width: 100%;
-  max-width: 320px; /* Afinado conforme solicitado para um visual slim */
+  max-width: 320px; 
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  align-items: center; /* Garante centralização total */
+  gap: 2.5rem; /* Aumentado para afastar o Branding do Formulário */
+  align-items: center;
 }
 
 .loginLogoWrapper {
-  margin-bottom: -1rem; /* Aproxima o logo do nome CIR-A */
+  margin-bottom: -1rem;
   display: flex;
   justify-content: center;
 }
@@ -100,11 +100,11 @@
 
 .loginTitle {
   font-size: 1.6rem;
-  font-weight: 800; /* Levemente menos grosso */
+  font-weight: 800;
   color: #f8fafc;
   line-height: 1.1;
   letter-spacing: -0.5px;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.75rem; /* Mais espaço abaixo do título */
 }
 
 .loginTitleAccent {
@@ -116,10 +116,10 @@
 .loginSubtitle {
   font-size: 0.8rem;
   color: #94a3b8;
-  line-height: 1.4;
-  margin: 0 auto;
+  line-height: 1.5;
+  margin: 0.5rem auto 0; /* Mais espaço acima da frase */
   text-align: center;
-  max-width: 240px; /* Estreitado para alinhar com o logo e harmonizar */
+  max-width: 240px; 
   opacity: 0.8;
 }
 
@@ -128,9 +128,13 @@
   background: rgba(15, 23, 42, 0.4);
   border: 1px solid rgba(0, 216, 255, 0.15);
   border-radius: 20px;
-  padding: 1.5rem;
+  padding: 2.5rem 2rem; /* Mais respiro interno vertical */
   backdrop-filter: blur(12px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .formToggleTabs {
@@ -138,7 +142,8 @@
   background: rgba(0, 0, 0, 0.2);
   padding: 0.3rem;
   border-radius: 14px;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem; /* Afastando abas dos inputs */
+  width: 100%;
 }
 
 .tabBtn {
@@ -162,20 +167,36 @@
   color: #ffffff;
 }
 
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2.5rem; /* Mais respiro entre os blocos como no mockup */
+  width: 100%;
+  align-items: center;
+}
+
 .inputGroup label {
   color: #94a3b8;
   font-size: 0.72rem;
   text-transform: uppercase;
-  font-weight: 500; /* Mais fino */
+  font-weight: 600;
   display: flex;
   align-items: center;
-  justify-content: center; /* Centralizado */
+  justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 8px;
+  letter-spacing: 0.8px;
 }
 
 .inputGroup input {
-  text-align: center; /* Texto centralizado no input */
+  width: 100%;
+  max-width: 250px; /* Estreito e centralizado conforme mockup */
+  text-align: center;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 216, 255, 0.2);
+  border-radius: 10px;
+  color: #fff;
 }
 
 .inputGroup label svg {
@@ -184,11 +205,13 @@
 }
 
 .loginSubmitBtn {
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 210px; /* Botão centralizado e compacto */
   background: rgba(0, 216, 255, 0.05);
-  height: 46px;
-  border-radius: 10px;
-  font-weight: 600; /* Menos grosso */
+  height: 48px;
+  border-radius: 12px;
+  font-weight: 700;
   color: #00d8ff;
   border: 1px solid rgba(0, 216, 255, 0.3);
   cursor: pointer;
@@ -198,8 +221,6 @@
   gap: 0.75rem;
   transition: all 0.2s;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.8rem;
 }
 
 .loginSubmitBtn:hover {

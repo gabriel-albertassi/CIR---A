@@ -30,20 +30,13 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
 
   const isLoginPage = pathname === '/login'
 
-  // Close menu when route changes and handle scroll lock
+  // Close menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false)
-    document.body.classList.remove('no-scroll')
   }, [pathname])
 
   const toggleMobileMenu = () => {
-    const newState = !isMobileMenuOpen
-    setIsMobileMenuOpen(newState)
-    if (newState) {
-      document.body.classList.add('no-scroll')
-    } else {
-      document.body.classList.remove('no-scroll')
-    }
+    setIsMobileMenuOpen(!isMobileMenuOpen)
   }
 
   if (isLoginPage) return <>{children}</>
