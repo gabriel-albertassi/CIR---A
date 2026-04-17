@@ -58,7 +58,7 @@ export async function signup(formData: FormData) {
           email: email,
           role: isFirstUser ? 'ADMIN' : 'REGULADOR',
           canCancelPatient: isFirstUser,
-          canPrintReports: isFirstUser,
+          canPrintReports: true, // Todos podem imprimir por padrão
         },
       })
     } catch (e) {

@@ -167,13 +167,14 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
                     alignItems: 'center', 
                     gap: '0.4rem', 
                     fontSize: '0.58rem', 
-                    color: '#fbbf24', 
-                    background: 'rgba(251,191,36,0.08)', 
+                    color: '#94a3b8', 
+                    background: 'rgba(255,255,255,0.05)', 
                     padding: '4px 8px', 
                     borderRadius: '6px',
-                    fontWeight: 600
+                    fontWeight: 600,
+                    textTransform: 'uppercase'
                   }}>
-                    <ShieldAlert size={10} /> RESTRITO
+                    OPERADOR PADRÃO
                   </div>
                 )
               )}

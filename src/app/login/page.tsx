@@ -78,7 +78,7 @@ export default function LoginPage() {
         setError(res.error)
         setExpression('alert')
       } else {
-        setMsg('Solicitação de acesso enviada! Aguarde liberação do admin.')
+        setMsg('Conta criada! Verifique seu e-mail para confirmar o acesso e começar a usar.')
         setExpression('smiling')
       }
       setLoading(false)
@@ -211,8 +211,8 @@ export default function LoginPage() {
 
               <p className={styles.formHelpText}>
                 {isLogin 
-                  ? 'Novos operadores devem realizar o cadastro para acesso restrito.' 
-                  : 'Seu acesso inicial será limitado até a aprovação de um administrador.'}
+                  ? 'Utilize suas credenciais institucionais para acessar o painel.' 
+                  : 'Seu acesso estará disponível imediatamente após a confirmação por e-mail.'}
               </p>
             </div>
 
