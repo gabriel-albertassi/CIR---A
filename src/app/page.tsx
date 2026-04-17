@@ -276,7 +276,7 @@ export default async function DashboardPage() {
                         </div>
 
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.75rem' }}>
-                          {h.cti_masc > 0 && <span style={{ background: 'rgba(249,115,22,0.2)', color: '#fdba74', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>CTI M:{h.cti_masc}</span>}
+                          {h.cti_masc > 0 && <span style={{ background: 'rgba(249,115,22,0.2)', color: '#fdba74', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>CTI %M:{h.cti_masc}</span>}
                           {h.cti_fem > 0 && <span style={{ background: 'rgba(249,115,22,0.2)', color: '#fdba74', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>CTI F:{h.cti_fem}</span>}
                           {h.clinica_masc > 0 && <span style={{ background: 'rgba(59,130,246,0.2)', color: '#93c5fd', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Cli M:{h.clinica_masc}</span>}
                           {h.clinica_fem > 0 && <span style={{ background: 'rgba(59,130,246,0.2)', color: '#93c5fd', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Cli F:{h.clinica_fem}</span>}
@@ -396,5 +396,4 @@ export default async function DashboardPage() {
       </div>
     )
   }
-}
 }
