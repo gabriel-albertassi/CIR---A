@@ -203,10 +203,10 @@ export default function LoginPage() {
                 <HeartPulse size={16} />
                 <span>SMSVR • Secretaria Municipal de Saúde</span>
               </div>
-              <p className={styles.loginFooterText}>
-                Prefeitura de Volta Redonda &nbsp;•&nbsp; Versão 1.0 <br/>
-                Desenvolvido por <a href="https://www.instagram.com/gabriel.albertassi" target="_blank" rel="noopener noreferrer">Gabriel Albertassi</a>
-              </p>
+              <div className={styles.loginFooterText}>
+                Prefeitura de Volta Redonda • Versão 1.2<br />
+                Desenvolvido por <a href="https://github.com/gabriel-albertassi" target="_blank" rel="noopener noreferrer">Gabriel Albertassi</a>
+              </div>
             </div>
           </div>
         </div>
