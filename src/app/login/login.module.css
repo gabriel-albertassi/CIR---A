@@ -373,46 +373,95 @@
 /* Responsive */
 @media (max-width: 1100px) {
   .loginContent { 
-    grid-template-columns: 1fr;
+    display: flex; /* Troca grid por flex para controle absoluto de ordem */
+    flex-direction: column;
     overflow-y: auto;
     height: auto;
     min-height: 100vh;
+    padding: 0;
   }
   
   .loginLeft {
-    padding: 1.5rem;
-    order: 2; /* Form abaixo no mobile se preferir, ou 1 para ficar em cima */
+    width: 100%;
+    padding: 2rem 1rem;
+    order: 1; /* Form e Logo no topo */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
   }
 
   .loginRight {
-    order: 1; /* Branding/Cirila em cima */
-    min-height: 300px;
-    padding: 2rem 1rem;
-    background: rgba(0,0,0,0.1);
+    width: 100%;
+    order: 2; /* Cirila e Hologramas embaixo */
+    min-height: auto;
+    padding: 0 1rem 3rem 1rem;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    margin-top: -1rem; /* Aproxima os blocos */
   }
 
   .loginLeftInner {
-    max-width: 100%;
+    max-width: 400px;
+    width: 100%;
     gap: 1.5rem;
   }
 
   .loginTitle {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
   }
 
   .loginSubtitle {
     font-size: 0.75rem;
+    margin: 0 auto;
+    max-width: 250px;
+  }
+
+  .loginLogoWrapper {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .loginLogoWrapper img {
+    max-width: 150px !important; /* Logo bem menor no mobile */
+  }
+
+  /* Deixa Cirila proporcional no mobile */
+  .loginRightContainer {
+    transform: scale(0.9);
+    margin: 0 auto;
   }
 
   .loginCirilaSpeech {
-    bottom: 10%;
-    min-width: 260px;
-    padding: 0.75rem;
+    position: relative;
+    bottom: 0;
+    margin-top: 1rem;
+    min-width: 280px;
+    width: 100%;
+  }
+
+  /* Ajusta hologramas para não flutuarem fora da tela */
+  .loginHolo {
+    display: none; /* Esconde hologramas flutuantes no mobile para limpar visual */
+  }
+  
+  .holo4 { /* Mantém apenas um badge importante se quiser */
+    display: flex;
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 0 auto 0.5rem auto;
+    width: fit-content;
   }
 }
 
 @media (max-width: 480px) {
-  .loginTitle { font-size: 1.3rem; }
-  .loginSmsvrBadge { font-size: 0.6rem; }
-  .loginFormContainer { padding: 1rem; }
+  .loginTitle { font-size: 1.15rem; }
+  .loginSubtitle { display: none; }
+  .loginFormContainer { 
+    padding: 1.25rem; 
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
 }
