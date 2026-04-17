@@ -30,10 +30,21 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
 
   const isLoginPage = pathname === '/login'
 
-  // Close menu when route changes
+  // Close menu when route changes and handle scroll lock
   useEffect(() => {
     setIsMobileMenuOpen(false)
+    document.body.classList.remove('no-scroll')
   }, [pathname])
+
+  const toggleMobileMenu = () => {
+    const newState = !isMobileMenuOpen
+    setIsMobileMenuOpen(newState)
+    if (newState) {
+      document.body.classList.add('no-scroll')
+    } else {
+      document.body.classList.remove('no-scroll')
+    }
+  }
 
   if (isLoginPage) return <>{children}</>
 
@@ -44,7 +55,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
       {!isLoginPage && (
         <button 
           className="mobile-toggle"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          onClick={toggleMobileMenu}
           aria-label="Abrir Menu"
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -128,10 +139,10 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
                 {!isSidebarCollapsed && (
                   <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                      {user?.name || 'Sistema'}
+                      {user?.name || user?.email?.split('@')[0] || 'Acesso'}
                     </span>
                     <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {user?.role || 'Acesso'}
+                      {user?.role || 'Acesso Direto'}
                     </span>
                   </div>
                 )}
@@ -217,30 +228,13 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
                 }}
               >
                 <Info size={18} color="#00b4d8" style={{ opacity: 0.7 }} />
-                {!isSidebarCollapsed && <span>Sobre</span>}
+                {!isSidebarCollapsed && <span>Sobre o Sistema</span>}
               </Link>
-              <button 
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#94a3b8'
-                }}
-              >
-                <X size={16} />
-              </button>
             </div>
             
             <div style={{ margin: '0.25rem 0 0.5rem 0', height: '1px', background: 'linear-gradient(to right, transparent, rgba(0,216,255,0.1), transparent)' }} />
 
-            {/* Créditos Atualizados 1.5 */}
+            {/* Créditos Atualizados 1.5 Premium Final */}
             <div style={{
               padding: '0.5rem',
               display: 'flex',
@@ -248,6 +242,9 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               gap: '0.2rem',
               textAlign: 'center'
             }}>
+              <div style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 700, opacity: 0.6, letterSpacing: '0.5px' }}>
+                SMSVR • Volta Redonda • v1.5 Premium
+              </div>
               <a 
                 href="https://www.instagram.com/gabriel.albertassi" 
                 target="_blank" 
@@ -263,7 +260,6 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               >
                 Desenvolvido por Gabriel Albertassi
               </a>
-              <div style={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.6rem', opacity: 0.5 }}>v1.5 Premium</div>
             </div>
           </div>
         </aside>

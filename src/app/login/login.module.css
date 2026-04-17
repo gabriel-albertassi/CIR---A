@@ -155,13 +155,18 @@
 
 .inputGroup label {
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 500; /* Mais fino */
   display: flex;
   align-items: center;
+  justify-content: center; /* Centralizado */
   gap: 0.5rem;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.inputGroup input {
+  text-align: center; /* Texto centralizado no input */
 }
 
 .inputGroup label svg {
@@ -170,11 +175,11 @@
 }
 
 .loginSubmitBtn {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
   background: rgba(0, 216, 255, 0.05);
-  height: 48px;
+  height: 46px;
   border-radius: 10px;
-  font-weight: 700;
+  font-weight: 600; /* Menos grosso */
   color: #00d8ff;
   border: 1px solid rgba(0, 216, 255, 0.3);
   cursor: pointer;
@@ -185,7 +190,7 @@
   transition: all 0.2s;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .loginSubmitBtn:hover {

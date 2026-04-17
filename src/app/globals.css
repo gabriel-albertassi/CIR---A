@@ -530,34 +530,55 @@ td select option {
    NEW LAYOUT SYSTEM (Robust Responsive)
    ================================ */
 
+/* Trava de Scroll do Fundo */
+body.no-scroll {
+  overflow: hidden;
+  height: 100vh;
+}
+
 .mobile-only {
   display: none;
 }
 
 .sidebar-main {
-  width: 260px; /* Reduzido de 280px para ficar mais leve */
+  width: 260px;
   background: rgba(8, 20, 35, 0.98);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid rgba(0, 180, 216, 0.2);
   box-shadow: 4px 0 30px rgba(0,0,0,0.4);
-  padding: 2rem 1.25rem;
+  padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   position: fixed;
   height: 100vh;
   left: 0;
   top: 0;
-  z-index: 1000;
+  z-index: 2000; /* Aumentado para cobrir tudo */
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 216, 255, 0.2) transparent;
 }
 
+.sidebar-link {
+  color: #b0bec5;
+  text-decoration: none;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 500; /* Mais fino conforme solicitado */
+  font-size: 0.95rem;
+  letter-spacing: -0.1px;
+  margin-bottom: 0.2rem;
+}
+
 .sidebar-main.collapsed {
   width: 80px;
-  padding: 2rem 0.75rem;
+  padding: 1.5rem 0.75rem;
 }
 
 .sidebar-main.collapsed span {
@@ -571,7 +592,7 @@ td select option {
 .main-viewport {
   flex: 1;
   padding: 2.5rem;
-  margin-left: 260px; /* Ajustado para acompanhar a sidebar */
+  margin-left: 260px;
   min-height: 100vh;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -586,9 +607,9 @@ td select option {
   position: fixed;
   top: 1.25rem;
   left: 1.25rem;
-  z-index: 1100;
-  background: rgba(0, 216, 255, 0.15);
-  border: 1px solid rgba(0, 216, 255, 0.3);
+  z-index: 2100;
+  background: rgba(0, 216, 255, 0.2);
+  border: 1px solid rgba(0, 216, 255, 0.4);
   backdrop-filter: blur(8px);
   color: #00d8ff;
   width: 44px;
@@ -597,13 +618,6 @@ td select option {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  transition: all 0.2s;
-}
-
-.mobile-toggle:hover {
-  background: rgba(0, 216, 255, 0.25);
-  transform: scale(1.05);
 }
 
 @media (max-width: 1024px) {
