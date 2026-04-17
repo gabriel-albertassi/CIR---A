@@ -267,8 +267,6 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
             </div>
           </div>
         </aside>
-          </div>
-        </aside>
 
         {/* MAIN CONTENT */}
         <main className="main-viewport">
