@@ -243,7 +243,9 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
               const canOfferToHNSG = p.severity !== 'CTI' && p.severity !== 'SALA_VERMELHA';
 
               // Filtra: hospitais já solicitados para este paciente não aparecem novamente
+              // LOGIC FIX: Também remove o hospital de origem para não permitir auto-transferência
               const availableHospitals = ALL_HOSPITALS.filter(h => {
+                if (h === p.origin_hospital) return false;
                 if (h === 'Hospital Doutor Nelson Gonçalves (HNSG)') return canOfferToHNSG;
                 if (p.requested_hospitals && p.requested_hospitals.includes(h)) return false;
                 return true;
@@ -487,7 +489,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 onChange={(e) => setTransferHospital(e.target.value)}
                               >
                                 <option value="">Transferido para...</option>
-                                {TRANSFER_HOSPITALS.map(h => (
+                                {TRANSFER_HOSPITALS.filter(h => h !== p.origin_hospital).map(h => (
                                   <option key={h} value={h}>{h}</option>
                                 ))}
                               </select>
