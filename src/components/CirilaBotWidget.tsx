@@ -2,17 +2,19 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { askCirila, CirilaResponse } from '../app/api/cirilaActions';
-import { Send, Paperclip, Bot, Bell, ChevronDown, ChevronUp } from 'lucide-react';
+import { Send, Paperclip, Bot, Bell, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import CirilaAvatar from './CirilaAvatar';
 
 export default function CirilaBotWidget() {
   const router = useRouter();
   const [messages, setMessages] = useState<CirilaResponse[]>([
-    { text: 'Olá! Eu sou a Cirila, sua IA da SMSVR. Como posso agilizar a regulação hoje?', sender: 'ai', image: '/cirila_1.png' }
+    { text: 'Olá! Eu sou a Cirila, sua IA da SMSVR. Como posso agilizar a regulação hoje?', sender: 'ai' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(true); // Começa fechada
+  const [isMinimized, setIsMinimized] = useState(true); 
+  const [expression, setExpression] = useState<'neutral' | 'smiling' | 'thinking' | 'alert'>('neutral');
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   const [notification, setNotification] = useState<string | null>(null);
@@ -22,14 +24,15 @@ export default function CirilaBotWidget() {
   }, [messages, loading]);
 
   useEffect(() => {
-    // Escuta global para simular recebimento do Webhook imaginário se o usuário emitir um CustomEvent.
-    // Para simplificar a simulação no projeto sem Socket.io, a gente cria um timeout imaginário
-    // após o primeiro uso agressivo do chat, só para o Pitch dar certo.
     const handleSimulatedReply = (e: any) => {
       const msg = e.detail || 'Nova Mensagem Recebida do NIR!';
       setNotification(msg);
+      setExpression('alert');
       setMessages(prev => [...prev, { text: `🔔 Urgente chefe: ${msg}`, sender: 'ai' }]);
-      setTimeout(() => setNotification(null), 8000);
+      setTimeout(() => {
+        setNotification(null);
+        setExpression('neutral');
+      }, 10000);
     };
     const handleToggle = () => setIsMinimized(prev => !prev);
     
@@ -37,12 +40,16 @@ export default function CirilaBotWidget() {
       const num = e.detail;
       const msg = `⚠️ **ALERTA CLÍNICO MÁXIMO:** Detectei **${num}** paciente(s) na fila com Score elevadíssimo (acima do teto de 35 pontos ou com status de Vaga Zero Pura). A prioridade clínica está em vermelho. Recomendo abrir o modo de "Disparo de E-mail Único" na fila imediatamente, vou coordenar com as unidades conveniadas.`;
       
+      setExpression('alert');
       setMessages(prev => {
          if (prev[prev.length - 1]?.text === msg) return prev;
-         return [...prev, { text: msg, sender: 'ai', image: '/cirila_1.png' }];
+         return [...prev, { text: msg, sender: 'ai' }];
       });
       setNotification(`ALERTA: SCORE ELEVADO DETECTADO`);
-      setTimeout(() => setNotification(null), 10000);
+      setTimeout(() => {
+        setNotification(null);
+        setExpression('neutral');
+      }, 15000);
       window.dispatchEvent(new CustomEvent('CIRILA_BADGE', { detail: true }));
     };
 
@@ -63,10 +70,12 @@ export default function CirilaBotWidget() {
     setInput('');
     setMessages(prev => [...prev, { text: textToSend, sender: 'user' }]);
     setLoading(true);
+    setExpression('thinking');
 
     const reply = await askCirila(textToSend);
     setMessages(prev => [...prev, reply]);
     setLoading(false);
+    setExpression('neutral');
   }
 
   function handleActionClick(payload: string) {
@@ -75,8 +84,6 @@ export default function CirilaBotWidget() {
     if (payload === 'QUERY_ABOUT') handleSend('o que você sabe fazer?');
     if (payload === 'TRIGGER_CHARGE' || payload === 'TRIGGER_BLAST') {
       router.push('/patients');
-      // Na tela de pacientes é onde instanciamos as ações para pacientes ativos, 
-      // então direcionamos para lá pedindo para que eles usem o botão.
       setTimeout(() => alert('Acesso transferido para a Fila Dinâmica.\n\nSimulação: Use os botões das linhas do paciente para disparar.'), 500);
     }
   }
@@ -98,34 +105,41 @@ export default function CirilaBotWidget() {
       opacity: isMinimized ? 0 : 1,
       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 100vw rgba(15,23,42,0.6)',
-      pointerEvents: isMinimized ? 'none' : 'auto'
+      pointerEvents: isMinimized ? 'none' : 'auto',
+      borderRadius: '24px',
+      border: '1px solid rgba(255,255,255,0.1)'
     }}>
       
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', padding: '1.25rem', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: 'linear-gradient(135deg, #020617, #0f172a)', padding: '1.25rem', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(59,130,246,0.5)', overflow: 'hidden' }}>
-            <img src="/cirila_icone_chat.png" alt="A.I Cirila" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ width: '50px', height: '50px', position: 'relative' }}>
+            <CirilaAvatar expression={expression} size="100%" showAura={false} />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.5px' }}>Assistente CIRILA</h3>
-            <span style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', borderRadius: '50%', display: 'inline-block' }}></span> Online (Modelo Avançado)
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.5px' }}>CIRILA</h3>
+              <span style={{ fontSize: '0.6rem', background: expression === 'alert' ? '#ef4444' : 'rgba(0,216,255,0.15)', color: expression === 'alert' ? 'white' : '#00d8ff', padding: '2px 8px', borderRadius: '4px', fontWeight: 800, transition: 'all 0.5s' }}>
+                {expression === 'alert' ? 'ALERTA' : 'V.2 PIXAR'}
+              </span>
+            </div>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', backgroundColor: expression === 'alert' ? '#ef4444' : '#10b981', borderRadius: '50%', display: 'inline-block', boxShadow: expression === 'alert' ? '0 0 8px #ef4444' : '0 0 8px #10b981', transition: 'all 0.5s' }}></span> 
+              {expression === 'alert' ? 'Status Crítico' : 'Ativa e Monitorando'}
             </span>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {notification && (
-            <div style={{ animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#dc2626', padding: '0.3rem 0.6rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600 }}>
-              <Bell size={14} /> NOVO E-MAIL NIR
+            <div style={{ animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#dc2626', padding: '0.5rem 1rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700 }}>
+              <Bell size={14} /> ALERTA NIR
             </div>
           )}
           
           <button 
             onClick={() => setIsMinimized(true)}
-            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '0.5rem', borderRadius: '8px', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            title="Fechar Chat"
+            style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.6rem', borderRadius: '12px', transition: 'all 0.2s' }}
           >
             <ChevronDown size={22} />
           </button>
@@ -133,98 +147,117 @@ export default function CirilaBotWidget() {
       </div>
 
       {/* Chat Area */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {messages.map((m, idx) => (
-          <div key={idx} style={{ alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
+          <div key={idx} style={{ alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
             
-            <div style={{ 
-              background: m.sender === 'user' ? '#2563eb' : 'white', 
-              color: m.sender === 'user' ? 'white' : '#334155',
-              padding: '1rem 1.25rem',
-              borderRadius: m.sender === 'user' ? '16px 16px 0 16px' : '16px 16px 16px 0',
-              border: m.sender === 'user' ? 'none' : '1px solid #e2e8f0',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
-              fontSize: '1rem',
-              lineHeight: '1.5'
-            }}>
-              {m.image && (
-                 <img src={m.image} alt="Cirila Stance" style={{ width: '100%', maxWidth: '250px', borderRadius: '8px', marginBottom: '8px', objectFit: 'contain' }} />
-              )}
-              {/* Parse bold text hack */}
-              <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-            </div>
-
-            {m.actions && m.actions.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.75rem' }}>
-                {m.actions.map(act => (
-                  <button 
-                    key={act.label}
-                    onClick={() => handleActionClick(act.payload)}
-                    style={{ background: '#e0e7ff', color: '#3730a3', border: '1px solid #c7d2fe', padding: '0.5rem 0.8rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-                    onMouseOver={(e:any) => e.target.style.background = '#c7d2fe'}
-                    onMouseOut={(e:any) => e.target.style.background = '#e0e7ff'}
-                  >
-                    {act.label}
-                  </button>
-                ))}
+            {m.sender === 'ai' && (
+              <div style={{ width: '36px', height: '36px', flexShrink: 0, marginBottom: '4px' }}>
+                <img src="/cirila_3D_neutral.png" alt="Cirila Pixar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain', border: '2px solid #e2e8f0' }} />
               </div>
             )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ 
+                background: m.sender === 'user' ? '#0f172a' : 'white', 
+                color: m.sender === 'user' ? 'white' : '#1e293b',
+                padding: '1.25rem 1.5rem',
+                borderRadius: m.sender === 'user' ? '24px 24px 4px 24px' : '24px 24px 24px 4px',
+                border: m.sender === 'user' ? 'none' : '1px solid #e2e8f0',
+                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
+                fontSize: '1rem',
+                lineHeight: '1.6',
+                fontWeight: 500
+              }}>
+                <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+              </div>
+
+              {/* PROJEÇÃO HOLOGRÁFICA DE EMERGÊNCIA */}
+              {m.text.includes('ALERTA CLÍNICO MÁXIMO') && (
+                <div style={{ 
+                  marginTop: '1rem', 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  position: 'relative',
+                  animation: 'hologram-flicker 0.2s infinite alternate',
+                  filter: 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.4))'
+                }}>
+                  <div style={{ width: '280px', height: '280px', position: 'relative', opacity: 0.85 }}>
+                    <CirilaAvatar expression="alert" size="100%" showAura={true} />
+                    {/* Efeito de Scanlines Digitais */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03))',
+                      backgroundSize: '100% 2px, 3px 100%',
+                      pointerEvents: 'none',
+                      zIndex: 10,
+                      borderRadius: '50%'
+                    }} />
+                  </div>
+                </div>
+              )}
+
+              {m.actions && m.actions.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {m.actions.map(act => (
+                    <button 
+                      key={act.label}
+                      onClick={() => handleActionClick(act.payload)}
+                      style={{ background: '#e0e7ff', color: '#3730a3', border: '1px solid #c7d2fe', padding: '0.6rem 1rem', borderRadius: '14px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
+                    >
+                      {act.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ))}
         {loading && (
-          <div style={{ alignSelf: 'flex-start', background: 'white', padding: '1rem 1.25rem', borderRadius: '16px 16px 16px 0', border: '1px solid #e2e8f0', color: '#94a3b8', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-            <div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid #cbd5e1', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-            Cirila está analisando dados complexos...
+          <div style={{ alignSelf: 'flex-start', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ width: '36px', height: '36px' }}>
+              <CirilaAvatar expression="neutral" size="100%" showAura={false} />
+            </div>
+            <div style={{ background: 'white', padding: '1rem 1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+              <div className="spinner" style={{ width: '18px', height: '18px', border: '3px solid #f1f5f9', borderTopColor: '#00d8ff', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              Cirila está processando dados reais...
+            </div>
           </div>
         )}
         <div ref={endOfMessagesRef} />
       </div>
 
       {/* Input Area */}
-      <div style={{ padding: '1rem 1.5rem', background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        
-        <button 
-          onClick={() => handleSend('[Arquivo PDF: Laudo_Paciente_HSC.pdf] anexado para análise.')}
-          style={{ background: '#f1f5f9', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0.75rem', borderRadius: '50%', transition: 'background 0.2s' }}
-          title="Anexar Laudo/Evolução (Simulação)"
-        >
-          <Paperclip size={22} />
-        </button>
-
+      <div style={{ padding: '1.5rem 2rem', background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <input 
           type="text" 
-          placeholder="Pergunte à Cirila sobre a fila ou anexe um documento..."
+          placeholder="Pergunte à Cirila..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          style={{ flex: 1, padding: '0.85rem 1.25rem', border: '1px solid #cbd5e1', borderRadius: '24px', outline: 'none', fontSize: '1rem', backgroundColor: '#f8fafc', transition: 'border-color 0.2s' }}
-          onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-          onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+          style={{ flex: 1, padding: '1rem 1.5rem', border: '1px solid #e2e8f0', borderRadius: '999px', outline: 'none', fontSize: '1rem', backgroundColor: '#f8fafc', fontWeight: 500 }}
         />
 
         <button 
           onClick={() => handleSend()}
           disabled={!input.trim()}
-          style={{ background: input.trim() ? '#2563eb' : '#cbd5e1', border: 'none', color: 'white', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.2s', transform: input.trim() ? 'scale(1.05)' : 'scale(1)' }}
+          style={{ background: input.trim() ? '#0f172a' : '#cbd5e1', border: 'none', color: 'white', width: '54px', height: '54px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.3s' }}
         >
-          <Send size={20} style={{ marginLeft: '2px' }} />
+          <Send size={22} />
         </button>
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        
+        @keyframes hologram-flicker {
+          0% { opacity: 0.8; transform: skewY(0deg) scale(1); }
+          5% { opacity: 0.9; transform: skewY(1deg) scale(1.01); }
+          10% { opacity: 0.7; transform: skewY(-1deg) scale(0.99); }
+          15% { opacity: 1; transform: skewY(0deg) scale(1); }
+        }
         @media (max-width: 768px) {
-          .cirila-chat-container {
-            width: 100vw !important;
-            height: 100vh !important;
-            max-width: none !important;
-            border-radius: 0 !important;
-            top: 0 !important;
-            left: 0 !important;
-            transform: none !important;
-            height: 100dvh !important; /* Dynamic viewport height for mobile browsers */
-          }
+          .cirila-chat-container { width: 100vw !important; height: 100vh !important; max-width: none !important; border-radius: 0 !important; top: 0 !important; left: 0 !important; transform: none !important; }
         }
       `}} />
     </div>

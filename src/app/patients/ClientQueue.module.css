@@ -1,0 +1,86 @@
+.queueHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+}
+
+.queueTitle h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.queueTitle p {
+  color: #94a3b8;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.filterPanel {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.searchWrapper {
+  position: relative;
+  min-width: 280px;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.queueTable {
+  width: 100%;
+  border-collapse: collapse;
+  textAlign: left;
+}
+
+.rowCritical {
+  border-left: 4px solid #ef4444;
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+.rowDelayed {
+  border-left: 4px solid #f97316;
+  background-color: rgba(239, 68, 68, 0.04);
+}
+
+.rowNormal {
+  border-left: 4px solid transparent;
+}
+
+.actionCell {
+  padding: 1rem 1.5rem;
+  min-width: 320px;
+}
+
+.actionPanel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.hospitalSelectWrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  border-radius: 8px;
+  width: 100%;
+}

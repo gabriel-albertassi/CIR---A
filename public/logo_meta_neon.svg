@@ -1,0 +1,66 @@
+<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Metallic Gradient: Bronze/Copper -->
+    <linearGradient id="bronze" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7a4a2a" />
+      <stop offset="20%" style="stop-color:#b87333" />
+      <stop offset="50%" style="stop-color:#d4af37" />
+      <stop offset="80%" style="stop-color:#b87333" />
+      <stop offset="100%" style="stop-color:#5a351a" />
+    </linearGradient>
+
+    <!-- Metallic Gradient: Silver/Steel -->
+    <linearGradient id="silver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c3e50" />
+      <stop offset="30%" style="stop-color:#bdc3c7" />
+      <stop offset="50%" style="stop-color:#ecf0f1" />
+      <stop offset="70%" style="stop-color:#bdc3c7" />
+      <stop offset="100%" style="stop-color:#7f8c8d" />
+    </linearGradient>
+
+    <!-- Optimized Neon Cyan Glow -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- BACKGROUND STRUCTURE -->
+  <g transform="translate(300, 200) rotate(-30) translate(-300, -200)">
+    <!-- Circuit Lines Background -->
+    <path d="M150,150 L200,200 L150,250 M450,150 L400,200 L450,250" 
+          stroke="url(#bronze)" stroke-width="4" fill="none" opacity="0.3" />
+    
+    <!-- Outer Metallic Ring -->
+    <path d="M100,200 A200,180 0 0,1 500,200" 
+          fill="none" stroke="url(#silver)" stroke-width="20" stroke-linecap="round" />
+    
+    <!-- Tech Elements -->
+    <rect x="180" y="80" width="40" height="4" fill="#00d8ff" filter="url(#neonGlow)" />
+    <rect x="380" y="320" width="40" height="4" fill="#00d8ff" filter="url(#neonGlow)" />
+  </g>
+
+  <!-- CENTRAL MONUMENT (Static) -->
+  <g transform="translate(300, 200)">
+    <path d="M-30,80 L30,80 L15,100 L-15,100 Z" fill="url(#bronze)" />
+    <path d="M0,-120 L40,80 L0,50 L-40,80 Z" 
+          fill="url(#silver)" stroke="url(#bronze)" stroke-width="1.5" />
+    
+    <!-- AI Core Node -->
+    <circle cx="0" cy="0" r="15" fill="#080e1a" stroke="#00d8ff" stroke-width="2.5" filter="url(#neonGlow)" />
+    <path d="M-7,-7 L7,7 M-7,7 L7,-7" stroke="#00d8ff" stroke-width="1.5" />
+  </g>
+
+  <!-- LOGO TEXT: CIR-A -->
+  <g transform="translate(300, 360)">
+    <text text-anchor="middle" font-family="Arial, serif" font-size="80" font-weight="900" fill="url(#silver)" style="letter-spacing: -2px;">
+      <tspan fill="url(#silver)">CIR</tspan><tspan fill="#00d8ff">-</tspan><tspan fill="url(#silver)">A</tspan>
+    </text>
+    <text y="30" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#94a3b8" style="letter-spacing: 4px; text-transform: uppercase;">
+      Central Inteligente de Regulação Automatizada
+    </text>
+  </g>
+</svg>

@@ -112,7 +112,7 @@ export default function CallCirilaButton() {
           onMouseOver={(e:any) => { if(!isDragging) e.currentTarget.style.transform = 'scale(1.1)' }}
           onMouseOut={(e:any) => e.currentTarget.style.transform = 'scale(1)'}
         >
-          <img src="/cirila_icone_chat.png" alt="Chamar Cirila" style={{ width: '48px', height: '48px', objectFit: 'contain', pointerEvents: 'none' }} />
+          <img src="/cirila_3D_neutral.png" alt="Chamar Cirila" style={{ width: '48px', height: '48px', objectFit: 'contain', pointerEvents: 'none', borderRadius: '50%' }} />
           {hasBadge && (
             <span style={{ position: 'absolute', top: '-5px', right: '-5px', width: '20px', height: '20px', background: '#dc2626', color: 'white', borderRadius: '50%', border: '3px solid white', animation: 'pulse 1.5s infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 'bold' }}>!</span>
           )}

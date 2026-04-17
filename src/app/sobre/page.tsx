@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Sparkles, Activity, ShieldCheck, Clock, Layers, Users } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -31,8 +32,8 @@ export default function SobrePage() {
               No modelo fragmentado do passado, a regulação dependia excessivamente de telefonemas, papéis e planilhas desconexas, o que naturalmente aumentava a margem para atrasos. <strong style={{ color: '#e2e8f0' }}>A CIR-A foi criada para resolver essa dor:</strong> unir todos os hospitais sob uma mesma linguagem digital, criando uma "torre de controle" capaz de enxergar tudo em tempo real para não deixar nenhum paciente esperando sem necessidade.
             </p>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '2rem', borderRadius: '20px', border: '1px dashed rgba(0,180,216,0.3)' }}>
-            <img src="/logo.png" alt="Logo CIR-A" style={{ width: '100%', height: 'auto', maxWidth: '300px', display: 'block', margin: '0 auto', filter: 'drop-shadow(0 0 30px rgba(0,180,216,0.5))' }} />
+          <div className="logo-container-glow" style={{ background: 'rgba(255,255,255,0.05)', padding: '2rem', borderRadius: '20px', border: '1px dashed rgba(0,180,216,0.3)' }}>
+            <Image src="/logo.png" alt="Logo CIR-A" width={300} height={100} style={{ width: '100%', height: 'auto', maxWidth: '300px', display: 'block', margin: '0 auto' }} />
           </div>
         </div>
       </div>
@@ -42,8 +43,8 @@ export default function SobrePage() {
         <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f1f5f9', marginBottom: '1.5rem', textAlign: 'center' }}>Por dentro do Sistema: O que fazemos?</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
           
-          <div className="card" style={{ padding: '2rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', padding: '12px', borderRadius: '12px' }}><Activity size={24} /></div>
+          <div className="card" style={{ padding: '2rem 1.5rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+            <div style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', padding: '14px', borderRadius: '14px' }}><Activity size={32} /></div>
             <div>
               <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#f1f5f9' }}>Triagem de Gravidade Híbrida</h4>
               <p style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>
@@ -52,8 +53,8 @@ export default function SobrePage() {
             </div>
           </div>
 
-          <div className="card" style={{ padding: '2rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div style={{ background: 'rgba(16,185,129,0.2)', color: '#34d399', padding: '12px', borderRadius: '12px' }}><Layers size={24} /></div>
+          <div className="card" style={{ padding: '2rem 1.5rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+            <div style={{ background: 'rgba(16,185,129,0.2)', color: '#34d399', padding: '14px', borderRadius: '14px' }}><Layers size={32} /></div>
             <div>
               <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#f1f5f9' }}>Censo Dinâmico Centralizado</h4>
               <p style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>
@@ -62,8 +63,8 @@ export default function SobrePage() {
             </div>
           </div>
 
-          <div className="card" style={{ padding: '2rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div style={{ background: 'rgba(59,130,246,0.2)', color: '#60a5fa', padding: '12px', borderRadius: '12px' }}><Clock size={24} /></div>
+          <div className="card" style={{ padding: '2rem 1.5rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+            <div style={{ background: 'rgba(59,130,246,0.2)', color: '#60a5fa', padding: '14px', borderRadius: '14px' }}><Clock size={32} /></div>
             <div>
               <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#f1f5f9' }}>Registro Histórico Intocável</h4>
               <p style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>

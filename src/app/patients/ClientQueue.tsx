@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { requestBed, transferPatient, cancelPatient, registerRefusal, evolvePatient } from './actions'
 import { AlertTriangle, Clock, Activity, MessageSquare, TrendingUp, Search, MessageCircle, Mail, Send } from 'lucide-react'
 import PrintButton from '@/components/PrintButton'
 import ChargeEvolutionModal from '@/components/ChargeEvolutionModal'
 import MassBlastModal from '@/components/MassBlastModal'
 import { ALL_HOSPITALS, SEVERITY_LEVELS, HOSPITAL_CONTACTS } from '@/lib/constants'
+import styles from './ClientQueue.module.css'
 
 // We maintain the logic for the red Score tag on rows, but transfer the banner to Cirila's logic.
 
@@ -43,8 +44,21 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
+
+  // Otimização: Memoização da filtragem para evitar recálculos desnecessários
+  const filteredPatients = useMemo(() => {
+    return initialPatients.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
+                          p.diagnosis.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = filterStatus === 'ALL' || p.status === filterStatus;
+      return matchesSearch && matchesStatus;
+    });
+  }, [initialPatients, search, filterStatus]);
   
-  const criticalScorePatients = initialPatients.filter(p => p.score > 35 || p.score === -1);
+  const criticalScorePatients = useMemo(() => 
+    initialPatients.filter(p => p.score > 35 || p.score === -1),
+    [initialPatients]
+  );
 
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
   const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
@@ -172,28 +186,24 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
     <>
     <div className="card" style={{ overflowX: 'auto', padding: '0', backgroundColor: 'var(--surface)' }}>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', padding: '1.5rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#f1f5f9', marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
-            Fila Dinâmica de Pacientes
-          </h1>
-          <p style={{ color: '#94a3b8', fontSize: '1rem', fontWeight: 500 }}>
-            Gerenciamento estratégico de transferências e ocupação.
-          </p>
+      <div className={styles.queueHeader}>
+        <div className={styles.queueTitle}>
+          <h1>Fila Dinâmica de Pacientes</h1>
+          <p>Gerenciamento estratégico de transferências e ocupação.</p>
         </div>
         
-        <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-end' }}>
+        <div className={`no-print ${styles.filterPanel}`}>
           <PrintButton user={user} />
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <div style={{ position: 'relative', minWidth: '280px' }}>
-              <div style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', left: '12px', color: '#94a3b8' }}>
+            <div className={styles.searchWrapper}>
+              <div className={styles.searchIcon}>
                 <Search size={18} />
               </div>
               <input 
                 type="text" 
                 placeholder="Buscar por paciente ou protocolo..." 
                 className="input"
-                style={{ paddingLeft: '2.5rem', borderRadius: '12px', borderColor: '#e2e8f0', backgroundColor: '#f8fafc', fontWeight: 500 }}
+                style={{ paddingLeft: '2.5rem', borderRadius: '12px' }}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -203,7 +213,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                 className="input" 
                 value={filterStatus} 
                 onChange={(e) => setFilterStatus(e.target.value)}
-                style={{ appearance: 'none', paddingRight: '2.5rem', borderRadius: '12px', borderColor: '#e2e8f0', backgroundColor: '#f8fafc', fontWeight: 600, color: '#334155' }}
+                style={{ appearance: 'none', borderRadius: '12px', fontWeight: 600 }}
               >
                 <option value="ALL">Todas as Vagas</option>
                 <option value="WAITING">Aguardando Vaga</option>
@@ -228,7 +238,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
           </thead>
 
           <tbody>
-            {initialPatients.map((p) => {
+            {filteredPatients.map((p) => {
               
               const canOfferToHNSG = p.severity !== 'CTI' && p.severity !== 'SALA_VERMELHA';
 
