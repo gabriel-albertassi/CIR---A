@@ -42,7 +42,8 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Se estiver logado e tentar ir pro login, manda pro dashboard
-  if (user && isAuthRoute) {
+  // Mas permite que ele continue em rotas /auth (necessário para o reset-password)
+  if (user && request.nextUrl.pathname.startsWith('/login')) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
