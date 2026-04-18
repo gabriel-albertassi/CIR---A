@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
                     type="submit" 
                     className={styles.loginSubmitBtn} 
                     disabled={loading}
-                    style={{ width: '100%', maxWidth: '100%' }}
+                    style={{ width: '100%', maxWidth: '100%', height: '40px', fontSize: '0.75rem', letterSpacing: '1px' }}
                   >
                     {loading ? <Loader2 className="animate-spin" size={20} /> : 'Enviar Link de Recuperação'}
                     {!loading && <ArrowRight size={18} />}
@@ -102,7 +102,7 @@ export default function ForgotPasswordPage() {
                   <a 
                     href="/login" 
                     className={styles.loginSubmitBtn}
-                    style={{ textDecoration: 'none', width: '100%', maxWidth: '100%' }}
+                    style={{ textDecoration: 'none', width: '100%', maxWidth: '100%', height: '40px', fontSize: '0.75rem', letterSpacing: '1px' }}
                   >
                     Voltar para o Login
                   </a>

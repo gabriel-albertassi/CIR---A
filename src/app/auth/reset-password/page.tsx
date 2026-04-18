@@ -80,7 +80,7 @@ export default function ResetPasswordPage() {
                     type="submit" 
                     className={styles.loginSubmitBtn} 
                     disabled={loading}
-                    style={{ width: '100%', maxWidth: '100%' }}
+                    style={{ width: '100%', maxWidth: '100%', height: '40px', fontSize: '0.75rem', letterSpacing: '1px' }}
                   >
                     {loading ? <Loader2 className="animate-spin" size={20} /> : 'Atualizar Senha'}
                     {!loading && <ArrowRight size={18} />}
@@ -98,7 +98,7 @@ export default function ResetPasswordPage() {
                   <a 
                     href="/login" 
                     className={styles.loginSubmitBtn}
-                    style={{ textDecoration: 'none', width: '100%', maxWidth: '100%' }}
+                    style={{ textDecoration: 'none', width: '100%', maxWidth: '100%', height: '40px', fontSize: '0.75rem', letterSpacing: '1px' }}
                   >
                     Ir para o Login
                   </a>
