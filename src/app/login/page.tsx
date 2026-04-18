@@ -213,6 +213,18 @@ function LoginForm() {
                     onFocus={() => setExpression('thinking')}
                     onBlur={() => setExpression('neutral')}
                   />
+                  {isLogin && (
+                    <div style={{ textAlign: 'right', marginTop: '-0.5rem' }}>
+                      <a 
+                        href="/auth/forgot-password" 
+                        style={{ fontSize: '0.75rem', color: '#64748b', textDecoration: 'none', transition: 'color 0.2s' }}
+                        onMouseOver={(e) => (e.currentTarget.style.color = '#00d8ff')}
+                        onMouseOut={(e) => (e.currentTarget.style.color = '#64748b')}
+                      >
+                        Esqueci minha senha
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 {!isLogin && (

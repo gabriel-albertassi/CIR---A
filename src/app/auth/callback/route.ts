@@ -12,9 +12,14 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // Respect the 'next' parameter if it exists (useful for password resets)
+      if (next) {
+        return NextResponse.redirect(`${origin}${next}`)
+      }
+      
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`)
+        return NextResponse.redirect(`${origin}/`)
       } else {
         return NextResponse.redirect(`${origin}/login?message=confirmed`)
       }
