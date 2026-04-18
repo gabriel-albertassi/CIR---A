@@ -78,8 +78,11 @@
 .loginLeftInner {
   width: 100%;
   max-width: 320px; 
-  gap: 1.25rem; /* Reduzido para aproximar o Branding do formulário */
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Mais espaço entre Branding e Formulário */
+  min-height: 90vh; /* Para permitir que o rodapé vá para o fundo */
+  justify-content: center;
 }
 
 .loginLogoWrapper {
@@ -126,7 +129,7 @@
   background: rgba(15, 23, 42, 0.4);
   border: 1px solid rgba(0, 216, 255, 0.15);
   border-radius: 20px;
-  padding: 1.5rem 1.75rem; /* Reduzido para compactar verticalmente */
+  padding: 2.25rem 2.5rem; /* Mais respiro interno */
   backdrop-filter: blur(12px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   display: flex;
@@ -140,7 +143,7 @@
   background: rgba(0, 0, 0, 0.2);
   padding: 0.3rem;
   border-radius: 14px;
-  margin-bottom: 1.25rem; 
+  margin-bottom: 2rem; /* Mais espaço após as abas */
   width: 100%;
 }
 
@@ -168,8 +171,8 @@
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Relação mais próxima entre label e input */
-  margin-bottom: 1.1rem; /* Compactação entre blocos */
+  gap: 0.75rem; /* Mais espaço entre label e input */
+  margin-bottom: 1.5rem; /* Mais respiro entre campos */
   width: 100%;
   align-items: center;
 }
@@ -203,7 +206,7 @@
 }
 
 .loginSubmitBtn {
-  margin-top: 0.5rem;
+  margin-top: 1.25rem; /* Mais espaço antes do botão */
   width: 100%;
   max-width: 210px; /* Botão centralizado e compacto */
   background: rgba(0, 216, 255, 0.05);
@@ -310,21 +313,35 @@
 .loginCirilaSpeech strong { color: #00d8ff; display: block; margin-bottom: 2px; font-size: 0.85rem; }
 .loginCirilaSpeech span { font-size: 0.8rem; color: #f1f5f9; line-height: 1.4; font-weight: 500; }
 
-.loginSmsvrBadge {
-  display: inline-flex;
+.loginFooter {
+  margin-top: auto; /* Empurra para a base */
+  padding-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(0, 216, 255, 0.08);
-  border: 1px solid rgba(0, 216, 255, 0.2);
-  color: #00d8ff;
-  padding: 0.4rem 1rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  margin: 0 auto;
+  gap: 0.4rem;
+  opacity: 0.6;
 }
 
-.loginFooterText { margin-top: 0.75rem; font-size: 0.8rem; color: #475569; text-align: center; }
+.loginFooter span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.loginFooter a {
+  text-decoration: none;
+  color: #00d8ff;
+  font-weight: 800;
+  font-size: 0.75rem;
+  transition: opacity 0.2s;
+}
+
+.loginFooter a:hover {
+  opacity: 0.8;
+}
 
 /* Responsive */
 @media (max-width: 1100px) {

@@ -266,23 +266,17 @@ function LoginForm() {
               </p>
             </div>
 
-            {/* Rodapé — Com Badge SMSVR integrada */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', opacity: 0.9 }}>
-                <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1px', color: '#94a3b8' }}>
-                  SMSVR • Volta Redonda • Versão 1.5 Premium
-                </span>
-                <a 
-                  href="https://www.instagram.com/gabriel.albertassi" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className={styles.loginFooterText}
-                  style={{ textDecoration: 'none', color: '#00d8ff', fontWeight: 800, fontSize: '0.75rem' }}
-                >
-                  Desenvolvido por Gabriel Albertassi
-                </a>
-              </div>
-            </div>
+            {/* Rodapé — Créditos agrupados na base */}
+            <footer className={styles.loginFooter}>
+              <span>SMSVR • Volta Redonda • Versão 1.5 Premium</span>
+              <a 
+                href="https://www.instagram.com/gabriel.albertassi" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Desenvolvido por Gabriel Albertassi
+              </a>
+            </footer>
           </div>
         </div>
 
