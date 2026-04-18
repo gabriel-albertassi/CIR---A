@@ -91,7 +91,7 @@ function LoginForm() {
         setError(res.error)
         setExpression('alert')
       } else {
-        setMsg('Conta criada! Verifique seu e-mail para confirmar o acesso e começar a usar.')
+        setMsg('Conta criada com sucesso! Seja bem-vindo ao CIR-A.')
         setExpression('smiling')
       }
       setLoading(false)
@@ -184,6 +184,23 @@ function LoginForm() {
                     onBlur={() => setExpression('neutral')}
                   />
                 </div>
+
+                {!isLogin && (
+                  <div className={styles.inputGroup}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
+                      <Mail size={16} style={{ color: '#00d8ff' }} /> Confirmar E-mail
+                    </label>
+                    <input 
+                      type="email" 
+                      name="confirmEmail" 
+                      placeholder="Confirme seu e-mail institucional" 
+                      required 
+                      onFocus={() => setExpression('thinking')}
+                      onBlur={() => setExpression('neutral')}
+                    />
+                  </div>
+                )}
+
                 <div className={styles.inputGroup}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
                     <Lock size={16} style={{ color: '#00d8ff' }} /> Senha
@@ -197,6 +214,22 @@ function LoginForm() {
                     onBlur={() => setExpression('neutral')}
                   />
                 </div>
+
+                {!isLogin && (
+                  <div className={styles.inputGroup}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
+                      <Lock size={16} style={{ color: '#00d8ff' }} /> Confirmar Senha
+                    </label>
+                    <input 
+                      type="password" 
+                      name="confirmPassword" 
+                      placeholder="Confirme sua senha" 
+                      required 
+                      onFocus={() => setExpression('thinking')}
+                      onBlur={() => setExpression('neutral')}
+                    />
+                  </div>
+                )}
 
                 {error && <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center' }}>{error}</div>}
                 {msg && <div style={{ color: '#10b981', fontSize: '0.85rem', textAlign: 'center' }}>{msg}</div>}
@@ -217,7 +250,7 @@ function LoginForm() {
                     letterSpacing: '0.5px'
                   }}
                 >
-                  {loading ? 'Processando...' : (isLogin ? 'Acessar o Sistema' : 'Solicitar Acesso')}
+                  {loading ? 'Processando...' : (isLogin ? 'Acessar o Sistema' : 'Confirmar Acesso')}
                   <ArrowRight size={18} />
                 </button>
               </form>
@@ -225,7 +258,7 @@ function LoginForm() {
               <p className={styles.formHelpText}>
                 {isLogin 
                   ? 'Utilize suas credenciais institucionais para acessar o painel.' 
-                  : 'Seu acesso estará disponível imediatamente após a confirmação por e-mail.'}
+                  : 'Preencha os dados acima para criar sua conta de operador.'}
               </p>
             </div>
 

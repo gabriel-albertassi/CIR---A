@@ -28,7 +28,17 @@ export async function signup(formData: FormData) {
 
   const name = formData.get('name') as string
   const email = formData.get('email') as string
+  const confirmEmail = formData.get('confirmEmail') as string
   const password = formData.get('password') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (email !== confirmEmail) {
+    return { error: 'Os e-mails informados não coincidem.' }
+  }
+
+  if (password !== confirmPassword) {
+    return { error: 'As senhas informadas não coincidem.' }
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email,
