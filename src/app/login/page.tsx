@@ -172,8 +172,8 @@ function LoginForm() {
                   </div>
                 )}
                 <div className={styles.inputGroup}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
-                    <Mail size={16} style={{ color: '#00d8ff' }} /> E-mail Institucional
+                  <label>
+                    <Mail size={16} /> E-mail Institucional
                   </label>
                   <input 
                     type="email" 
@@ -187,8 +187,8 @@ function LoginForm() {
 
                 {!isLogin && (
                   <div className={styles.inputGroup}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
-                      <Mail size={16} style={{ color: '#00d8ff' }} /> Confirmar E-mail
+                    <label>
+                      <Mail size={16} /> Confirmar E-mail
                     </label>
                     <input 
                       type="email" 
@@ -202,8 +202,8 @@ function LoginForm() {
                 )}
 
                 <div className={styles.inputGroup}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
-                    <Lock size={16} style={{ color: '#00d8ff' }} /> Senha
+                  <label>
+                    <Lock size={16} /> Senha
                   </label>
                   <input 
                     type="password" 
@@ -217,8 +217,8 @@ function LoginForm() {
 
                 {!isLogin && (
                   <div className={styles.inputGroup}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
-                      <Lock size={16} style={{ color: '#00d8ff' }} /> Confirmar Senha
+                    <label>
+                      <Lock size={16} /> Confirmar Senha
                     </label>
                     <input 
                       type="password" 
@@ -238,17 +238,6 @@ function LoginForm() {
                   type="submit" 
                   className={styles.loginSubmitBtn} 
                   disabled={loading}
-                  style={{
-                    background: 'rgba(0, 216, 255, 0.05)',
-                    border: '1px solid rgba(0, 216, 255, 0.3)',
-                    color: '#00d8ff',
-                    height: '46px',
-                    borderRadius: '10px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    fontSize: '0.85rem',
-                    letterSpacing: '0.5px'
-                  }}
                 >
                   {loading ? 'Processando...' : (isLogin ? 'Acessar o Sistema' : 'Confirmar Acesso')}
                   <ArrowRight size={18} />
