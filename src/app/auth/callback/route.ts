@@ -11,8 +11,11 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) {
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`)
+    }
+    
     if (!error) {
-      // Respect the 'next' parameter if it exists (useful for password resets)
       if (next) {
         return NextResponse.redirect(`${origin}${next}`)
       }
@@ -27,5 +30,5 @@ export async function GET(request: Request) {
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
+  return NextResponse.redirect(`${origin}/login?error=O+codigo+de+autenticacao+nao+foi+encontrado+ou+ja+foi+utilizado.`)
 }

@@ -22,7 +22,10 @@ function LoginForm() {
     }
     const err = searchParams.get('error')
     if (err) {
-      setError('Houve um problema na autenticação. Tente novamente.')
+      // Se for uma mensagem codificada vindo do roteador, mostramos ela.
+      // Caso contrário, usamos a mensagem padrão.
+      const decodedErr = decodeURIComponent(err)
+      setError(decodedErr === 'auth_callback_failed' ? 'Houve um problema na autenticação. O link pode ter expirado.' : decodedErr)
     }
   }, [searchParams])
 
