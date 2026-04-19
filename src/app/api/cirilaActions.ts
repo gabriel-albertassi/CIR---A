@@ -1,12 +1,61 @@
 'use server'
 
 import { prisma } from '../../lib/db'
+import { sendHospitalNotification } from '../../lib/mail'
 
 export type CirilaResponse = {
   text: string;
   sender: 'ai' | 'user';
   actions?: { label: string, payload: string }[];
   image?: string;
+}
+
+/**
+ * Função real para disparar os e-mails baseada na triagem inteligente
+ */
+export async function executeEmailDispatch(patientId: string, targetType: 'PUBLIC' | 'ALL') {
+  try {
+    const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+    if (!patient) return { success: false, error: 'Paciente não encontrado' };
+
+    const hospitals = await prisma.hospital.findMany();
+    
+    // Filtro de Triagem Inteligente
+    const isGrave = ['CTI', 'SALA_VERMELHA', 'CRITICAL', 'HIGH'].includes(patient.severity.toUpperCase());
+    
+    const targets = hospitals.filter(h => {
+      // REGRA: Ignorar o hospital onde o paciente JÁ ESTÁ (Origem)
+      if (h.name.toLowerCase().trim() === patient.origin_hospital.toLowerCase().trim()) return false;
+
+      // Regra da Rede Pública
+      if (targetType === 'PUBLIC' && h.type !== 'PUBLICO') return false;
+      
+      // Regra Nelson Gonçalves: Só aceita Clínica Médica (não aceita CTI/GRAVE)
+      if (h.name.toLowerCase().includes('nelson') && isGrave) return false;
+      
+      // Filtro de Capacidade do Hospital
+      if (isGrave && !h.accepts_cti) return false;
+      if (!isGrave && !h.accepts_clinica) return false;
+      
+      return !!h.email; // Só hospitais com e-mail cadastrado
+    });
+
+    const emails = targets.map(h => h.email!);
+    if (emails.length === 0) return { success: false, error: 'Nenhum hospital compatível com e-mail cadastrado.' };
+
+    await sendHospitalNotification({
+      to: emails,
+      subject: `Solicitação de Vaga: ${patient.name}`,
+      patientName: patient.name,
+      severity: patient.severity,
+      originHospital: patient.origin_hospital,
+      diagnosis: patient.diagnosis
+    });
+
+    return { success: true, count: emails.length, targetNames: targets.map(h => h.name) };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function askCirila(query: string): Promise<CirilaResponse> {
@@ -70,6 +119,46 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
+    // --- NOVO: DISPARO DE E-MAIL POR COMANDO ---
+    if (text.includes('enviar') || text.includes('mande') || text.includes('disparar')) {
+      const hospitals = await prisma.hospital.findMany();
+      const patients = await prisma.patient.findMany({ where: { status: 'WAITING' } });
+      
+      // Tentar encontrar o nome do paciente no texto (busca simples)
+      const targetPatient = patients.find(p => text.includes(p.name.toLowerCase()));
+      
+      if (targetPatient) {
+        let isPublic = text.includes('publica') || text.includes('pública') || text.includes('rede');
+        let isPrivate = text.includes('privado') || text.includes('contratado') || text.includes('particular');
+        
+        // Se não especificou, assume que quer saber as opções
+        if (!isPublic && !isPrivate) {
+          return {
+            text: `Encontrei o paciente **${targetPatient.name}** na fila. Para qual rede deseja realizar o disparo agora?`,
+            sender: 'ai',
+            actions: [
+              { label: 'Disparar Rede Pública', payload: `SEND_MAIL_${targetPatient.id}_PUBLIC` },
+              { label: 'Rede Pública + Privado', payload: `SEND_MAIL_${targetPatient.id}_ALL` }
+            ],
+            image: '/cirila_2.png'
+          };
+        }
+
+        // Lógica de Triagem (Regra Nelson Gonçalves)
+        const isCti = targetPatient.severity === 'CTI' || targetPatient.severity === 'SALA_VERMELHA' || targetPatient.severity === 'CRITICAL';
+        
+        return {
+          text: `Entendido! Paciente **${targetPatient.name}** tem perfil ${isCti ? '**CTI/Grave**' : '**Clínico**'}. Vou preparar os e-mails para a rede ${isPublic ? 'Pública' : 'Privada'}. Confirma o envio?`,
+          sender: 'ai',
+          actions: [
+            { label: 'Sim, disparar e-mails', payload: `EXECUTE_SEND_${targetPatient.id}_${isPublic ? 'PUBLIC' : 'ALL'}` },
+            { label: 'Cancelar', payload: 'CANCEL' }
+          ],
+          image: '/cirila_2.png'
+        };
+      }
+    }
+
     if (text.includes('disparar') || text.includes('vaga') || text.includes('email')) {
       return {
         text: `Posso iniciar um disparo de malha de e-mails para Hospitais Públicos e Privados agora mesmo. Confirma?`,
@@ -81,11 +170,11 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     // RESPOSTA PADRÃO
     return {
-      text: `Entendido! Você pode me perguntar sobre o estado da fila de pacientes ("quantos na sala vermelha?"), enviar anexos de laudos, ou me pedir para disparar mensagens diretas aos hospitais!`,
+      text: `Entendido! Você pode me perguntar sobre o estado da fila de pacientes ("quantos na sala vermelha?"), cadastrar hospitais no painel, ou me pedir para disparar mensagens: "Cirila, enviar paciente João para rede pública".`,
       sender: 'ai',
       actions: [
-        { label: 'Como estão as filas?', payload: 'QUERY_QUEUE' },
-        { label: 'O que mais sabe fazer?', payload: 'QUERY_ABOUT' }
+        { label: 'Gerenciar Hospitais', payload: 'NAV_HOSPITALS' },
+        { label: 'Como estão as filas?', payload: 'QUERY_QUEUE' }
       ],
       image: '/cirila_2.png'
     };

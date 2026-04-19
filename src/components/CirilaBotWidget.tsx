@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { askCirila, CirilaResponse } from '../app/api/cirilaActions';
+import { askCirila, executeEmailDispatch, CirilaResponse } from '../app/api/cirilaActions';
 import { Send, Paperclip, Bot, Bell, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import CirilaAvatar from './CirilaAvatar';
@@ -78,13 +78,45 @@ export default function CirilaBotWidget() {
     setExpression('neutral');
   }
 
-  function handleActionClick(payload: string) {
+  async function handleActionClick(payload: string) {
     if (payload === 'NAV_QUEUE') router.push('/patients');
+    if (payload === 'NAV_HOSPITALS') router.push('/admin/hospitals');
     if (payload === 'QUERY_QUEUE') handleSend('quantos pacientes na fila vermelha e normal?');
     if (payload === 'QUERY_ABOUT') handleSend('o que você sabe fazer?');
+    
+    if (payload.startsWith('SEND_MAIL_')) {
+      const parts = payload.split('_');
+      const target = parts[parts.length - 1] === 'PUBLIC' ? 'Rede Pública' : 'Rede Pública + Privada';
+      handleSend(`Excelente. Prepare o envio para a ${target}.`);
+    }
+
+    if (payload.startsWith('EXECUTE_SEND_')) {
+      const [, , id, target] = payload.split('_');
+      setLoading(true);
+      setExpression('thinking');
+      
+      const res = await executeEmailDispatch(id, target as any);
+      
+      if (res.success) {
+        setMessages(prev => [...prev, { 
+          text: `🚀 **Disparo Concluído com Sucesso!** Enviei notificações para **${res.count} hospitais**: ${res.targetNames?.join(', ')}.`, 
+          sender: 'ai',
+          image: '/cirila_icone.png'
+        }]);
+      } else {
+        setMessages(prev => [...prev, { 
+          text: `❌ **Falha no Disparo:** ${res.error}`, 
+          sender: 'ai',
+          image: '/cirila_3D_neutral.png'
+        }]);
+      }
+      setLoading(false);
+      setExpression('neutral');
+    }
+
     if (payload === 'TRIGGER_CHARGE' || payload === 'TRIGGER_BLAST') {
       router.push('/patients');
-      setTimeout(() => alert('Acesso transferido para a Fila Dinâmica.\n\nSimulação: Use os botões das linhas do paciente para disparar.'), 500);
+      setTimeout(() => alert('Acesso transferido para a Fila Dinâmica.\n\nVocê também pode pedir: "Cirila, envie o paciente [NOME] para a rede pública"'), 500);
     }
   }
 

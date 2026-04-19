@@ -63,3 +63,14 @@ model BedAvailability {
   sem_vagas      Boolean  @default(false)
   updated_at     DateTime @updatedAt
 }
+model Hospital {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  email          String?
+  whatsapp       String?
+  type           String   @default("PUBLICO") // PUBLICO, PRIVADO/CONTRATADO
+  accepts_cti    Boolean  @default(false)
+  accepts_clinica Boolean @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+}
