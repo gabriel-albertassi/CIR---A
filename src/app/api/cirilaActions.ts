@@ -13,7 +13,7 @@ export type CirilaResponse = {
 /**
  * Função real para disparar os e-mails baseada na triagem inteligente
  */
-export async function executeEmailDispatch(patientId: string, targetType: 'PUBLIC' | 'ALL') {
+export async function executeEmailDispatch(patientId: string, targetType: string) {
   try {
     const patient = await prisma.patient.findUnique({ where: { id: patientId } });
     if (!patient) return { success: false, error: 'Paciente não encontrado' };
@@ -23,7 +23,7 @@ export async function executeEmailDispatch(patientId: string, targetType: 'PUBLI
     // Filtro de Triagem Inteligente
     const isGrave = ['CTI', 'SALA_VERMELHA', 'CRITICAL', 'HIGH'].includes(patient.severity.toUpperCase());
     
-    const targets = hospitals.filter(h => {
+    let targets = hospitals.filter(h => {
       // REGRA: Ignorar o hospital onde o paciente JÁ ESTÁ (Origem)
       if (h.name.toLowerCase().trim() === patient.origin_hospital.toLowerCase().trim()) return false;
 
@@ -39,6 +39,12 @@ export async function executeEmailDispatch(patientId: string, targetType: 'PUBLI
       
       return !!h.email; // Só hospitais com e-mail cadastrado
     });
+
+    // Se o targetType for um ID específico (ex: ONLY_uuid)
+    if (targetType.startsWith('ONLY_')) {
+      const hospitalId = targetType.replace('ONLY_', '');
+      targets = hospitals.filter(h => h.id === hospitalId);
+    }
 
     const emails = targets.map(h => h.email!);
     if (emails.length === 0) return { success: false, error: 'Nenhum hospital compatível com e-mail cadastrado.' };
@@ -128,6 +134,24 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       const targetPatient = patients.find(p => text.includes(p.name.toLowerCase()));
       
       if (targetPatient) {
+        // Tentar encontrar se o usuário especificou um hospital pelo nome
+        const specificHospital = hospitals.find(h => 
+          text.includes(h.name.toLowerCase()) || 
+          (h.name.toLowerCase().includes('teste') && text.includes('teste'))
+        );
+
+        if (specificHospital) {
+          return {
+            text: `Encontrei a unidade **${specificHospital.name}**. Deseja disparar o e-mail apenas para ela ou para toda a rede?`,
+            sender: 'ai',
+            actions: [
+              { label: `Somente para ${specificHospital.name}`, payload: `EXECUTE_SEND_${targetPatient.id}_ONLY_${specificHospital.id}` },
+              { label: 'Disparar Rede Pública', payload: `SEND_MAIL_${targetPatient.id}_PUBLIC` }
+            ],
+            image: '/cirila_2.png'
+          };
+        }
+
         let isPublic = text.includes('publica') || text.includes('pública') || text.includes('rede');
         let isPrivate = text.includes('privado') || text.includes('contratado') || text.includes('particular');
         

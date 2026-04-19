@@ -91,15 +91,19 @@ export default function CirilaBotWidget() {
     }
 
     if (payload.startsWith('EXECUTE_SEND_')) {
-      const [, , id, target] = payload.split('_');
+      const parts = payload.split('_');
+      // Formato: EXECUTE_SEND_patientId_target OU EXECUTE_SEND_patientId_ONLY_hospitalId
+      const id = parts[2];
+      const target = parts[3] === 'ONLY' ? `ONLY_${parts[4]}` : parts[3];
+      
       setLoading(true);
       setExpression('thinking');
       
-      const res = await executeEmailDispatch(id, target as any);
+      const res = await executeEmailDispatch(id, target);
       
       if (res.success) {
         setMessages(prev => [...prev, { 
-          text: `🚀 **Disparo Concluído com Sucesso!** Enviei notificações para **${res.count} hospitais**: ${res.targetNames?.join(', ')}.`, 
+          text: `🚀 **Disparo Concluído com Sucesso!** Enviei notificações para **${res.count} hospital(is)**: ${res.targetNames?.join(', ')}.`, 
           sender: 'ai',
           image: '/cirila_icone.png'
         }]);
