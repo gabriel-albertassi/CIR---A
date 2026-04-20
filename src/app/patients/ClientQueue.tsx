@@ -193,13 +193,25 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
       
       <div className={styles.queueHeader}>
         <div className={styles.queueTitle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h1>Fila Dinâmica de Pacientes</h1>
-            <Link href="/patients/new" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-              <Plus size={14} /> Nova Regulação
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Fila Dinâmica de Pacientes</h1>
+            <Link href="/patients/new" className="btn btn-primary" style={{ 
+              padding: '0.4rem 1rem', 
+              fontSize: '0.8rem', 
+              borderRadius: '8px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              background: 'rgba(59, 130, 246, 0.25)', 
+              color: '#60a5fa', 
+              border: '1px solid rgba(59, 130, 246, 0.4)',
+              fontWeight: 700,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}>
+              <Plus size={16} /> Nova Regulação
             </Link>
           </div>
-          <p>Gerenciamento estratégico de transferências e ocupação.</p>
+          <p style={{ margin: 0, opacity: 0.7 }}>Gerenciamento estratégico de transferências e ocupação.</p>
         </div>
         
         <div className={`no-print ${styles.filterPanel}`}>
@@ -293,30 +305,32 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                       </div>
                     </td>
 
-                    <td style={{ padding: '1rem 1.5rem', minWidth: '220px' }}>
+                    <td style={{ padding: '1rem 1.5rem', minWidth: '240px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <strong style={{ color: '#f1f5f9' }}>{p.name}</strong>
+                          <strong style={{ color: '#f1f5f9', fontSize: '15px' }}>{p.name}</strong>
                           <button 
                             onClick={() => togglePatientPrivateProfile(p.id, p.is_private ?? false)}
                             style={{ 
-                              background: p.is_private ? 'rgba(234, 179, 8, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
+                              background: p.is_private ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(181, 147, 5, 0.1))' : 'rgba(148, 163, 184, 0.12)', 
                               color: p.is_private ? '#fbbf24' : '#94a3b8', 
-                              border: `1px solid ${p.is_private ? 'rgba(234, 179, 8, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
-                              padding: '2px 8px', 
-                              borderRadius: '4px', 
-                              fontSize: '10px', 
+                              border: `1px solid ${p.is_private ? 'rgba(234, 179, 8, 0.4)' : 'rgba(148, 163, 184, 0.25)'}`, 
+                              padding: '4px 10px', 
+                              borderRadius: '6px', 
+                              fontSize: '11px', 
                               fontWeight: 800, 
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px',
-                              transition: 'all 0.2s'
+                              gap: '6px',
+                              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                              boxShadow: p.is_private ? '0 4px 10px rgba(234, 179, 8, 0.15)' : 'none',
+                              whiteSpace: 'nowrap'
                             }}
                             title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado/Convênio"}
                           >
-                            {p.is_private ? <ShieldCheck size={11} /> : <ShieldAlert size={11} />}
-                            {p.is_private ? 'PRIVADO' : 'SUS'}
+                            {p.is_private ? <ShieldCheck size={12} strokeWidth={2.5} /> : <ShieldAlert size={12} strokeWidth={2.5} />}
+                            {p.is_private ? 'PERFIL PRIVADO' : 'PERFIL SUS'}
                           </button>
                         </div>
                         {p.isDelayed && p.severity !== 'SALA_VERMELHA' && (
