@@ -74,22 +74,22 @@ export async function sendHospitalNotification({
               <p style="margin: 0; font-size: 14px;"><strong>Quadro Clínico:</strong> ${diagnosis}</p>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 30px;">
+            <div style="display: flex; flex-direction: row; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
               ${attachments && attachments.length > 0 ? `
-              <a href="${attachments[0].path}" 
-                 style="background: #0f172a; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 10px; font-weight: 700; width: 220px; text-align: center; display: block; margin-bottom: 10px;">
-                 📥 Baixar Malote Digital
+              <a href="${attachments[0].path}" target="_blank" download
+                 style="background: #f1f5f9; color: #0f172a; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; border: 1px solid #e2e8f0; display: inline-block;">
+                 📥 Baixar Prontuário (Malote)
               </a>
               ` : ''}
 
-              <a href="${confirmUrl}" 
-                 style="background: #00d8ff; color: #020617; text-decoration: none; padding: 14px 30px; border-radius: 10px; font-weight: 700; width: 220px; text-align: center; display: block;">
+              <a href="${confirmUrl}" target="_blank"
+                 style="background: #eff6ff; color: #2563eb; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; border: 1px solid #bfdbfe; display: inline-block;">
                  ✅ Confirmar Recebimento
               </a>
             </div>
             
-            <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 25px;">
-              Este link de confirmação registra automaticamente o recebimento na mesa de regulação em tempo real.
+            <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; line-height: 1.5;">
+              Ao clicar em confirmar, a Central de Regulação receberá um aviso em tempo real de que sua unidade iniciou a análise do caso.
             </p>
           </div>
           
