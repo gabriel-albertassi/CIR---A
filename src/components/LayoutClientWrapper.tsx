@@ -5,9 +5,10 @@ import { Menu, X, LayoutDashboard, ListTodo, Layers, CheckCircle, Building2, Use
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import dynamic from 'next/dynamic'
-import CallCirilaButton from './CallCirilaButton'
 import { logout } from '../app/auth/actions'
+import NotificationBell from './NotificationBell'
+import SimulatorPanel from './SimulatorPanel'
+import dynamic from 'next/dynamic'
 
 const CirilaBotWidget = dynamic(() => import('./CirilaBotWidget'), {
   ssr: false,
@@ -263,8 +264,25 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
         </aside>
 
         {/* MAIN CONTENT */}
-        <main className="main-viewport">
-          {children}
+        <main className="main-viewport" style={{ position: 'relative' }}>
+          {/* TOP BAR PARA NOTIFICAÇÕES */}
+          <header style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            padding: '1rem 2rem', 
+            background: 'linear-gradient(to bottom, rgba(8, 20, 35, 0.4), transparent)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            backdropFilter: 'blur(8px)'
+          }}>
+            <NotificationBell />
+          </header>
+
+          <div style={{ padding: '0 2rem 2rem 2rem' }}>
+            {children}
+          </div>
 
           {/* MOBILE ONLY FOOTER - Limpo e com destaque */}
           <footer className="mobile-only" style={{
@@ -298,6 +316,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
         <>
           <CirilaBotWidget />
           <CallCirilaButton />
+          <SimulatorPanel />
         </>
       )}
     </div>

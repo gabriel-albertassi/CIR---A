@@ -40,6 +40,7 @@ model Patient {
   transfer_date    DateTime?
   outcome_date     DateTime?
   logs             Log[]
+  notifications    Notification[]
 }
 
 model Log {
@@ -71,6 +72,23 @@ model Hospital {
   type           String   @default("PUBLICO") // PUBLICO, PRIVADO/CONTRATADO
   accepts_cti    Boolean  @default(false)
   accepts_clinica Boolean @default(true)
+  notifications  Notification[]
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  title       String
+  message     String
+  type        String   @default("INFO") // INFO, SUCCESS, WARNING, ALERT
+  
+  hospital    Hospital? @relation(fields: [hospital_id], references: [id])
+  hospital_id String?
+  
+  patient     Patient? @relation(fields: [patient_id], references: [id])
+  patient_id  String?
+  
+  is_read     Boolean  @default(false)
+  created_at  DateTime @default(now())
 }
