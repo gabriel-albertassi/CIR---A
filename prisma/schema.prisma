@@ -41,6 +41,8 @@ model Patient {
   outcome_date     DateTime?
   attachment_url   String?
   attachment_name  String?
+  evolution_url    String?
+  evolution_name   String?
   logs             Log[]
   notifications    Notification[]
 }

@@ -215,3 +215,47 @@ export async function evolvePatient(patientId: string, newSeverity: string, newD
   }
 }
 
+export async function attachMedicalEvolution(patientId: string, file: File) {
+  try {
+    const supabase = await createClient();
+    
+    // 1. Gerar nome e caminho único para a evolução
+    const fileExt = file.name.split('.').pop();
+    const fileName = `evolution_${patientId}_${Date.now()}.${fileExt}`;
+    const filePath = `evolucoes/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('malotes-pacientes')
+      .upload(filePath, file);
+
+    if (uploadError) throw new Error(`Falha no upload: ${uploadError.message}`);
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('malotes-pacientes')
+      .getPublicUrl(filePath);
+
+    // 2. Atualizar o paciente com o novo anexo de evolução
+    await prisma.patient.update({
+      where: { id: patientId },
+      data: {
+        evolution_url: publicUrl,
+        evolution_name: file.name
+      }
+    });
+
+    // 3. Registrar no histórico do paciente
+    await prisma.log.create({
+      data: {
+        patient_id: patientId,
+        action: 'STATUS_UPDATE',
+        details: `📄 Nova evolução médica anexada: ${file.name}`
+      }
+    });
+
+    revalidatePath('/patients');
+    return { success: true };
+  } catch (err: any) {
+    console.error('Erro ao anexar evolução:', err);
+    return { error: err.message };
+  }
+}

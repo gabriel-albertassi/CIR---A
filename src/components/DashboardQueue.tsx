@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Send, Clock, Ambulance, AlertCircle, MessageCircle, Mail } from 'lucide-react'
+import { Send, Clock, Ambulance, AlertCircle, MessageCircle, Mail, Paperclip } from 'lucide-react'
 import MassBlastModal from './MassBlastModal'
 import ChargeEvolutionModal from './ChargeEvolutionModal'
+import AttachEvolutionModal from './AttachEvolutionModal'
 
 type Patient = {
   id: string
@@ -23,6 +24,7 @@ function formatHours(dateString: Date) {
 export default function DashboardQueue({ patients, user }: { patients: Patient[], user: any }) {
   const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
+  const [attachModal, setAttachModal] = useState<{id: string, name: string} | null>(null);
 
   const canAction = user?.role === 'ADMIN' || user?.canCancelPatient;
 
@@ -77,6 +79,26 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                     </td>
                     <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button 
+                          onClick={() => setAttachModal({ id: p.id, name: p.name })}
+                          style={{ 
+                            background: 'rgba(59, 130, 246, 0.15)', 
+                            color: '#60a5fa', 
+                            border: '1px solid rgba(59, 130, 246, 0.3)', 
+                            padding: '0.4rem 0.8rem', 
+                            borderRadius: '8px', 
+                            fontSize: '0.8rem', 
+                            fontWeight: 700, 
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                          title="Anexar Evolução Médica (PDF/Laudos)"
+                        >
+                          <Paperclip size={14} /> Anexar
+                        </button>
+
                         <button 
                           onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
                           style={{ 
@@ -142,6 +164,12 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
           patientId={chargeModal.id}
           originHospital={chargeModal.origin}
           onClose={() => setChargeModal(null)}
+        />
+      {attachModal && (
+        <AttachEvolutionModal
+          patientId={attachModal.id}
+          patientName={attachModal.name}
+          onClose={() => setAttachModal(null)}
         />
       )}
     </div>

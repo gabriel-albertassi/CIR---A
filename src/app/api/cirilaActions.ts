@@ -136,13 +136,14 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // --- NOVO: DISPARO DE E-MAIL POR COMANDO ---
-    if (text.includes('enviar') || text.includes('mande') || text.includes('disparar') || text.includes('solicita')) {
-      const hospitals = await prisma.hospital.findMany();
-      const patients = await prisma.patient.findMany({ where: { status: { in: ['WAITING', 'OFFERED'] } } });
-      
-      // Tentar encontrar o nome do paciente no texto (busca simples)
-      const targetPatient = patients.find(p => text.includes(p.name.toLowerCase()));
+    // --- NOVO: DISPARO DE E-MAIL POR COMANDO (Reconhece CIRILA ou CIRI) ---
+    if (text.includes('cirila') || text.includes('ciri')) {
+      if (text.includes('enviar') || text.includes('mande') || text.includes('disparar') || text.includes('solicita')) {
+        const hospitals = await prisma.hospital.findMany();
+        const patients = await prisma.patient.findMany({ where: { status: { in: ['WAITING', 'OFFERED'] } } });
+        
+        // Tentar encontrar o nome do paciente no texto (busca simples)
+        const targetPatient = patients.find(p => text.includes(p.name.toLowerCase()));
       
       if (targetPatient) {
         // Tentar encontrar se o usuário especificou um hospital pelo nome
