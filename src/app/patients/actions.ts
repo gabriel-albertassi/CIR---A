@@ -104,13 +104,42 @@ export async function cancelPatient(patientId: string, reason: string, exitType:
   revalidatePath('/')
 }
 
+import { createClient } from '@/lib/supabase/sb-server'
+
 export async function registerPatient(data: {
   name: string;
   origin_hospital: string;
   diagnosis: string;
   severity: string;
   observations?: string;
+  attachment?: File;
 }) {
+  const supabase = await createClient()
+  let attachment_url = null
+  let attachment_name = null
+
+  // Processo de Upload do Malote
+  if (data.attachment && data.attachment.size > 0) {
+    const file = data.attachment
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('malotes-pacientes')
+      .upload(fileName, file)
+
+    if (uploadError) {
+      console.error('Erro no upload do Supabase:', uploadError)
+      throw new Error('Falha ao salvar o malote no servidor. Verifique se o bucket "malotes-pacientes" foi criado.')
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('malotes-pacientes')
+      .getPublicUrl(fileName)
+
+    attachment_url = publicUrl
+    attachment_name = file.name
+  }
 
   const existing = await prisma.patient.findFirst({
     where: {
@@ -126,8 +155,11 @@ export async function registerPatient(data: {
   const patient = await prisma.patient.create({
     data: {
       ...data,
+      attachment?: undefined, // Remover para o prisma nao dar erro
+      attachment_url,
+      attachment_name,
       status: 'WAITING',
-    }
+    } as any
   });
 
   await prisma.log.create({

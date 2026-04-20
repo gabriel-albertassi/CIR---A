@@ -21,6 +21,7 @@ export default function PatientForm() {
         diagnosis: formData.get('diagnosis') as string,
         severity: formData.get('severity') as string,
         observations: formData.get('observations') as string,
+        attachment: formData.get('attachment') as File,
       })
       router.push('/patients')
     } catch (err: any) {
@@ -68,6 +69,20 @@ export default function PatientForm() {
       <div>
         <label className="label">Observações Clínicas / Pedido</label>
         <textarea name="observations" className="input" rows={3} placeholder="Detalhes secundários..." />
+      </div>
+
+      <div>
+        <label className="label">Malote Digital (PDF, Imagens, Documentos)</label>
+        <input 
+          type="file" 
+          name="attachment" 
+          className="input" 
+          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          style={{ padding: '8px' }}
+        />
+        <small style={{ color: 'var(--text-secondary)' }}>
+          Este arquivo será enviado automaticamente como anexo nas solicitações de vaga.
+        </small>
       </div>
 
       <button type="submit" disabled={loading} className="btn btn-primary" style={{ marginTop: '0.5rem', alignSelf: 'flex-start' }}>

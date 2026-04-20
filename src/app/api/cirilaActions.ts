@@ -50,13 +50,22 @@ export async function executeEmailDispatch(patientId: string, targetType: string
     const emails = targets.map(h => h.email!);
     if (emails.length === 0) return { success: false, error: 'Nenhum hospital compatível com e-mail cadastrado.' };
 
+    // Preparar Anexo de Malote se existir
+    const attachments = (patient as any).attachment_url ? [
+      {
+        filename: (patient as any).attachment_name || 'malote-paciente.pdf',
+        path: (patient as any).attachment_url
+      }
+    ] : undefined;
+
     await sendHospitalNotification({
       to: emails,
       subject: `Solicitação de Vaga: ${patient.name}`,
       patientName: patient.name,
       severity: patient.severity,
       originHospital: patient.origin_hospital,
-      diagnosis: patient.diagnosis
+      diagnosis: patient.diagnosis,
+      attachments
     });
 
     return { success: true, count: emails.length, targetNames: targets.map(h => h.name) };

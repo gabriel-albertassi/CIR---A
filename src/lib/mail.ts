@@ -22,6 +22,10 @@ interface MailOptions {
   severity: string;
   originHospital: string;
   diagnosis: string;
+  attachments?: {
+    filename: string;
+    path: string;
+  }[];
 }
 
 export async function sendHospitalNotification({
@@ -30,7 +34,8 @@ export async function sendHospitalNotification({
   patientName,
   severity,
   originHospital,
-  diagnosis
+  diagnosis,
+  attachments
 }: MailOptions) {
   
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
@@ -43,6 +48,7 @@ export async function sendHospitalNotification({
       from: `"CIR-A Regulação" <${process.env.SMTP_USER}>`,
       to: to.join(', '),
       subject: `[REGULAÇÃO CIR-A] ${subject}`,
+      attachments: attachments,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
           <div style="background: #020617; padding: 20px; text-align: center;">
