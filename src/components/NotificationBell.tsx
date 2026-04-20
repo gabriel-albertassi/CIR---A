@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bell, Check, Hospital, User, Info, AlertTriangle, CheckCircle } from 'lucide-react'
-import { markAsRead } from '../lib/notifications'
+import { markAsRead } from '@/lib/notifications'
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState<any[]>([])

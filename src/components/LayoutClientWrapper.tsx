@@ -5,12 +5,13 @@ import { Menu, X, LayoutDashboard, ListTodo, Layers, CheckCircle, Building2, Use
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { logout } from '../app/auth/actions'
-import NotificationBell from './NotificationBell'
-import SimulatorPanel from './SimulatorPanel'
+import { logout } from '@/app/auth/actions'
+import NotificationBell from '@/components/NotificationBell'
+import SimulatorPanel from '@/components/SimulatorPanel'
+import CallCirilaButton from '@/components/CallCirilaButton'
 import dynamic from 'next/dynamic'
 
-const CirilaBotWidget = dynamic(() => import('./CirilaBotWidget'), {
+const CirilaBotWidget = dynamic(() => import('@/components/CirilaBotWidget'), {
   ssr: false,
   loading: () => null
 })

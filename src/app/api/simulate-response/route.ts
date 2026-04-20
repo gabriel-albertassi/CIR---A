@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '../../../lib/db'
-import { createNotification } from '../../../lib/notifications'
+import { prisma } from '@/lib/db'
+import { createNotification } from '@/lib/notifications'
 
 /**
  * Endpoint para simular uma resposta de hospital

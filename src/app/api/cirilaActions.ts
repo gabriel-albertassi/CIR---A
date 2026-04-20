@@ -1,8 +1,8 @@
 'use server'
 
-import { prisma } from '../../lib/db'
-import { sendHospitalNotification } from '../../lib/mail'
-import { getUnreadNotifications } from '../../lib/notifications'
+import { prisma } from '@/lib/db'
+import { sendHospitalNotification } from '@/lib/mail'
+import { getUnreadNotifications } from '@/lib/notifications'
 
 export type CirilaResponse = {
   text: string;

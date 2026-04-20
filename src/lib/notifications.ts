@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from './db'
+import { prisma } from '@/lib/db'
 
 export type NotificationType = 'INFO' | 'SUCCESS' | 'WARNING' | 'ALERT'
 

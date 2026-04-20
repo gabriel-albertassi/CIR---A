@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getUnreadNotifications } from '../../../lib/notifications'
+import { getUnreadNotifications } from '@/lib/notifications'
 
 export async function GET() {
   try {
