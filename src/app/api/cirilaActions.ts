@@ -28,6 +28,9 @@ export async function executeEmailDispatch(patientId: string, targetType: string
       // REGRA: Ignorar o hospital onde o paciente JÁ ESTÁ (Origem)
       if (h.name.toLowerCase().trim() === patient.origin_hospital.toLowerCase().trim()) return false;
 
+      // TRAVA DE SEGURANÇA: Só envia para privado se o paciente tiver perfil privado
+      if (h.type !== 'PUBLICO' && !(patient as any).is_private) return false;
+
       // Regra da Rede Pública
       if (targetType === 'PUBLIC' && h.type !== 'PUBLICO') return false;
       
@@ -158,7 +161,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       const hospitals = await prisma.hospital.findMany();
       const patients = await prisma.patient.findMany({ where: { status: { in: ['WAITING', 'OFFERED'] } } });
       
-      const targetPatient = patients.find(p => lowerText.includes(p.name.toLowerCase()));
+      // Busca flexível pelo nome do paciente ignorando "o paciente" ou conectivos
+      const targetPatient = patients.find(p => {
+        const nameNormalized = p.name.toLowerCase();
+        return lowerText.includes(nameNormalized) || 
+               nameNormalized.split(' ').some(part => part.length > 3 && lowerText.includes(part));
+      });
         
         if (targetPatient) {
           const specificHospital = hospitals.find(h => 
@@ -166,10 +174,21 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
             (h.name.toLowerCase().includes('teste') && text.includes('teste'))
           );
 
-          let isPublic = text.includes('publica') || text.includes('pública');
-          let isPrivate = text.includes('privado') || text.includes('privada') || text.includes('particular');
-          let isAll = text.includes('ambas') || text.includes('todos') || (isPublic && isPrivate);
-          let levelText = targetPatient.severity;
+          // Lógica robusta de detecção de Rede
+          let isPublic = text.includes('publica') || text.includes('pública') || text.includes('rede') || text.includes('sus');
+          let isPrivate = text.includes('privado') || text.includes('privada') || text.includes('particular') || text.includes('convenio');
+          let isAll = text.includes('ambas') || (isPublic && isPrivate) || text.includes('todos') || text.includes('geral');
+          
+          // Se não especificou nada, assume Pública (Rede) por segurança
+          if (!isPublic && !isPrivate && !isAll) isPublic = true;
+
+          // Detecção de Tipo de Leito mencionado
+          let requestedProfile = '';
+          if (text.includes('cti') || text.includes('intensiv')) requestedProfile = 'CTI';
+          else if (text.includes('vermelha')) requestedProfile = 'SALA VERMELHA';
+          else if (text.includes('clinica') || text.includes('clínica') || text.includes('enfermaria')) requestedProfile = 'CLÍNICA MÉDICA';
+          
+          let levelText = requestedProfile || targetPatient.severity;
           
           if (specificHospital) {
             return {
@@ -183,11 +202,24 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
             };
           }
 
-          const targetType = isAll ? 'ALL' : (isPrivate ? 'PRIVATE' : 'PUBLIC');
-          const targetLabel = isAll ? 'Pública e Privada' : (isPrivate ? 'Privada' : 'Pública');
+          const targetType = isAll ? 'ALL' : (isPrivate && !isPublic ? 'PRIVATE' : 'PUBLIC');
+          const targetLabel = isAll ? 'Pública e Privada' : (isPrivate && !isPublic ? 'Privada' : 'Pública (Rede)');
+
+          // ALERTA DE SEGURANÇA: Se o alvo é privado mas o paciente é público
+          if ((isPrivate || isAll) && !(targetPatient as any).is_private) {
+            return {
+              text: `⚠️ **Atenção Chefe**: O paciente **${targetPatient.name}** não possui perfil para a rede privada cadastrado. \n\nDeseja disparar as solicitações **apenas para a rede pública**?`,
+              sender: 'ai',
+              actions: [
+                { label: 'Sim, disparar para Rede Pública', payload: `EXECUTE_SEND_${targetPatient.id}_PUBLIC` },
+                { label: 'Cancelar', payload: 'CANCEL' }
+              ],
+              image: '/cirila_2.png'
+            };
+          }
 
           return {
-            text: `Entendido! Paciente **${targetPatient.name}** com perfil de **${levelText}**. Vou preparar as solicitações para a rede **${targetLabel}**. Confirma o disparo?`,
+            text: `Perfeito chefe! Paciente **${targetPatient.name}** para **${levelText}**. Vou disparar a solicitação para a rede **${targetLabel}**. Posso confirmar?`,
             sender: 'ai',
             actions: [
               { label: `Confirmar Disparo (${targetLabel})`, payload: `EXECUTE_SEND_${targetPatient.id}_${targetType}` },

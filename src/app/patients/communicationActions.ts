@@ -38,10 +38,13 @@ export async function sendMassBedRequest(patientId: string, profile: 'PUBLIC_ONL
     const toEmails: string[] = [];
     const bccEmails: string[] = [];
 
-    // Separate contacts based on hospital type
+    // Separate contacts based on hospital type with SAFETY CHECK
     Object.entries(HOSPITAL_CONTACTS).forEach(([hospitalName, contact]) => {
       const isPrivate = PRIVATE_HOSPITALS.includes(hospitalName);
       
+      // TRAVA: Só envia para privado se o paciente tiver perfil privado
+      if (isPrivate && !patient.is_private) return;
+
       if (!isPrivate) {
         if (profile !== 'PRIVATE_ONLY') {
           toEmails.push(contact.email);

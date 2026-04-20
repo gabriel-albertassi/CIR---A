@@ -2,8 +2,9 @@
 
 import React, { useState, useMemo } from 'react'
 import { requestBed, transferPatient, cancelPatient, registerRefusal, evolvePatient } from './actions'
-import { AlertTriangle, Clock, Activity, MessageSquare, TrendingUp, Search, MessageCircle, Mail, Send, Paperclip, Plus } from 'lucide-react'
+import { AlertTriangle, Clock, Activity, MessageSquare, TrendingUp, Search, MessageCircle, Mail, Send, Paperclip, Plus, ShieldCheck, ShieldAlert } from 'lucide-react'
 import Link from 'next/link'
+import { togglePatientPrivateProfile } from './actions'
 import PrintButton from '@/components/PrintButton'
 import ChargeEvolutionModal from '@/components/ChargeEvolutionModal'
 import MassBlastModal from '@/components/MassBlastModal'
@@ -293,7 +294,30 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
 
                     <td style={{ padding: '1rem 1.5rem', minWidth: '220px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <strong style={{ color: '#f1f5f9' }}>{p.name}</strong>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <strong style={{ color: '#f1f5f9' }}>{p.name}</strong>
+                          <button 
+                            onClick={() => togglePatientPrivateProfile(p.id, p.is_private)}
+                            style={{ 
+                              background: p.is_private ? 'rgba(234, 179, 8, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
+                              color: p.is_private ? '#fbbf24' : '#94a3b8', 
+                              border: `1px solid ${p.is_private ? 'rgba(234, 179, 8, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
+                              padding: '2px 8px', 
+                              borderRadius: '4px', 
+                              fontSize: '10px', 
+                              fontWeight: 800, 
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.2s'
+                            }}
+                            title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado/Convênio"}
+                          >
+                            {p.is_private ? <ShieldCheck size={11} /> : <ShieldAlert size={11} />}
+                            {p.is_private ? 'PRIVADO' : 'SUS'}
+                          </button>
+                        </div>
                         {p.isDelayed && p.severity !== 'SALA_VERMELHA' && (
                           <span style={{ color: '#f87171', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <AlertTriangle size={14} /> Fila Atrasada

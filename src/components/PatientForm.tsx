@@ -22,6 +22,7 @@ export default function PatientForm() {
         severity: formData.get('severity') as string,
         observations: formData.get('observations') as string,
         attachment: formData.get('attachment') as File,
+        is_private: formData.get('is_private') === 'on',
       })
       router.push('/patients')
     } catch (err: any) {
@@ -83,6 +84,18 @@ export default function PatientForm() {
         <small style={{ color: 'var(--text-secondary)' }}>
           Este arquivo será enviado automaticamente como anexo nas solicitações de vaga.
         </small>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(234, 179, 8, 0.05)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(234, 179, 8, 0.1)' }}>
+        <input 
+          type="checkbox" 
+          name="is_private" 
+          id="is_private" 
+          style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
+        />
+        <label htmlFor="is_private" style={{ color: '#fbbf24', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
+          Paciente possui Convênio / Perfil para Rede Privada
+        </label>
       </div>
 
       <button type="submit" disabled={loading} className="btn btn-primary" style={{ marginTop: '0.5rem', alignSelf: 'flex-start' }}>

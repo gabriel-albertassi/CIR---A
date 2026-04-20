@@ -113,6 +113,7 @@ export async function registerPatient(data: {
   severity: string;
   observations?: string;
   attachment?: File;
+  is_private?: boolean;
 }) {
   const supabase = await createClient()
   let attachment_url = null
@@ -256,6 +257,29 @@ export async function attachMedicalEvolution(patientId: string, file: File) {
     return { success: true };
   } catch (err: any) {
     console.error('Erro ao anexar evolução:', err);
+    return { error: err.message };
+  }
+}
+
+export async function togglePatientPrivateProfile(patientId: string, currentStatus: boolean) {
+  try {
+    await prisma.patient.update({
+      where: { id: patientId },
+      data: { is_private: !currentStatus }
+    });
+
+    await prisma.log.create({
+      data: {
+        patient_id: patientId,
+        action: 'STATUS_UPDATE',
+        details: `Perfil de atendimento alterado para: ${!currentStatus ? '💎 PRIVADO/CONVÊNIO' : '🏥 REDE PÚBLICA (SUS)'}`
+      }
+    });
+
+    revalidatePath('/patients');
+    revalidatePath('/');
+    return { success: true };
+  } catch (err: any) {
     return { error: err.message };
   }
 }

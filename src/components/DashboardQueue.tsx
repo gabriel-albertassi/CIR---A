@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Send, Clock, Ambulance, AlertCircle, MessageCircle, Mail, Paperclip, Plus } from 'lucide-react'
+import { Send, Clock, Ambulance, AlertCircle, MessageCircle, Mail, Paperclip, Plus, ShieldCheck, ShieldAlert } from 'lucide-react'
 import Link from 'next/link'
+import { togglePatientPrivateProfile } from '../app/patients/actions'
 import MassBlastModal from './MassBlastModal'
 import ChargeEvolutionModal from './ChargeEvolutionModal'
 import AttachEvolutionModal from './AttachEvolutionModal'
@@ -13,6 +14,7 @@ type Patient = {
   severity: string
   status: string
   origin_hospital: string
+  is_private: boolean
   created_at: Date
 }
 
@@ -72,8 +74,31 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                     </td>
                     <td style={{ padding: '1rem 0.5rem' }}>
                       <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: '0.9rem' }}>{p.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: p.status === 'WAITING' ? '#94a3b8' : '#818cf8' }}>
-                        {p.status === 'WAITING' ? 'Aguardando Vaga' : 'Vaga Solicitada'}
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                        <div style={{ fontSize: '0.75rem', color: p.status === 'WAITING' ? '#94a3b8' : '#818cf8' }}>
+                          {p.status === 'WAITING' ? 'Aguardando Vaga' : 'Vaga Solicitada'}
+                        </div>
+                        <button 
+                          onClick={() => togglePatientPrivateProfile(p.id, p.is_private)}
+                          style={{ 
+                            background: p.is_private ? 'rgba(234, 179, 8, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
+                            color: p.is_private ? '#fbbf24' : '#94a3b8', 
+                            border: `1px solid ${p.is_private ? 'rgba(234, 179, 8, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
+                            padding: '2px 8px', 
+                            borderRadius: '4px', 
+                            fontSize: '0.65rem', 
+                            fontWeight: 800, 
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s'
+                          }}
+                          title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado/Convênio"}
+                        >
+                          {p.is_private ? <ShieldCheck size={10} /> : <ShieldAlert size={10} />}
+                          {p.is_private ? 'PRIVADO' : 'SUS'}
+                        </button>
                       </div>
                     </td>
                     <td style={{ padding: '1rem 0.5rem', color: '#cbd5e1', fontSize: '0.85rem' }}>
