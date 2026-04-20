@@ -190,7 +190,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
           };
         }
       }
-    }
 
     if (text.includes('disparar') || text.includes('vaga') || text.includes('email')) {
       return {
