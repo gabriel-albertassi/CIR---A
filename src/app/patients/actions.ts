@@ -152,14 +152,15 @@ export async function registerPatient(data: {
     throw new Error('ATENÇÃO: Paciente já se encontra ativo na fila de regulação!');
   }
 
+  const { attachment, ...rest } = data;
+
   const patient = await prisma.patient.create({
     data: {
-      ...data,
-      attachment?: undefined, // Remover para o prisma nao dar erro
+      ...rest,
       attachment_url,
       attachment_name,
       status: 'WAITING',
-    } as any
+    }
   });
 
   await prisma.log.create({
