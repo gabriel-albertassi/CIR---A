@@ -14,7 +14,7 @@ type Patient = {
   severity: string
   status: string
   origin_hospital: string
-  is_private: boolean
+  is_private?: boolean
   created_at: Date
 }
 

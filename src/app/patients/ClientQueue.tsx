@@ -21,6 +21,7 @@ type PatientData = {
   diagnosis: string
   severity: string
   status: string
+  is_private?: boolean
   created_at: Date
   attempts_count: number
   last_offer_date: Date | null
