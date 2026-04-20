@@ -122,7 +122,11 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       return {
         text: `Disponha, chefe! A equipe de Inteligência Artificial da CIR-A está sempre de prontidão. Boa regulação!`,
         sender: 'ai',
-        image:     // --- NOVO: DISPARO DE E-MAIL POR COMANDO ---
+        image: '/cirila_icone.png'
+      };
+    }
+
+    // --- NOVO: DISPARO DE E-MAIL POR COMANDO ---
     if (text.includes('enviar') || text.includes('mande') || text.includes('disparar') || text.includes('solicita')) {
       const hospitals = await prisma.hospital.findMany();
       const patients = await prisma.patient.findMany({ where: { status: { in: ['WAITING', 'OFFERED'] } } });
@@ -171,10 +175,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
             { label: 'Cancelar', payload: 'CANCEL' }
           ],
           image: '/cirila_2.png'
-        };
-      }
-    }
-image: '/cirila_2.png'
         };
       }
     }
