@@ -165,6 +165,7 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
           originHospital={chargeModal.origin}
           onClose={() => setChargeModal(null)}
         />
+      )}
       {attachModal && (
         <AttachEvolutionModal
           patientId={attachModal.id}
