@@ -312,24 +312,26 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           <button 
                             onClick={() => togglePatientPrivateProfile(p.id, p.is_private ?? false)}
                             style={{ 
-                              background: p.is_private ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(181, 147, 5, 0.1))' : 'rgba(148, 163, 184, 0.12)', 
-                              color: p.is_private ? '#fbbf24' : '#94a3b8', 
-                              border: `1px solid ${p.is_private ? 'rgba(234, 179, 8, 0.4)' : 'rgba(148, 163, 184, 0.25)'}`, 
+                              background: p.is_private ? 'linear-gradient(135deg, #eab308, #b45309)' : 'rgba(148, 163, 184, 0.15)', 
+                              color: p.is_private ? 'white' : '#94a3b8', 
+                              border: `1px solid ${p.is_private ? '#f59e0b' : 'rgba(148, 163, 184, 0.3)'}`, 
                               padding: '4px 10px', 
                               borderRadius: '6px', 
-                              fontSize: '11px', 
-                              fontWeight: 800, 
+                              fontSize: '0.7rem', 
+                              fontWeight: 900, 
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '6px',
                               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                              boxShadow: p.is_private ? '0 4px 10px rgba(234, 179, 8, 0.15)' : 'none',
-                              whiteSpace: 'nowrap'
+                              boxShadow: p.is_private ? '0 4px 15px rgba(234, 179, 8, 0.3)' : 'none',
+                              whiteSpace: 'nowrap',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
                             }}
-                            title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado/Convênio"}
+                            title={p.is_private ? "Alterar para rede pública (SUS)" : "Alterar para rede privada/convênio"}
                           >
-                            {p.is_private ? <ShieldCheck size={12} strokeWidth={2.5} /> : <ShieldAlert size={12} strokeWidth={2.5} />}
+                            {p.is_private ? <ShieldCheck size={14} strokeWidth={3} /> : <ShieldAlert size={14} strokeWidth={3} />}
                             {p.is_private ? 'PERFIL PRIVADO' : 'PERFIL SUS'}
                           </button>
                         </div>

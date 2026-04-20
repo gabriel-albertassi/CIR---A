@@ -74,30 +74,35 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                     </td>
                     <td style={{ padding: '1rem 0.5rem' }}>
                       <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: '0.9rem' }}>{p.name}</div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-                        <div style={{ fontSize: '0.75rem', color: p.status === 'WAITING' ? '#94a3b8' : '#818cf8' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
+                        <div style={{ fontSize: '0.75rem', color: p.status === 'WAITING' ? '#94a3b8' : '#818cf8', fontWeight: 600 }}>
                           {p.status === 'WAITING' ? 'Aguardando Vaga' : 'Vaga Solicitada'}
                         </div>
+                        
                         <button 
                           onClick={() => togglePatientPrivateProfile(p.id, p.is_private ?? false)}
                           style={{ 
-                            background: p.is_private ? 'rgba(234, 179, 8, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
-                            color: p.is_private ? '#fbbf24' : '#94a3b8', 
-                            border: `1px solid ${p.is_private ? 'rgba(234, 179, 8, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
-                            padding: '2px 8px', 
-                            borderRadius: '4px', 
+                            background: p.is_private ? 'linear-gradient(135deg, #eab308, #b45309)' : 'rgba(148, 163, 184, 0.15)', 
+                            color: p.is_private ? 'white' : '#94a3b8', 
+                            border: `1px solid ${p.is_private ? '#f59e0b' : 'rgba(148, 163, 184, 0.3)'}`, 
+                            padding: '4px 10px', 
+                            borderRadius: '6px', 
                             fontSize: '0.65rem', 
-                            fontWeight: 800, 
+                            fontWeight: 900, 
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            transition: 'all 0.2s'
+                            gap: '5px',
+                            transition: 'all 0.2s',
+                            boxShadow: p.is_private ? '0 4px 12px rgba(234, 179, 8, 0.3)' : 'none',
+                            width: 'fit-content',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
                           }}
-                          title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado/Convênio"}
+                          title={p.is_private ? "Alterar para rede pública (SUS)" : "Alterar para rede privada/convênio"}
                         >
-                          {p.is_private ? <ShieldCheck size={10} /> : <ShieldAlert size={10} />}
-                          {p.is_private ? 'PRIVADO' : 'SUS'}
+                          {p.is_private ? <ShieldCheck size={12} strokeWidth={3} /> : <ShieldAlert size={12} strokeWidth={3} />}
+                          {p.is_private ? 'PERFIL PRIVADO' : 'PERFIL SUS'}
                         </button>
                       </div>
                     </td>
