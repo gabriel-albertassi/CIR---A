@@ -3,6 +3,7 @@
 import { prisma } from '../../lib/db'
 import { HOSPITAL_CONTACTS, PRIVATE_HOSPITALS } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
+import { sendHospitalNotification } from '@/lib/mail'
 
 export async function sendEvolutionCharge(patientId: string, originHospital: string, method: 'WHATSAPP' | 'EMAIL') {
   try {
@@ -52,13 +53,32 @@ export async function sendMassBedRequest(patientId: string, profile: 'PUBLIC_ONL
       }
     });
 
-    // SIMULATING ACTUAL NODEMAILER DISPATCH
-    console.log('--- STARTING EMAIL DISPATCH ---');
-    console.log(`TO: ${toEmails.join(', ')}`);
-    console.log(`BCC (Hidden Privates): ${bccEmails.join(', ')}`);
-    console.log(`SUBJECT: Solicitação de Vaga - ${patient.name}`);
-    console.log(`BODY: Segue solicitação de vaga para leito ${severity}. Att, Central de Regulação`);
-    console.log('--- EMAIL DISPATCH SUCCESSFUL ---');
+    // Preparar Anexos (Malote + Evolução)
+    const attachments = [];
+    if (patient.attachment_url) {
+      attachments.push({
+        filename: patient.attachment_name || 'malote-paciente.pdf',
+        path: patient.attachment_url
+      });
+    }
+    if ((patient as any).evolution_url) {
+      attachments.push({
+        filename: (patient as any).evolution_name || 'evolucao-medica.pdf',
+        path: (patient as any).evolution_url
+      });
+    }
+
+    // DISPARO REAL PELO SERVIDOR SMTP
+    await sendHospitalNotification({
+      to: toEmails,
+      subject: `[CIRA] Disparo em Massa: ${patient.name}`,
+      patientName: patient.name,
+      patientId: patient.id,
+      severity: patient.severity,
+      originHospital: patient.origin_hospital,
+      diagnosis: patient.diagnosis,
+      attachments: attachments.length > 0 ? attachments : undefined
+    });
 
     await new Promise(resolve => setTimeout(resolve, 1500)); // API delay
 

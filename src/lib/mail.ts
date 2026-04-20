@@ -76,7 +76,7 @@ export async function sendHospitalNotification({
             
             <div style="display: flex; flex-direction: row; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
               ${attachments && attachments.length > 0 ? `
-              <a href="${attachments[0].path}" target="_blank" download
+              <a href="${attachments[0].path}" target="_blank" download="${attachments[0].filename}"
                  style="background: #f1f5f9; color: #0f172a; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; border: 1px solid #e2e8f0; display: inline-block;">
                  📥 Baixar Prontuário (Malote)
               </a>
@@ -89,7 +89,7 @@ export async function sendHospitalNotification({
             </div>
             
             <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; line-height: 1.5;">
-              Ao clicar em confirmar, a Central de Regulação receberá um aviso em tempo real de que sua unidade iniciou a análise do caso.
+              DICA: Caso o download não inicie, clique com o botão direito no botão "Baixar Prontuário" e selecione "Salvar link como...".
             </p>
           </div>
           

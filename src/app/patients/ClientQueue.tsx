@@ -2,10 +2,12 @@
 
 import React, { useState, useMemo } from 'react'
 import { requestBed, transferPatient, cancelPatient, registerRefusal, evolvePatient } from './actions'
-import { AlertTriangle, Clock, Activity, MessageSquare, TrendingUp, Search, MessageCircle, Mail, Send } from 'lucide-react'
+import { AlertTriangle, Clock, Activity, MessageSquare, TrendingUp, Search, MessageCircle, Mail, Send, Paperclip, Plus } from 'lucide-react'
+import Link from 'next/link'
 import PrintButton from '@/components/PrintButton'
 import ChargeEvolutionModal from '@/components/ChargeEvolutionModal'
 import MassBlastModal from '@/components/MassBlastModal'
+import AttachEvolutionModal from '@/components/AttachEvolutionModal'
 import { ALL_HOSPITALS, SEVERITY_LEVELS, HOSPITAL_CONTACTS } from '@/lib/constants'
 import styles from './ClientQueue.module.css'
 
@@ -62,6 +64,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
 
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
   const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
+  const [attachModal, setAttachModal] = useState<{id: string, name: string} | null>(null);
 
   // State for inline hospital selection when requesting a bed
   const [requestingId, setRequestingId] = useState<string | null>(null);
@@ -188,7 +191,12 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
       
       <div className={styles.queueHeader}>
         <div className={styles.queueTitle}>
-          <h1>Fila Dinâmica de Pacientes</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h1>Fila Dinâmica de Pacientes</h1>
+            <Link href="/patients/new" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+              <Plus size={14} /> Nova Regulação
+            </Link>
+          </div>
           <p>Gerenciamento estratégico de transferências e ocupação.</p>
         </div>
         
@@ -383,10 +391,31 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </button>
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', width: '100%', flexWrap: 'wrap' }}>
+                            <button 
+                              onClick={() => setAttachModal({ id: p.id, name: p.name })}
+                              style={{ 
+                                background: 'rgba(59, 130, 246, 0.15)', 
+                                color: '#60a5fa', 
+                                border: '1px solid rgba(59, 130, 246, 0.3)', 
+                                padding: '0.4rem 0.6rem', 
+                                borderRadius: '8px', 
+                                fontSize: '0.75rem', 
+                                fontWeight: 700, 
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                flex: 1
+                              }}
+                              title="Anexar Evolução Médica (PDF/Laudos)"
+                            >
+                              <Paperclip size={14} /> Anexar
+                            </button>
+
                             <button 
                               className="btn btn-primary" 
-                              style={{ flex: 1, padding: '0.5rem' }}
+                              style={{ flex: 2, padding: '0.5rem' }}
                               onClick={() => setRequestingId(p.id)} 
                               disabled={loadingId === p.id}
                             >
@@ -690,6 +719,14 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
         patientId={blastModal.id} 
         severity={blastModal.severity} 
         onClose={() => setBlastModal(null)} 
+      />
+    )}
+
+    {attachModal && (
+      <AttachEvolutionModal
+        patientId={attachModal.id}
+        patientName={attachModal.name}
+        onClose={() => setAttachModal(null)}
       />
     )}
     </>

@@ -50,13 +50,20 @@ export async function executeEmailDispatch(patientId: string, targetType: string
     const emails = targets.map(h => h.email!);
     if (emails.length === 0) return { success: false, error: 'Nenhum hospital compatível com e-mail cadastrado.' };
 
-    // Preparar Anexo de Malote se existir
-    const attachments = (patient as any).attachment_url ? [
-      {
-        filename: (patient as any).attachment_name || 'malote-paciente.pdf',
-        path: (patient as any).attachment_url
-      }
-    ] : undefined;
+    // Preparar Anexos: Malote + Evolução Médica
+    const attachments = [];
+    if (patient.attachment_url) {
+      attachments.push({
+        filename: patient.attachment_name || 'malote-paciente.pdf',
+        path: patient.attachment_url
+      });
+    }
+    if ((patient as any).evolution_url) {
+      attachments.push({
+        filename: (patient as any).evolution_name || 'evolucao-medica.pdf',
+        path: (patient as any).evolution_url
+      });
+    }
 
     await sendHospitalNotification({
       to: emails,
@@ -66,7 +73,7 @@ export async function executeEmailDispatch(patientId: string, targetType: string
       severity: patient.severity,
       originHospital: patient.origin_hospital,
       diagnosis: patient.diagnosis,
-      attachments
+      attachments: attachments.length > 0 ? attachments : undefined
     });
 
     return { success: true, count: emails.length, targetNames: targets.map(h => h.name) };
