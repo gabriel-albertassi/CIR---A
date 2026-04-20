@@ -298,7 +298,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <strong style={{ color: '#f1f5f9' }}>{p.name}</strong>
                           <button 
-                            onClick={() => togglePatientPrivateProfile(p.id, p.is_private)}
+                            onClick={() => togglePatientPrivateProfile(p.id, p.is_private ?? false)}
                             style={{ 
                               background: p.is_private ? 'rgba(234, 179, 8, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
                               color: p.is_private ? '#fbbf24' : '#94a3b8', 
