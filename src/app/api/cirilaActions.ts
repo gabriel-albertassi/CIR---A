@@ -62,6 +62,7 @@ export async function executeEmailDispatch(patientId: string, targetType: string
       to: emails,
       subject: `Solicitação de Vaga: ${patient.name}`,
       patientName: patient.name,
+      patientId: patient.id,
       severity: patient.severity,
       originHospital: patient.origin_hospital,
       diagnosis: patient.diagnosis,

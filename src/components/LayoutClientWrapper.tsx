@@ -137,7 +137,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
                       {user?.name || user?.email?.split('@')[0] || 'Acesso'}
                     </span>
                     <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {user?.role || 'Acesso Direto'}
+                      {user?.role || 'Acesso Automatizado'}
                     </span>
                   </div>
                 )}
@@ -243,7 +243,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               textAlign: 'center'
             }}>
               <div style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 700, opacity: 0.6, letterSpacing: '0.5px' }}>
-                SMSVR • Volta Redonda • v1.5 Premium
+                SMSVR • CIRA • v1.5 Premium
               </div>
               <a 
                 href="https://www.instagram.com/gabriel.albertassi" 
