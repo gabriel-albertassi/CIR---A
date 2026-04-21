@@ -43,25 +43,48 @@ function formatHours(dateString: Date) {
 }
 
 export default function ClientQueue({ initialPatients, user }: { initialPatients: PatientData[], user: any }) {
+  const [localPatients, setLocalPatients] = useState(initialPatients);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [aiSuggestion, setAiSuggestion] = useState<Record<string, string>>({});
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
 
+  // Sync local state when props change
+  React.useEffect(() => {
+    setLocalPatients(initialPatients);
+  }, [initialPatients]);
+
+  const handleTogglePrivate = async (id: string, current: boolean) => {
+    // Optimistic Update
+    setLocalPatients(prev => prev.map(p => 
+      p.id === id ? { ...p, is_private: !current } : p
+    ));
+
+    // Server Action
+    const result = await togglePatientPrivateProfile(id, current);
+    if (result.error) {
+      // Rollback on error
+      setLocalPatients(prev => prev.map(p => 
+        p.id === id ? { ...p, is_private: current } : p
+      ));
+      alert("Erro ao atualizar perfil: " + result.error);
+    }
+  };
+
   // Otimização: Memoização da filtragem para evitar recálculos desnecessários
   const filteredPatients = useMemo(() => {
-    return initialPatients.filter(p => {
+    return localPatients.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
                           p.diagnosis.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = filterStatus === 'ALL' || p.status === filterStatus;
       return matchesSearch && matchesStatus;
     });
-  }, [initialPatients, search, filterStatus]);
+  }, [localPatients, search, filterStatus]);
   
   const criticalScorePatients = useMemo(() => 
-    initialPatients.filter(p => p.score > 35 || p.score === -1),
-    [initialPatients]
+    localPatients.filter(p => p.score > 35 || p.score === -1),
+    [localPatients]
   );
 
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
@@ -310,12 +333,12 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <strong style={{ color: '#f1f5f9', fontSize: '15px' }}>{p.name}</strong>
                           <button 
-                            onClick={() => togglePatientPrivateProfile(p.id, p.is_private ?? false)}
+                            onClick={() => handleTogglePrivate(p.id, p.is_private ?? false)}
                             style={{ 
-                              background: p.is_private ? 'linear-gradient(135deg, #facc15, #a16207)' : 'rgba(30, 41, 59, 0.5)', 
-                              color: p.is_private ? '#000' : '#94a3b8', 
-                              border: p.is_private ? 'none' : '2px solid rgba(148, 163, 184, 0.4)', 
-                              padding: '6px 14px', 
+                              background: p.is_private ? 'rgba(245, 158, 11, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
+                              color: p.is_private ? '#fbbf24' : '#94a3b8', 
+                              border: `1px solid ${p.is_private ? 'rgba(245, 158, 11, 0.4)' : 'rgba(148, 163, 184, 0.25)'}`, 
+                              padding: '4px 12px', 
                               borderRadius: '8px', 
                               fontSize: '0.75rem', 
                               fontWeight: 900, 
@@ -323,15 +346,15 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '6px',
-                              transition: 'all 0.3s ease',
-                              boxShadow: p.is_private ? '0 0 20px rgba(234, 179, 8, 0.4)' : 'none',
+                              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                              boxShadow: p.is_private ? '0 4px 15px rgba(245, 158, 11, 0.1)' : 'none',
                               whiteSpace: 'nowrap',
                               textTransform: 'uppercase',
                               letterSpacing: '0.5px'
                             }}
                             title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado"}
                           >
-                            {p.is_private ? <ShieldCheck size={16} strokeWidth={3} /> : <ShieldAlert size={16} strokeWidth={3} />}
+                            {p.is_private ? <ShieldCheck size={14} strokeWidth={2.5} /> : <ShieldAlert size={14} strokeWidth={2.5} />}
                             {p.is_private ? 'PERFIL PRIVADO' : 'PERFIL SUS'}
                           </button>
                         </div>

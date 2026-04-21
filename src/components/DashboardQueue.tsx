@@ -25,14 +25,37 @@ function formatHours(dateString: Date) {
 }
 
 export default function DashboardQueue({ patients, user }: { patients: Patient[], user: any }) {
+  const [localPatients, setLocalPatients] = React.useState(patients);
   const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
   const [attachModal, setAttachModal] = useState<{id: string, name: string} | null>(null);
 
+  // Sync local state when props change
+  React.useEffect(() => {
+    setLocalPatients(patients);
+  }, [patients]);
+
   const canAction = user?.role === 'ADMIN' || user?.canCancelPatient;
 
+  const handleTogglePrivate = async (id: string, current: boolean) => {
+    // Optimistic Update
+    setLocalPatients(prev => prev.map(p => 
+      p.id === id ? { ...p, is_private: !current } : p
+    ));
+
+    // Server Action
+    const result = await togglePatientPrivateProfile(id, current);
+    if (result.error) {
+      // Rollback on error
+      setLocalPatients(prev => prev.map(p => 
+        p.id === id ? { ...p, is_private: current } : p
+      ));
+      alert("Erro ao atualizar perfil: " + result.error);
+    }
+  };
+
   // Show all relevant active patients on the dashboard
-  const priorityPatients = patients;
+  const priorityPatients = localPatients;
 
   return (
     <div style={{ marginTop: '1rem' }}>
@@ -80,28 +103,28 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                         </div>
                         
                         <button 
-                          onClick={() => togglePatientPrivateProfile(p.id, p.is_private ?? false)}
+                          onClick={() => handleTogglePrivate(p.id, p.is_private ?? false)}
                           style={{ 
-                            background: p.is_private ? 'linear-gradient(135deg, #facc15, #a16207)' : 'rgba(30, 41, 59, 0.5)', 
-                            color: p.is_private ? '#000' : '#94a3b8', 
-                            border: p.is_private ? 'none' : '2px solid rgba(148, 163, 184, 0.4)', 
-                            padding: '6px 14px', 
+                            background: p.is_private ? 'rgba(245, 158, 11, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
+                            color: p.is_private ? '#fbbf24' : '#94a3b8', 
+                            border: `1px solid ${p.is_private ? 'rgba(245, 158, 11, 0.4)' : 'rgba(148, 163, 184, 0.2)'}`, 
+                            padding: '4px 12px', 
                             borderRadius: '8px', 
-                            fontSize: '0.75rem', 
-                            fontWeight: 900, 
+                            fontSize: '0.7rem', 
+                            fontWeight: 800, 
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
-                            transition: 'all 0.3s ease',
-                            boxShadow: p.is_private ? '0 0 20px rgba(234, 179, 8, 0.4)' : 'none',
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                             width: 'fit-content',
                             marginTop: '8px',
-                            textTransform: 'uppercase'
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
                           }}
                           title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado"}
                         >
-                          {p.is_private ? <ShieldCheck size={14} strokeWidth={3} /> : <ShieldAlert size={14} strokeWidth={3} />}
+                          {p.is_private ? <ShieldCheck size={13} strokeWidth={2.5} /> : <ShieldAlert size={13} strokeWidth={2.5} />}
                           {p.is_private ? 'PERFIL PRIVADO' : 'PERFIL SUS'}
                         </button>
                       </div>
