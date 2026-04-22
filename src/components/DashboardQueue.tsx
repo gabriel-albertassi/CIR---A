@@ -26,7 +26,7 @@ function formatHours(dateString: Date) {
 
 export default function DashboardQueue({ patients, user }: { patients: Patient[], user: any }) {
   const [localPatients, setLocalPatients] = React.useState(patients);
-  const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
+  const [blastModal, setBlastModal] = useState<{id: string, severity: string, is_private?: boolean} | null>(null);
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
   const [attachModal, setAttachModal] = useState<{id: string, name: string} | null>(null);
 
@@ -181,7 +181,7 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                         
                         <button 
                           onClick={() => {
-                            if (canAction) setBlastModal({ id: p.id, severity: p.severity })
+                            if (canAction) setBlastModal({ id: p.id, severity: p.severity, is_private: p.is_private })
                           }}
                           style={{ 
                             background: canAction ? 'rgba(0, 180, 216, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
@@ -215,6 +215,7 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
         <MassBlastModal 
           patientId={blastModal.id} 
           severity={blastModal.severity} 
+          isPrivatePatient={blastModal.is_private}
           onClose={() => setBlastModal(null)} 
         />
       )}

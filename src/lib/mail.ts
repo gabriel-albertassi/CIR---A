@@ -59,7 +59,7 @@ export async function sendHospitalNotification({
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
           <div style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); padding: 30px; text-align: center; border-bottom: 3px solid #00d8ff;">
-            <h1 style="color: #00d8ff; margin: 0; font-size: 28px; letter-spacing: 1px;">CIRA</h1>
+            <h1 style="color: #00d8ff; margin: 0; font-size: 28px; letter-spacing: 1px;">CIR-A</h1>
             <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Central Inteligente de Regulação Automatizada</p>
           </div>
           
@@ -95,7 +95,7 @@ export async function sendHospitalNotification({
           
           <div style="background: #f8fafc; padding: 20px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #f1f5f9;">
             Esta é uma notificação da Secretaria Municipal de Saúde de Volta Redonda (SMSVR).
-            <br>© 2026 CIRA System • Inteligência Assistida
+            <br>© 2026 CIR-A System • Inteligência Automatizada
           </div>
         </div>
       `,

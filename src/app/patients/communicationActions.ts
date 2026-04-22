@@ -7,24 +7,33 @@ import { sendHospitalNotification } from '@/lib/mail'
 
 export async function sendEvolutionCharge(patientId: string, originHospital: string, method: 'WHATSAPP' | 'EMAIL') {
   try {
+    const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { name: true } });
+    if (!patient) return { error: 'Paciente não encontrado.' };
+
     const contact = HOSPITAL_CONTACTS[originHospital];
     if (!contact) return { error: 'Contato do hospital não cadastrado.' };
 
-    await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500)); // Sim delay
 
+    let whatsappUrl = '';
     const destination = method === 'WHATSAPP' ? contact.phone : contact.email;
+
+    if (method === 'WHATSAPP') {
+      const message = encodeURIComponent(`Olá, aqui é da Regulação CIRA. Solicitamos a atualização da evolução médica e prontuário do paciente: ${patient.name}.`);
+      whatsappUrl = `https://wa.me/${contact.phone}?text=${message}`;
+    }
 
     await prisma.log.create({
       data: {
         patient_id: patientId,
         action: 'STATUS_UPDATE',
-        details: `Cobrança automática de evolução enviada via ${method} para o NIR (${destination})`
+        details: `Cobrança automática de evolução iniciada via ${method} para o NIR (${destination})`
       }
     });
 
     revalidatePath('/');
     revalidatePath('/patients');
-    return { success: true };
+    return { success: true, whatsappUrl };
   } catch (error: any) {
     return { error: error.message };
   }
@@ -98,5 +107,21 @@ export async function sendMassBedRequest(patientId: string, profile: 'PUBLIC_ONL
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
+  }
+}
+
+export async function getBedRequestWhatsAppUrl(patientId: string, hospitalName: string) {
+  try {
+    const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { name: true, severity: true } });
+    if (!patient) return null;
+
+    const contact = HOSPITAL_CONTACTS[hospitalName];
+    if (!contact) return null;
+
+    const message = encodeURIComponent(`Olá, aqui é da Regulação CIRA. Solicitamos vaga para o paciente: ${patient.name} (${patient.severity}). Os dados clínicos oficiais e malote já foram enviados para o NIR por e-mail institucional. Poderiam conferir?`);
+    
+    return `https://wa.me/${contact.phone}?text=${message}`;
+  } catch (error) {
+    return null;
   }
 }

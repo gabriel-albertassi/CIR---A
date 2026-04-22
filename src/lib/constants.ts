@@ -2,6 +2,7 @@ export const PUBLIC_HOSPITALS = [
   "Hospital São João Batista (HSJB)",
   "Hospital Munir Raffur (HMMR)",
   "Hospital Doutor Nelson Gonçalves (HNSG)",
+  "UPA 24H",
 ];
 
 export const PRIVATE_HOSPITALS = [
@@ -19,9 +20,10 @@ export const SEVERITY_LEVELS = [
 ];
 
 export const HOSPITAL_CONTACTS: Record<string, { phone: string, email: string }> = {
-  "Hospital São João Batista (HSJB)": { phone: "5524999999991", email: "nir.hsjb@smsvr.com" },
-  "Hospital Munir Raffur (HMMR)": { phone: "5524999999992", email: "nir.hmmr@smsvr.com" },
-  "Hospital Doutor Nelson Gonçalves (HNSG)": { phone: "5524999999993", email: "nir.hnsg@smsvr.com" },
+  "Hospital São João Batista (HSJB)": { phone: "5524999755006", email: "nir.hsjb@smsvr.com" },
+  "Hospital Munir Raffur (HMMR)": { phone: "5524993068957", email: "nir.hmmr@smsvr.com" }, // NIR RETIRO
+  "Hospital Doutor Nelson Gonçalves (HNSG)": { phone: "5524999372561", email: "nir.hnsg@smsvr.com" }, // CAIS DO ATERRADO
+  "UPA 24H": { phone: "5524992283668", email: "nir.upa24h@smsvr.com" },
   "Hospital H.FOA": { phone: "5524999999994", email: "nir.foa@smsvr.com" },
   "Hospital Santa Cecília (HSC)": { phone: "5524999999995", email: "nir.hsc@smsvr.com" },
   "Hospital Viver Mais": { phone: "5524999999996", email: "nir.vivermais@smsvr.com" },

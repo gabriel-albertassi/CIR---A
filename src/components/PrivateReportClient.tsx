@@ -146,13 +146,12 @@ export default function PrivateReportClient({ byHospital, totalTransfers, genera
         })}
       </div>
 
-      {/* HEADER PARA IMPRESSÃO — só aparece no papel */}
-      <div className="print-header-global" style={{ display: 'none' }}>
-        <div style={{ textAlign: 'center', borderBottom: '2px solid #1e293b', paddingBottom: '1rem', marginBottom: '1rem' }}>
-          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>
-            CIR-A — Relatório de Contratos Privados
-          </div>
-          <div style={{ fontSize: '0.9rem', color: '#475569', marginTop: '4px' }}>
+        <div className="print-header-global" style={{ display: 'none' }}>
+          <div style={{ textAlign: 'center', borderBottom: '2px solid #1e293b', paddingBottom: '1rem', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>
+              CIR-A — Relatório de Contratos Automatizados
+            </div>
+            <div style={{ fontSize: '0.9rem', color: '#475569', marginTop: '4px' }}>
             Gerado em: {generatedAt} · Total: {totalTransfers} transferências
           </div>
         </div>

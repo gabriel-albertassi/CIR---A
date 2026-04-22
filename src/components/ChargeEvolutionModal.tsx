@@ -11,9 +11,15 @@ export default function ChargeEvolutionModal({ patientId, originHospital, onClos
     setLoading(true);
     const res = await sendEvolutionCharge(patientId, originHospital, method);
     setLoading(false);
-    if (res.error) alert(res.error);
-    else {
-      alert(`Cobrança enviada com sucesso via ${method}!\n(Simulação interna disparada e log registrada)`);
+    
+    if (res.error) {
+      alert(res.error);
+    } else {
+      if (method === 'WHATSAPP' && (res as any).whatsappUrl) {
+        window.open((res as any).whatsappUrl, '_blank');
+      }
+      
+      alert(`Cobrança registrada com sucesso via ${method}!\n(O log foi gerado no prontuário do paciente)`);
       
       // Simula uma resposta do NIR chegando daqui a 12 segundos!
       setTimeout(() => {

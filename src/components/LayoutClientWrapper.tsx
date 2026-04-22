@@ -243,7 +243,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               textAlign: 'center'
             }}>
               <div style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 700, opacity: 0.6, letterSpacing: '0.5px' }}>
-                SMSVR • CIRA • v1.5 Premium
+                SMSVR • CIR-A • v1.5 Premium
               </div>
               <a 
                 href="https://www.instagram.com/gabriel.albertassi" 
@@ -317,7 +317,6 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
         <>
           <CirilaBotWidget />
           <CallCirilaButton />
-          <SimulatorPanel />
         </>
       )}
     </div>

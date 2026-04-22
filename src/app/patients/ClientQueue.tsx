@@ -88,7 +88,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
   );
 
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
-  const [blastModal, setBlastModal] = useState<{id: string, severity: string} | null>(null);
+  const [blastModal, setBlastModal] = useState<{id: string, severity: string, is_private?: boolean} | null>(null);
   const [attachModal, setAttachModal] = useState<{id: string, name: string} | null>(null);
 
   // State for inline hospital selection when requesting a bed
@@ -489,7 +489,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             <button
                               className="btn btn-outline"
                               style={{ padding: '0.5rem', background: '#0f172a', color: 'white', border: 'none' }}
-                              onClick={() => setBlastModal({ id: p.id, severity: p.severity })}
+                              onClick={() => setBlastModal({ id: p.id, severity: p.severity, is_private: p.is_private })}
                               title="Disparo em Massa (E-mail)"
                             >
                               <Send size={16} /> Disparo
@@ -782,6 +782,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
       <MassBlastModal 
         patientId={blastModal.id} 
         severity={blastModal.severity} 
+        isPrivatePatient={blastModal.is_private}
         onClose={() => setBlastModal(null)} 
       />
     )}

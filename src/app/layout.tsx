@@ -5,7 +5,7 @@ import { createClient } from '../lib/supabase/sb-server'
 import { prisma } from '../lib/db'
 
 export const metadata: Metadata = {
-  title: 'CIR-A | Sistema de Regulação Assistida',
+  title: 'CIR-A | Sistema de Regulação Automatizada',
   description: 'Central Inteligente de Regulação Automatizada - SMSVR',
 }
 

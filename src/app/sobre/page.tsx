@@ -26,10 +26,10 @@ export default function SobrePage() {
               Nossa Missão
             </h2>
             <p style={{ fontSize: '1.05rem', color: '#94a3b8', lineHeight: 1.7, margin: 0 }}>
-              A <strong style={{ color: '#e2e8f0' }}>CIRA (Central Inteligente de Regulação Automatizada)</strong> nasceu para revolucionar e humanizar a gestão de leitos e transferências médicas no município de Volta Redonda.
+              A <strong style={{ color: '#e2e8f0' }}>CIR-A (Central Inteligente de Regulação Automatizada)</strong> nasceu para revolucionar e humanizar a gestão de leitos e transferências médicas no município de Volta Redonda.
             </p>
             <p style={{ fontSize: '1.05rem', color: '#94a3b8', lineHeight: 1.7, margin: 0 }}>
-              No modelo fragmentado do passado, a regulação dependia excessivamente de telefonemas, papéis e planilhas desconexas, o que naturalmente aumentava a margem para atrasos. <strong style={{ color: '#e2e8f0' }}>A CIRA foi criada para resolver essa dor:</strong> unir todos os hospitais sob uma mesma linguagem digital, criando uma "torre de controle" capaz de enxergar tudo em tempo real para não deixar nenhum paciente esperando sem necessidade.
+              No modelo fragmentado do passado, a regulação dependia excessivamente de telefonemas, papéis e planilhas desconexas, o que naturalmente aumentava a margem para atrasos. <strong style={{ color: '#e2e8f0' }}>A CIR-A foi criada para resolver essa dor:</strong> unir todos os hospitais sob uma mesma linguagem digital, criando uma "torre de controle" capaz de enxergar tudo em tempo real para não deixar nenhum paciente esperando sem necessidade.
             </p>
           </div>
           <div className="logo-container-glow" style={{ background: 'rgba(255,255,255,0.05)', padding: '2rem', borderRadius: '20px', border: '1px dashed rgba(0,180,216,0.3)' }}>
@@ -89,7 +89,7 @@ export default function SobrePage() {
             Pela primeira vez, a Central de Regulação da Secretaria Municipal de Saúde de Volta Redonda (SMSVR) passa a operar de forma integrada e orientada por dados, deixando um modelo predominantemente reativo para um fluxo mais estruturado e proativo.
           </p>
           <p style={{ fontSize: '1.1rem', color: '#e2e8f0', lineHeight: 1.8, margin: '0 0 1.5rem 0' }}>
-            Com a implantação da CIRA (Central Inteligente de Regulação Automatizada), é estabelecida uma rede digital de comunicação entre os principais pontos assistenciais do município...
+            Com a implantação da CIR-A (Central Inteligente de Regulação Automatizada), é estabelecida uma rede digital de comunicação entre os principais pontos assistenciais do município...
           </p>
           <p style={{ fontSize: '1.1rem', color: '#e2e8f0', lineHeight: 1.8, margin: '0 0 1.5rem 0' }}>
             Essa integração permite maior visibilidade do fluxo assistencial, facilitando a identificação de disponibilidade de leitos e agilizando o encaminhamento de pacientes de forma mais organizada e eficiente. Como resultado, há redução de retrabalho, melhor uso dos recursos hospitalares e maior previsibilidade no processo de regulação.
