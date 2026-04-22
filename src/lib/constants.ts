@@ -28,3 +28,5 @@ export const HOSPITAL_CONTACTS: Record<string, { phone: string, email: string }>
   "Hospital Santa Cecília (HSC)": { phone: "5524999999995", email: "nir.hsc@smsvr.com" },
   "Hospital Viver Mais": { phone: "5524999999996", email: "nir.vivermais@smsvr.com" },
 };
+
+export const REGULACAO_WHATSAPP = "5524999615198";

@@ -19,7 +19,7 @@ export async function sendEvolutionCharge(patientId: string, originHospital: str
     const destination = method === 'WHATSAPP' ? contact.phone : contact.email;
 
     if (method === 'WHATSAPP') {
-      const message = encodeURIComponent(`Olá, aqui é da Regulação CIRA. Solicitamos a atualização da evolução médica e prontuário do paciente: ${patient.name}.`);
+      const message = encodeURIComponent(`Olá, aqui é a Cirila do Gateway da Regulação CIR-A (+55 24 99961-5198). Solicitamos por favor a atualização da evolução médica e prontuário do paciente: ${patient.name}.`);
       whatsappUrl = `https://wa.me/${contact.phone}?text=${message}`;
     }
 
@@ -118,7 +118,7 @@ export async function getBedRequestWhatsAppUrl(patientId: string, hospitalName: 
     const contact = HOSPITAL_CONTACTS[hospitalName];
     if (!contact) return null;
 
-    const message = encodeURIComponent(`Olá, aqui é da Regulação CIRA. Solicitamos vaga para o paciente: ${patient.name} (${patient.severity}). Os dados clínicos oficiais e malote já foram enviados para o NIR por e-mail institucional. Poderiam conferir?`);
+    const message = encodeURIComponent(`Olá, aqui é a Cirila do Gateway da Regulação CIR-A (+55 24 99961-5198). Solicitamos vaga para o paciente: ${patient.name} (${patient.severity}). Os dados clínicos oficiais e malote já foram enviados para o NIR por e-mail institucional. Poderiam conferir?`);
     
     return `https://wa.me/${contact.phone}?text=${message}`;
   } catch (error) {

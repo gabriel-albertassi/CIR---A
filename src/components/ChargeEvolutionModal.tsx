@@ -40,7 +40,9 @@ export default function ChargeEvolutionModal({ patientId, originHospital, onClos
         </button>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>Cobrar Evolução Médica</h2>
         <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
-          Disparar notificação automática para o NIR do <strong>{originHospital}</strong> exigindo atualização clínica do paciente.
+          A <strong>Cirila</strong> abrirá o canal oficial da regulação 
+          <span style={{ color: '#00d8ff', fontWeight: 800 }}> (+55 24 99961-5198) </span> 
+          para exigir a atualização clínica do paciente no NIR do <strong>{originHospital}</strong>.
         </p>
 
         <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>

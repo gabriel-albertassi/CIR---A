@@ -149,7 +149,7 @@ export default function PrivateReportClient({ byHospital, totalTransfers, genera
         <div className="print-header-global" style={{ display: 'none' }}>
           <div style={{ textAlign: 'center', borderBottom: '2px solid #1e293b', paddingBottom: '1rem', marginBottom: '1rem' }}>
             <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>
-              CIR-A — Relatório de Contratos Automatizados
+              CIR-A | CENTRAL INTELIGENTE DE REGULAÇÃO AUTOMATIZADA
             </div>
             <div style={{ fontSize: '0.9rem', color: '#475569', marginTop: '4px' }}>
             Gerado em: {generatedAt} · Total: {totalTransfers} transferências
@@ -306,7 +306,7 @@ export default function PrivateReportClient({ byHospital, totalTransfers, genera
                         Total: {logs.length} paciente{logs.length !== 1 ? 's' : ''}
                       </td>
                       <td colSpan={6} style={{ padding: '0.65rem 1.25rem', color: '#64748b', fontSize: '0.78rem', textAlign: 'right' }}>
-                        Relatório gerado pelo CIR-A — Secretaria Municipal de Saúde de Volta Redonda
+                        Relatório gerado pela CIR-A — CENTRAL INTELIGENTE DE REGULAÇÃO AUTOMATIZADA
                       </td>
                     </tr>
                   </tfoot>

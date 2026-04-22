@@ -89,7 +89,7 @@ export default function MassBlastModal({ patientId, severity, onClose, isPrivate
             </div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>E-mails Enviados!</h2>
             <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
-              A solicitação oficial já está na caixa dos NIRs. Deseja reforçar via <strong>WhatsApp</strong>?
+              A solicitação oficial já está na caixa dos NIRs. Deseja reforçar via <strong>WhatsApp Gateway (+55 24 99961-5198)</strong>?
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '0.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', maxHeight: '300px', overflowY: 'auto' }}>
