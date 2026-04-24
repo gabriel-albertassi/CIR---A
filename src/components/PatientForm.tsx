@@ -15,18 +15,15 @@ export default function PatientForm() {
 
     const formData = new FormData(e.currentTarget)
     try {
-      await registerPatient({
-        name: formData.get('name') as string,
-        origin_hospital: formData.get('origin_hospital') as string,
-        diagnosis: formData.get('diagnosis') as string,
-        severity: formData.get('severity') as string,
-        observations: formData.get('observations') as string,
-        attachment: formData.get('attachment') as File,
-        is_private: formData.get('is_private') === 'on',
-      })
-      router.push('/patients')
+      const result = await registerPatient(formData)
+      
+      if (result.success) {
+        router.push('/patients')
+      } else {
+        alert("Erro ao cadastrar: " + result.error)
+      }
     } catch (err: any) {
-      alert("Erro ao cadastrar: " + err.message)
+      alert("Erro crítico: " + err.message)
     } finally {
       setLoading(false)
     }

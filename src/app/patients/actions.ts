@@ -106,76 +106,99 @@ export async function cancelPatient(patientId: string, reason: string, exitType:
 
 import { createClient } from '@/lib/supabase/sb-server'
 
-export async function registerPatient(data: {
-  name: string;
-  origin_hospital: string;
-  diagnosis: string;
-  severity: string;
-  observations?: string;
-  attachment?: File;
-  is_private?: boolean;
-}) {
-  const supabase = await createClient()
-  let attachment_url = null
-  let attachment_name = null
-
-  // Processo de Upload do Malote
-  if (data.attachment && data.attachment.size > 0) {
-    const file = data.attachment
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
+export async function registerPatient(formData: FormData) {
+  try {
+    const supabase = await createClient()
     
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('malotes-pacientes')
-      .upload(fileName, file)
+    // Extração segura dos dados
+    const name = formData.get('name') as string
+    const origin_hospital = formData.get('origin_hospital') as string
+    const diagnosis = formData.get('diagnosis') as string
+    const severity = formData.get('severity') as string
+    const observations = formData.get('observations') as string || null
+    const attachment = formData.get('attachment') as File | null
+    const is_private = formData.get('is_private') === 'on' || formData.get('is_private') === 'true'
 
-    if (uploadError) {
-      console.error('Erro no upload do Supabase:', uploadError)
-      throw new Error('Falha ao salvar o malote no servidor. Verifique se o bucket "malotes-pacientes" foi criado.')
+    if (!name || !origin_hospital || !diagnosis || !severity) {
+      throw new Error('Campos obrigatórios faltando: Nome, Hospital, Diagnóstico e Gravidade são necessários.')
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('malotes-pacientes')
-      .getPublicUrl(fileName)
+    let attachment_url = null
+    let attachment_name = null
 
-    attachment_url = publicUrl
-    attachment_name = file.name
+    // Processo de Upload do Malote (Melhorado com FormData)
+    if (attachment && attachment.size > 0) {
+      const fileExt = attachment.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('malotes-pacientes')
+        .upload(fileName, attachment, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (uploadError) {
+        console.error('Erro no upload do Supabase:', uploadError)
+        throw new Error(`Falha no upload para o Supabase: ${uploadError.message}`)
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('malotes-pacientes')
+        .getPublicUrl(fileName)
+
+      attachment_url = publicUrl
+      attachment_name = attachment.name
+    }
+
+    // Verificar duplicidade
+    const existing = await prisma.patient.findFirst({
+      where: {
+        name,
+        status: { in: ['WAITING', 'OFFERED'] }
+      }
+    })
+
+    if (existing) {
+      throw new Error('ATENÇÃO: Este paciente já se encontra ativo na fila de regulação!')
+    }
+
+    // Criação no Prisma
+    const patient = await prisma.patient.create({
+      data: {
+        name,
+        origin_hospital,
+        diagnosis,
+        severity,
+        observations,
+        is_private,
+        attachment_url,
+        attachment_name,
+        status: 'WAITING',
+      }
+    })
+
+    // Log de registro
+    await prisma.log.create({
+      data: {
+        patient_id: patient.id,
+        action: 'REGISTER',
+        details: 'Paciente inserido na fila de regulação via formulário.'
+      }
+    })
+
+    revalidatePath('/patients')
+    revalidatePath('/')
+    
+    return { success: true, patient }
+  } catch (error: any) {
+    console.error('ERRO EM registerPatient:', error)
+    // Retornamos um objeto de erro serializável para evitar o "unexpected response"
+    return { 
+      success: false, 
+      error: error.message || 'Ocorreu um erro interno desconhecido ao processar o cadastro.' 
+    }
   }
-
-  const existing = await prisma.patient.findFirst({
-    where: {
-      name: data.name,
-      status: { in: ['WAITING', 'OFFERED'] }
-    }
-  });
-
-  if (existing) {
-    throw new Error('ATENÇÃO: Paciente já se encontra ativo na fila de regulação!');
-  }
-
-  const { attachment, ...rest } = data;
-
-  const patient = await prisma.patient.create({
-    data: {
-      ...rest,
-      attachment_url,
-      attachment_name,
-      status: 'WAITING',
-    }
-  });
-
-  await prisma.log.create({
-    data: {
-      patient_id: patient.id,
-      action: 'REGISTER',
-      details: 'Paciente inserido na fila de regulação.'
-    }
-  });
-
-  revalidatePath('/patients')
-  revalidatePath('/')
-  
-  return patient;
 }
 
 export async function evolvePatient(patientId: string, newSeverity: string, newDiagnosis?: string) {
