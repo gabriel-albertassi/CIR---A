@@ -58,8 +58,13 @@ export async function GET(req: NextRequest) {
 
   const dateStr = new Date().toLocaleDateString('pt-BR');
 
-  // --- CONSTRUÇÃO DAS ETIQUETAS ---
-  const tableRows: TableRow[] = [];
+  // --- CONSTRUÇÃO DAS ETIQUETAS (COM BOX E ESPAÇADORES) ---
+  const children: any[] = [];
+
+  // Adiciona espaços em branco no topo para permitir "subir e descer" as etiquetas no Word
+  for (let i = 0; i < 15; i++) {
+    children.push(new Paragraph({ text: "" }));
+  }
 
   finalExams.forEach((examName, index) => {
     const examUpper = examName.toUpperCase();
@@ -67,6 +72,8 @@ export async function GET(req: NextRequest) {
 
     if (examUpper.includes('ANGIOTC')) {
       destination = "HMMR";
+    } else if (examUpper.includes('COLANGIO')) {
+      destination = "RADIO VIDA";
     } else if (examUpper.includes('TC') || examUpper.includes('TOMOGRAFIA')) {
       destination = "HSJB";
     } else if (examUpper.includes('RNM') || examUpper.includes('RESSONANCIA') || examUpper.includes('RESSONÂNCIA')) {
@@ -75,36 +82,40 @@ export async function GET(req: NextRequest) {
 
     const authKey = generateKey();
 
-    // Cada etiqueta é uma linha da tabela
-    tableRows.push(
-      new TableRow({
-        children: [
-          new TableCell({
-            borders: {
-              top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-              bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-              left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-              right: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-            },
-            margins: { top: 150, bottom: 150, left: 150, right: 150 },
+    // Cada etiqueta é uma tabela de uma única célula (box)
+    children.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({
             children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { after: 40 },
-                children: [new TextRun({ text: prof.full, bold: true, size: 20, font: "Arial" })]
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { after: 120 },
-                children: [new TextRun({ text: departamento, bold: true, size: 20, font: "Arial" })]
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
+              new TableCell({
+                borders: {
+                  top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+                  bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+                  left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+                  right: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+                },
+                margins: { top: 150, bottom: 150, left: 150, right: 150 },
                 children: [
-                  new TextRun({ text: `${dateStr} : `, bold: true, size: 20, font: "Arial" }),
-                  new TextRun({ text: `${authKey} - `, bold: true, size: 20, font: "Arial" }),
-                  new TextRun({ text: `${patient.toUpperCase()} - ${examUpper} `, size: 20, font: "Arial" }),
-                  new TextRun({ text: `AUTORIZADO PARA ${destination}`, bold: true, size: 20, color: "b91c1c", font: "Arial" })
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: prof.full, bold: true, size: 22, font: "Arial" })]
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 120 },
+                    children: [new TextRun({ text: departamento, bold: true, size: 22, font: "Arial" })]
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [
+                      new TextRun({ text: `${dateStr} : `, bold: true, size: 22, font: "Arial" }),
+                      new TextRun({ text: `${authKey} - `, bold: true, size: 22, font: "Arial" }),
+                      new TextRun({ text: `${patient.toUpperCase()} - ${examUpper} `, bold: true, size: 22, font: "Arial" }),
+                      new TextRun({ text: `AUTORIZADO PARA ${destination}`, bold: true, size: 22, color: "b91c1c", font: "Arial" })
+                    ]
+                  })
                 ]
               })
             ]
@@ -113,35 +124,20 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    // Espaçador entre etiquetas (exceto na última)
+    // Espaçador entre etiquetas
     if (index < finalExams.length - 1) {
-      tableRows.push(
-        new TableRow({
-          children: [
-            new TableCell({
-              borders: {
-                top: { style: BorderStyle.NIL },
-                bottom: { style: BorderStyle.NIL },
-                left: { style: BorderStyle.NIL },
-                right: { style: BorderStyle.NIL },
-              },
-              children: [new Paragraph({ spacing: { before: 200, after: 200 } })]
-            })
-          ]
-        })
-      );
+      children.push(new Paragraph({ text: "", spacing: { before: 240, after: 240 } }));
     }
   });
 
   const doc = new Document({
     sections: [{
-      properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
-      children: [
-        new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: tableRows
-        })
-      ]
+      properties: { 
+        page: { 
+          margin: { top: 720, right: 720, bottom: 720, left: 720 } 
+        } 
+      },
+      children: children
     }]
   });
 
