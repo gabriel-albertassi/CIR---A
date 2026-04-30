@@ -121,64 +121,60 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   const currentFileId = fileIdMatch ? fileIdMatch[1] : null;
   const isDocumentAttached = !!currentFileId || text.includes('anexo');
 
-  // 2. COMANDO DE GERAÇÃO DE ETIQUETA
-  const isGeneratingEtiqueta = text.includes('gerar') && (text.includes('etiqueta') || text.includes('tc') || text.includes('rnm') || text.includes('angiotc'));
+    // 2. COMANDO DE GERAÇÃO DE ETIQUETA
+    const isGeneratingEtiqueta = text.includes('gerar') && (text.includes('etiqueta') || text.includes('tc') || text.includes('rnm') || text.includes('angiotc'));
 
-  if (isGeneratingEtiqueta) {
-    // Validação de Anexo (Obrigatório conforme regra)
-    if (!isDocumentAttached) {
-       return {
-        text: `Olá chefe! Sou a **CIRILA**, sua IA de regulação. \n\nPara eu gerar a etiqueta de autorização com a chave de acesso, **você precisa anexar o documento (Pedido Médico)** primeiro. \n\nAssim que anexar, eu cuidarei da geração da chave e do destino automaticamente sem mexer no conteúdo original do seu template.`,
-        sender: 'ai'
-      };
-    }
-
-    // Extração de dados apenas do comando do usuário
-    // Ex: "Gerar TC de crânio para Gabriel Albertassi, etiqueta Inimá"
-    const cleanedText = text.replace(/\[file_id:.+?\]/gi, '').trim();
-    
-    let etiquetaMatch = cleanedText.match(/gerar\s+etiqueta\s+(?:de\s+)?(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?(?:etiqueta\s+)?(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
-    
-    if (!etiquetaMatch) {
-      etiquetaMatch = cleanedText.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
-    }
-
-    if (etiquetaMatch) {
-      const examRaw = etiquetaMatch[1].trim();
-      const patient = etiquetaMatch[2].trim().toUpperCase();
-      const professionalRaw = (etiquetaMatch[3] || '').trim().toLowerCase().split(/\s+/)[0];
-
-      if (!professionalRaw || !validProfs.includes(professionalRaw)) {
-        return {
-          text: `Chefe, para gerar a etiqueta de **${patient}**, preciso saber qual profissional da **DCRAA** vai assinar. \n\n(Opções: Paola, Inimá, Carlos, Roberto, Sabrina, Barenco, Rosely ou Mazoni)`,
-          sender: 'ai',
-          actions: validProfs.slice(0, 4).map(p => ({
-            label: `Assinar como ${p.toUpperCase()}`,
-            payload: `Gerar etiqueta de ${examRaw} para ${patient} assinado por ${p}`
-          }))
-        };
+    if (isGeneratingEtiqueta) {
+      // Extração de dados apenas do comando do usuário
+      // Ex: "Gerar TC de crânio para Gabriel Albertassi, etiqueta Inimá"
+      const cleanedText = text.replace(/\[file_id:.+?\]/gi, '').trim();
+      
+      let etiquetaMatch = cleanedText.match(/gerar\s+etiqueta\s+(?:de\s+)?(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?(?:etiqueta\s+)?(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
+      
+      if (!etiquetaMatch) {
+        etiquetaMatch = cleanedText.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
       }
 
-      // Mapeamento de destino conforme regra fixa
-      const examLower = examRaw.toLowerCase();
-      let destination = "HOSPITAL DESTINO";
-      if (examLower.includes('angiotc')) destination = "HMMR";
-      else if (examLower.includes('colangio')) destination = "RADIO VIDA";
-      else if (examLower.includes('tc') || examLower.includes('tomografia')) destination = "HSJB";
-      else if (examLower.includes('rnm') || examLower.includes('ressonancia') || examLower.includes('ressonância')) destination = "RADIO VIDA";
+      if (etiquetaMatch) {
+        const examRaw = etiquetaMatch[1].trim();
+        const patient = etiquetaMatch[2].trim().toUpperCase();
+        const professionalRaw = (etiquetaMatch[3] || '').trim().toLowerCase().split(/\s+/)[0];
 
-      const authKey = generateKey();
+        if (!professionalRaw || !validProfs.includes(professionalRaw)) {
+          return {
+            text: `Chefe, para gerar a etiqueta de **${patient}**, preciso saber qual profissional da **DCRAA** vai assinar. \n\n(Opções: Paola, Inimá, Carlos, Roberto, Sabrina, Barenco, Rosely ou Mazoni)`,
+            sender: 'ai',
+            actions: validProfs.slice(0, 4).map(p => ({
+              label: `Assinar como ${p.toUpperCase()}`,
+              payload: `Gerar etiqueta de ${examRaw} para ${patient} assinado por ${p}`
+            }))
+          };
+        }
 
-      return {
-        text: `✅ **CIRILA:** Chave **${authKey}** gerada com sucesso para **${patient}**! \n\nO destino configurado é **${destination}**. \n\nEstou processando seu documento original como template e inserindo a etiqueta oficial da regulação no topo. Clique abaixo para baixar o arquivo pronto para impressão.`,
-        sender: 'ai',
-        actions: [{ 
-          label: '📄 Baixar Documento com Etiqueta (.docx)', 
-          payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${examRaw.replace(/\s/g, '+')}_${professionalRaw}_${authKey}_${currentFileId || ''}` 
-        }]
-      };
+        // Mapeamento de destino conforme regra fixa
+        const examLower = examRaw.toLowerCase();
+        let destination = "HOSPITAL DESTINO";
+        if (examLower.includes('angiotc')) destination = "HMMR";
+        else if (examLower.includes('colangio')) destination = "RADIO VIDA";
+        else if (examLower.includes('tc') || examLower.includes('tomografia')) destination = "HSJB";
+        else if (examLower.includes('rnm') || examLower.includes('ressonancia') || examLower.includes('ressonância')) destination = "RADIO VIDA";
+
+        const authKey = generateKey();
+
+        const statusMsg = isDocumentAttached 
+          ? `Estou processando seu documento original como template e inserindo a etiqueta oficial da regulação no rodapé.`
+          : `Gerando sua etiqueta avulsa oficial da regulação.`;
+
+        return {
+          text: `✅ **CIRILA:** Chave **${authKey}** gerada com sucesso para **${patient}**! \n\nO destino configurado é **${destination}**. \n\n${statusMsg} Clique abaixo para baixar o arquivo Word.`,
+          sender: 'ai',
+          actions: [{ 
+            label: isDocumentAttached ? '📄 Baixar Documento com Etiqueta (.docx)' : '📄 Baixar Etiqueta Avulsa (.docx)', 
+            payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileId || ''}` 
+          }]
+        };
+      }
     }
-  }
 
 
   // --- RESPOSTAS DE CONTEXTO GERAL (PERSONA CIRILA) ---
