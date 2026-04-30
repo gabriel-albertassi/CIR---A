@@ -290,6 +290,61 @@ export default function CirilaBotWidget() {
           style={{ flex: 1, padding: '1rem 1.5rem', border: '1px solid #e2e8f0', borderRadius: '999px', outline: 'none', fontSize: '1rem', backgroundColor: '#f8fafc', fontWeight: 500 }}
         />
 
+        <input 
+          type="file" 
+          id="cirila-file-upload" 
+          hidden 
+          accept=".pdf,.docx,.png,.jpg,.jpeg,.txt"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            setLoading(true);
+            setExpression('thinking');
+            setMessages(prev => [...prev, { text: `📂 *Anexando arquivo: ${file.name}...*`, sender: 'user' }]);
+
+            try {
+              let extractedText = '';
+
+              if (file.type.startsWith('image/')) {
+                // Processamento OCR no Cliente para Imagens
+                const Tesseract = (await import('tesseract.js')).default;
+                const result = await Tesseract.recognize(file, 'por');
+                extractedText = result.data.text;
+              } else {
+                // Envio para API para PDF/DOCX
+                const formData = new FormData();
+                formData.append('file', file);
+                const res = await fetch('/api/cirila/ocr', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                extractedText = data.text;
+              }
+
+              if (extractedText.trim()) {
+                handleSend(`Gerar etiquetas para o seguinte pedido extraído do documento: \n\n${extractedText}`);
+              } else {
+                setMessages(prev => [...prev, { text: '❌ Não consegui extrair texto legível deste documento.', sender: 'ai' }]);
+              }
+            } catch (err: any) {
+              setMessages(prev => [...prev, { text: `❌ Erro ao ler arquivo: ${err.message}`, sender: 'ai' }]);
+            } finally {
+              setLoading(false);
+              setExpression('neutral');
+              // Limpar input
+              e.target.value = '';
+            }
+          }}
+        />
+
+        <button 
+          onClick={() => document.getElementById('cirila-file-upload')?.click()}
+          style={{ background: '#f1f5f9', border: 'none', color: '#64748b', width: '54px', height: '54px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.3s' }}
+          title="Anexar Pedido (PDF, Imagem ou Word)"
+        >
+          <Paperclip size={22} />
+        </button>
+
         <button 
           onClick={() => handleSend()}
           disabled={!input.trim()}
@@ -297,6 +352,7 @@ export default function CirilaBotWidget() {
         >
           <Send size={22} />
         </button>
+
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `
