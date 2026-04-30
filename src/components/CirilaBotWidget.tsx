@@ -124,12 +124,17 @@ export default function CirilaBotWidget() {
     }
 
     if (payload.startsWith('DOWNLOAD_DOCX_')) {
-      const count = payload.split('_')[2];
+      const parts = payload.split('_');
+      const count = isNaN(parseInt(parts[2])) ? '15' : parts[2];
       window.open(`/api/cirila/sobreaviso?count=${count}`, '_blank');
     }
 
     if (payload.startsWith('DOWNLOAD_ETIQUETA_DOCX_')) {
-      const [,,, patient, exam, professional] = payload.split('_');
+      const parts = payload.split('_');
+      // Payload: DOWNLOAD_ETIQUETA_DOCX_PATIENT+NAME_EXAM+NAME_PROFESSIONAL
+      const patient = parts[3] || 'PACIENTE';
+      const exam = parts[4] || 'EXAME';
+      const professional = parts[5] || 'paola';
       window.open(`/api/cirila/etiqueta?patient=${patient}&exam=${exam}&professional=${professional}`, '_blank');
     }
   }

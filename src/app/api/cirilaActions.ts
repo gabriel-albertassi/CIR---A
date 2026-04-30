@@ -138,7 +138,8 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     // 2. Caso: Etiqueta Profissional (Word)
     // Ex: "Gerar TC de crânio para Gabriel Albertassi, etiqueta Paola"
-    if (text.includes('etiqueta')) {
+    // Ou: "30/04/2026 : XEF5H - PACIENTE - EXAME ETIQUETA INIMÁ"
+    if (text.toLowerCase().includes('etiqueta')) {
       // Tentativa 1: Formato padrão "Gerar [EXAME] para [PACIENTE], etiqueta [PROFISSIONAL]"
       let etiquetaMatch = text.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+)(?:,\s*etiqueta\s+([a-záàâãéèêíïóôõöúç\s]+))?/i);
       
@@ -152,6 +153,26 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
           
           return {
             text: `Preparando etiqueta profissional para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
+            sender: 'ai',
+            actions: [{ 
+              label: '📄 Baixar Etiqueta (.docx)', 
+              payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professional}` 
+            }]
+          };
+        }
+      }
+
+      // Tentativa 3: Formato completo de autorização (Copy-Paste)
+      // Ex: "30/04/2026 : XEF5H - PACIENTE NÃO IDENTIFICADO - TC DE ABDOME GABRIEL ALBERTASSI ETIQUETA INIMÁ AUTORIZADO PARA HSJB"
+      if (!etiquetaMatch) {
+        const fullMatch = text.match(/(?:.+:\s+)?(?:[A-Z0-9]+\s+-\s+)?(.+?)\s+-\s+([A-Z\s]+?)(?:\s+[A-Z\s]+)?\s+ETIQUETA\s+([A-ZÀ-Úa-zà-ú\s]+)/i);
+        if (fullMatch) {
+          const patient = fullMatch[1].trim().toUpperCase();
+          const exam = fullMatch[2].trim().toUpperCase();
+          const professional = fullMatch[3].split(' ')[0].trim().toLowerCase(); // Pega apenas o primeiro nome do prof
+          
+          return {
+            text: `Identifiquei uma autorização completa. Gerando etiqueta para **${patient}** (${exam}) com assinatura de **${professional.toUpperCase()}**.`,
             sender: 'ai',
             actions: [{ 
               label: '📄 Baixar Etiqueta (.docx)', 
@@ -175,6 +196,18 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
           }]
         };
       }
+    }
+
+    // 2.1 Caso: Mapa de Sobreaviso
+    if (text.includes('sobreaviso') || text.includes('mapa') || text.includes('planilha')) {
+      return {
+        text: `Entendido chefe! Vou gerar o **Mapa de Sobreaviso** configurado para 15 entradas. Você pode imprimir e preencher manualmente os plantões.`,
+        sender: 'ai',
+        actions: [{ 
+          label: '📅 Baixar Mapa de Sobreaviso (.docx)', 
+          payload: 'DOWNLOAD_DOCX_SOBREAVISO_15' 
+        }]
+      };
     }
 
     // 3. Caso: Autorização de Exames (Texto)
