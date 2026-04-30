@@ -109,10 +109,72 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     'colangio ressonancia': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
   };
 
+  const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'barenco', 'rosely', 'mazoni'];
+
+  const expandExams = (examStr: string): string => {
+    const upper = examStr.toUpperCase();
+    let baseType = '';
+    if (upper.includes('ANGIOTC')) baseType = 'ANGIOTC';
+    else if (upper.includes('TC')) baseType = 'TC';
+    else if (upper.includes('RNM') || upper.includes('RESSONANCIA')) baseType = 'RNM';
+    else if (upper.includes('COLANGIO')) baseType = 'COLANGIO RNM';
+
+    const parts = upper.split(/,|\s+E\s+/).map(p => p.trim());
+    const expanded = parts.map(p => {
+      if (baseType && !p.includes(baseType)) {
+        return `${baseType} ${p.replace(/^DE\s+/, '')}`;
+      }
+      return p;
+    });
+    return expanded.join(', ');
+  };
+
+  // 0. Caso especial: Extração de Pedido de Documento (Upload)
+  if (text.includes('extraído do documento')) {
+    // Tenta encontrar o nome do paciente no bloco de texto
+    const lines = query.split('\n');
+    let patientFound = '';
+    let examFound = '';
+
+    for (const line of lines) {
+      const upperLine = line.toUpperCase();
+      if (upperLine.includes('PACIENTE:') || upperLine.includes('NOME:') || upperLine.includes('NOME DO PACIENTE:')) {
+        patientFound = line.split(':').pop()?.trim().toUpperCase() || '';
+      }
+      // Tenta identificar o exame
+      Object.keys(examMap).forEach(trigger => {
+        if (upperLine.includes(trigger.toUpperCase()) && !examFound) {
+          examFound = upperLine;
+        }
+      });
+    }
+
+    if (patientFound && examFound) {
+      const cleanExam = expandExams(examFound);
+      return {
+        text: `Identifiquei o pedido no documento! \n\n**Paciente:** ${patientFound} \n**Exame:** ${cleanExam} \n\nQual profissional deve assinar a etiqueta? (Ex: Paola, Inimá, Barenco...)`,
+        sender: 'ai',
+        actions: validProfs.slice(0, 4).map(p => ({
+          label: `Assinar como ${p.toUpperCase()}`,
+          payload: `Gerar etiqueta de ${cleanExam} para ${patientFound} assinado por ${p}`
+        }))
+      };
+    } else if (examFound) {
+       return {
+        text: `Identifiquei o exame (**${expandExams(examFound)}**) no documento, mas não consegui ler o nome do paciente. \n\nPor favor, digite o nome do paciente para eu gerar a etiqueta.`,
+        sender: 'ai'
+      };
+    }
+
+    return {
+      text: `Recebi o texto do documento, mas não consegui identificar automaticamente o paciente e o exame. \n\nVocê pode me pedir assim: "Gerar etiqueta de [EXAME] para [PACIENTE] assinado por [PROFISSIONAL]"`,
+      sender: 'ai'
+    };
+  }
+
   const isGenerating = text.includes('gerar') || text.includes('gera ');
 
   if (isGenerating) {
-    // 1. Caso: Chaves Avulsas ou Documentos (ex: "Gerar 10 chaves", "Gerar planilha de sobreaviso")
     const isSobreaviso = text.includes('sobreaviso') && (text.includes('documento') || text.includes('word') || text.includes('planilha'));
     const isStandaloneKey = text.includes('chave avulsa') || text.includes('chaves para sobreaviso') || (text.includes('chave') && !text.includes('para '));
     const keyQtyMatch = text.match(/gerar (\d+) chaves?/);
@@ -120,7 +182,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     if (isSobreaviso || isStandaloneKey || keyQtyMatch) {
       const count = keyQtyMatch ? parseInt(keyQtyMatch[1]) : (text.includes('sobreaviso') ? 15 : (text.includes('chave avulsa') ? 1 : 5));
 
-      // Caso especial: Documento Word (Sobreaviso)
       if (isSobreaviso) {
         return {
           text: `Gerando documento de sobreaviso com **${count} chaves**... Clique no botão abaixo para baixar.`,
@@ -136,82 +197,13 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // 2. Caso: Etiqueta Profissional (Word)
-    // Ex: "Gerar TC de crânio para Gabriel Albertassi, etiqueta Paola"
-    // Ou: "30/04/2026 : XEF5H - PACIENTE - EXAME ETIQUETA INIMÁ"
     if (text.toLowerCase().includes('etiqueta')) {
-      // 2.1: Função auxiliar para expandir exames (ex: "TC de tórax e abdome" -> "TC DE TÓRAX, TC DE ABDOME")
-      const expandExams = (examStr: string): string => {
-        const upper = examStr.toUpperCase();
-        let baseType = '';
-        if (upper.includes('ANGIOTC')) baseType = 'ANGIOTC';
-        else if (upper.includes('TC')) baseType = 'TC';
-        else if (upper.includes('RNM') || upper.includes('RESSONANCIA')) baseType = 'RNM';
-        else if (upper.includes('COLANGIO')) baseType = 'COLANGIO RNM';
-
-        // Split por vírgula ou " E "
-        const parts = upper.split(/,|\s+E\s+/).map(p => p.trim());
-        const expanded = parts.map(p => {
-          if (baseType && !p.includes(baseType)) {
-            // Se a parte não tem o tipo base (ex: "ABDOME" numa lista de "TC"), adiciona
-            return `${baseType} ${p.replace(/^DE\s+/, '')}`;
-          }
-          return p;
-        });
-        return expanded.join(', ');
-      };
-
-      // Tentativa 1: Formato natural "Gerar [EXAME] para [PACIENTE] [na/com] etiqueta [PROF]"
-      let etiquetaMatch = text.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+)?etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
+      // Tentativa 1: Formato natural "Gerar [EXAME] para [PACIENTE] [na/com] etiqueta [PROF]" ou "assinado por [PROF]"
+      let etiquetaMatch = text.match(/gerar\s+etiqueta\s+(?:de\s+)?(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?(?:etiqueta\s+)?(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
       
-      // Tentativa 2: Formato direto "Etiqueta [PROF] para [PACIENTE] exame [EXAME]"
+      // Fallback se o "etiqueta" estiver no final
       if (!etiquetaMatch) {
-        etiquetaMatch = text.match(/etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:exame\s+)?(.+))?$/i);
-        if (etiquetaMatch) {
-          const professional = etiquetaMatch[1].trim().toLowerCase().split(/\s+/)[0];
-          const patient = etiquetaMatch[2].trim().toUpperCase();
-          const examRaw = (etiquetaMatch[3] || 'EXAME').trim();
-          const exam = expandExams(examRaw);
-          
-          return {
-            text: `Preparando etiquetas profissionais para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
-            sender: 'ai',
-            actions: [{ 
-              label: '📄 Baixar Etiquetas (.docx)', 
-              payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professional}` 
-            }]
-          };
-        }
-      }
-
-      // Tentativa 3: Formato completo de autorização (Copy-Paste de Log)
-      if (!etiquetaMatch) {
-        const fullMatch = text.match(/(?:\d{2}\/\d{2}\/\d{4}\s*:\s*)?[A-Z0-9]{5}\s*-\s*(.+?)\s*-\s*(.+?)\s*ETIQUETA\s+([A-ZÀ-Úa-zà-ú\s]+)/i);
-        
-        if (fullMatch) {
-          const patient = fullMatch[1].trim().toUpperCase();
-          const examRaw = fullMatch[2].trim();
-          const exam = expandExams(examRaw);
-          const professional = fullMatch[3].trim().split(/\s+/)[0].toLowerCase();
-          
-          const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'barenco', 'rosely', 'mazoni'];
-          
-          if (!validProfs.includes(professional)) {
-            return {
-              text: `Identifiquei uma autorização para **${patient}**, mas não reconheci o nome do profissional "**${professional}**". \n\nPor favor, use um dos nomes autorizados (Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco).`,
-              sender: 'ai'
-            };
-          }
-
-          return {
-            text: `Identifiquei uma autorização completa. Gerando etiquetas para **${patient}** (${exam}) com assinatura de **${professional.toUpperCase()}**.`,
-            sender: 'ai',
-            actions: [{ 
-              label: '📄 Baixar Etiquetas (.docx)', 
-              payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professional}` 
-            }]
-          };
-        }
+        etiquetaMatch = text.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
       }
 
       if (etiquetaMatch) {
@@ -220,12 +212,14 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         const patient = etiquetaMatch[2].trim().toUpperCase();
         const professionalRaw = (etiquetaMatch[3] || '').trim().toLowerCase().split(/\s+/)[0];
         
-        const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'barenco', 'rosely', 'mazoni'];
-        
         if (!professionalRaw || !validProfs.includes(professionalRaw)) {
           return {
             text: `Chefe, não identifiquei qual enfermeiro(a) supervisor(a) vai assinar esta etiqueta para **${patient}**. \n\nPor favor, informe o nome (ex: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco).`,
-            sender: 'ai'
+            sender: 'ai',
+            actions: validProfs.slice(0, 4).map(p => ({
+              label: `Assinar como ${p.toUpperCase()}`,
+              payload: `Gerar etiqueta de ${exam} para ${patient} assinado por ${p}`
+            }))
           };
         }
 
@@ -240,7 +234,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       }
     }
 
-    // 2.2 Caso: Mapa de Sobreaviso
+    // Mapa de Sobreaviso
     if (text.includes('sobreaviso') || text.includes('mapa') || text.includes('planilha')) {
       return {
         text: `Entendido chefe! Vou gerar o **Mapa de Sobreaviso** configurado para 15 entradas. Você pode imprimir e preencher manualmente os plantões.`,
@@ -252,49 +246,40 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // 3. Caso: Autorização de Exames (Texto no Chat)
+    // Autorização de Exames (Texto no Chat)
     const patientMatch = text.match(/para\s+([a-záàâãéèêíïóôõöúç\s]+)/i);
     const patientName = patientMatch ? patientMatch[1].trim().toUpperCase() : 'PACIENTE NÃO IDENTIFICADO';
 
     const authorizations: string[] = [];
     const dateStr = new Date().toLocaleDateString('pt-BR');
-
-    // Removemos a parte do paciente do texto de busca de exames para evitar redundância
     const textForExams = patientMatch ? text.replace(patientMatch[0], '').trim() : text;
 
-    // Busca por todos os exames mencionados na frase
     Object.entries(examMap).forEach(([trigger, info]) => {
-      // Regex para encontrar o termo isolado ou seguido de "de" (ex: "TC de crânio")
       const examRegex = new RegExp(`(${trigger})(\\s+de\\s+[a-záàâãéèêíïóôõöúç\\s,]+)?`, 'gi');
       let match;
-
       while ((match = examRegex.exec(textForExams)) !== null) {
         const fullExamName = match[0].toUpperCase();
-
-        // Ajuste para listas como "abdome e pelve" ou "tórax, abdome"
         const parts = fullExamName.split(/,|\s+E\s+/).map(p => p.trim());
         parts.forEach(p => {
-          if (p.length < 3) return; // Filtra conectivos residuais
+          if (p.length < 3) return; 
           const cleanPart = p.replace(/^GERAR\s+/, '').replace(/^DE\s+/, '');
-          // Garante que o código do exame (TC/RNM) esteja no início
           const finalExam = cleanPart.startsWith(info.code) ? cleanPart : `${info.code} ${cleanPart.replace(new RegExp(trigger, 'i'), '').trim()}`;
-          
           authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${finalExam.trim()} AUTORIZADO PARA ${info.destination}`);
         });
       }
     });
 
     if (authorizations.length > 0) {
-      // Remover duplicatas de autorizações idênticas
       const uniqueAuths = Array.from(new Set(authorizations));
       return {
         text: uniqueAuths.join('\n'),
-        sender: 'ai'
+        sender: 'ai',
+        actions: [{ label: '📄 Gerar Etiquetas desse Pedido', payload: `Gerar etiqueta de ${authorizations[0].split(' - ')[2]} para ${patientName}` }]
       };
     }
   }
 
-  await new Promise(resolve => setTimeout(resolve, 800)); // Simular "digitando..."
+  await new Promise(resolve => setTimeout(resolve, 800)); 
 
   try {
     // CONDICIONAL: FILA GERAL / ESPERA
@@ -334,7 +319,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // CONDICIONAL: COBRAR NIRS OU DISPARAR VAGAS DIRETAMENTE
     if (text.includes('cobrar') || text.includes('atrasado') || text.includes('nir')) {
       return {
         text: `Com certeza. Posso iniciar uma rotina de checagem. Deseja cobrar os NIRs com evolução pendente agora?`,
@@ -343,7 +327,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // CONDICIONAL DE FINALIZAÇÃO (Adeus/Obrigado)
     if (text.includes('obrigad') || text.includes('valeu') || text.includes('tchau') || text.includes('encerrar')) {
       return {
         text: `Disponha, chefe! A equipe de Inteligência Artificial da CIR-A está sempre de prontidão. Boa regulação!`,
@@ -352,7 +335,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // --- NOVO: DISPARO DE E-MAIL POR COMANDO (Reconhece intenção de disparo) ---
     const lowerText = text.toLowerCase();
     const isCommand = lowerText.includes('enviar') ||
       lowerText.includes('envie') ||
@@ -367,7 +349,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       const hospitals = await prisma.hospital.findMany();
       const patients = await prisma.patient.findMany({ where: { status: { in: ['WAITING', 'OFFERED'] } } });
 
-      // Busca flexível pelo nome do paciente ignorando "o paciente" ou conectivos
       const targetPatient = patients.find(p => {
         const nameNormalized = p.name.toLowerCase();
         return lowerText.includes(nameNormalized) ||
@@ -380,15 +361,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
           (h.name.toLowerCase().includes('teste') && text.includes('teste'))
         );
 
-        // Lógica robusta de detecção de Rede
         let isPublic = text.includes('publica') || text.includes('pública') || text.includes('rede') || text.includes('sus');
         let isPrivate = text.includes('privado') || text.includes('privada') || text.includes('particular') || text.includes('convenio');
         let isAll = text.includes('ambas') || (isPublic && isPrivate) || text.includes('todos') || text.includes('geral');
 
-        // Se não especificou nada, assume Pública (Rede) por segurança
         if (!isPublic && !isPrivate && !isAll) isPublic = true;
 
-        // Detecção de Tipo de Leito mencionado
         let requestedProfile = '';
         if (text.includes('cti') || text.includes('intensiv')) requestedProfile = 'CTI';
         else if (text.includes('vermelha')) requestedProfile = 'SALA VERMELHA';
@@ -411,7 +389,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         const targetType = isAll ? 'ALL' : (isPrivate && !isPublic ? 'PRIVATE' : 'PUBLIC');
         const targetLabel = isAll ? 'Pública e Privada' : (isPrivate && !isPublic ? 'Privada' : 'Pública (Rede)');
 
-        // ALERTA DE SEGURANÇA: Se o alvo é privado mas o paciente é público
         if ((isPrivate || isAll) && !(targetPatient as any).is_private) {
           return {
             text: `⚠️ **Atenção Chefe**: O paciente **${targetPatient.name}** não possui perfil para a rede privada cadastrado. \n\nDeseja disparar as solicitações **apenas para a rede pública**?`,

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { askCirila, executeEmailDispatch, CirilaResponse } from '../app/api/cirilaActions';
-import { Send, Paperclip, Bot, Bell, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Send, Paperclip, Bot, Bell, ChevronDown, ChevronUp, Sparkles, Loader2, FileText, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import CirilaAvatar from './CirilaAvatar';
 
@@ -18,10 +18,11 @@ export default function CirilaBotWidget() {
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   const [notification, setNotification] = useState<string | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  }, [messages, loading, processingStatus]);
 
   useEffect(() => {
     const handleSimulatedReply = (e: any) => {
@@ -72,10 +73,15 @@ export default function CirilaBotWidget() {
     setLoading(true);
     setExpression('thinking');
 
-    const reply = await askCirila(textToSend);
-    setMessages(prev => [...prev, reply]);
-    setLoading(false);
-    setExpression('neutral');
+    try {
+      const reply = await askCirila(textToSend);
+      setMessages(prev => [...prev, reply]);
+    } catch (err) {
+      setMessages(prev => [...prev, { text: '❌ Erro ao conectar com o servidor da Cirila.', sender: 'ai' }]);
+    } finally {
+      setLoading(false);
+      setExpression('neutral');
+    }
   }
 
   async function handleActionClick(payload: string) {
@@ -265,10 +271,23 @@ export default function CirilaBotWidget() {
             </div>
           </div>
         ))}
-        {loading && (
+
+        {processingStatus && (
+           <div style={{ alignSelf: 'flex-start', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ width: '36px', height: '36px' }}>
+              <CirilaAvatar expression="thinking" size="100%" showAura={false} />
+            </div>
+            <div style={{ background: '#eff6ff', padding: '1rem 1.5rem', borderRadius: '24px', border: '1px solid #bfdbfe', color: '#1e40af', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+              <Loader2 className="animate-spin" size={18} />
+              {processingStatus}
+            </div>
+          </div>
+        )}
+
+        {loading && !processingStatus && (
           <div style={{ alignSelf: 'flex-start', display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <div style={{ width: '36px', height: '36px' }}>
-              <CirilaAvatar expression="neutral" size="100%" showAura={false} />
+              <CirilaAvatar expression="thinking" size="100%" showAura={false} />
             </div>
             <div style={{ background: 'white', padding: '1rem 1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
               <div className="spinner" style={{ width: '18px', height: '18px', border: '3px solid #f1f5f9', borderTopColor: '#00d8ff', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
@@ -301,19 +320,28 @@ export default function CirilaBotWidget() {
 
             setLoading(true);
             setExpression('thinking');
+            setProcessingStatus(`📂 Carregando arquivo: ${file.name}...`);
             setMessages(prev => [...prev, { text: `📂 *Anexando arquivo: ${file.name}...*`, sender: 'user' }]);
 
             try {
               let extractedText = '';
 
               if (file.type.startsWith('image/')) {
-                const Tesseract = (await import('tesseract.js')).default;
+                setProcessingStatus('🧠 Iniciando OCR na imagem...');
+                const TesseractModule = await import('tesseract.js');
+                const Tesseract = TesseractModule.default || (TesseractModule as any);
                 const result = await Tesseract.recognize(file, 'por');
                 extractedText = result.data.text;
               } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                // Processamento de PDF no Cliente
-                const pdfjsLib = await import('pdfjs-dist');
-                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+                setProcessingStatus('📄 Lendo PDF digital...');
+                
+                // Processamento de PDF no Cliente (v4)
+                const pdfjsLibModule = await import('pdfjs-dist');
+                const pdfjsLib = pdfjsLibModule.default || (pdfjsLibModule as any);
+                
+                // Configuração robusta do worker
+                const version = pdfjsLib.version || '4.10.38';
+                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`;
                 
                 const arrayBuffer = await file.arrayBuffer();
                 const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
@@ -321,7 +349,7 @@ export default function CirilaBotWidget() {
                 let fullText = '';
                 
                 // 1. Tentar extração direta de texto (para PDFs digitais)
-                for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) { // Limita a 3 páginas para performance
+                for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) { 
                   const page = await pdf.getPage(i);
                   const content = await page.getTextContent();
                   const strings = content.items.map((item: any) => 'str' in item ? item.str : '');
@@ -329,10 +357,10 @@ export default function CirilaBotWidget() {
                 }
 
                 // 2. Se falhar (PDF é uma imagem/scan), usar OCR na primeira página
-                if (!fullText.trim() && pdf.numPages > 0) {
-                  setMessages(prev => [...prev, { text: '🔍 *Documento parece ser uma imagem. Iniciando OCR...*', sender: 'ai' }]);
+                if (!fullText.trim() || fullText.trim().length < 50) {
+                  setProcessingStatus('🔍 PDF parece escaneado. Iniciando OCR...');
                   const page = await pdf.getPage(1);
-                  const viewport = page.getViewport({ scale: 2.0 }); // Escala maior para melhor OCR
+                  const viewport = page.getViewport({ scale: 2.0 }); 
                   const canvas = document.createElement('canvas');
                   const context = canvas.getContext('2d');
                   canvas.height = viewport.height;
@@ -341,7 +369,8 @@ export default function CirilaBotWidget() {
                   await page.render({ canvasContext: context!, viewport }).promise;
                   const imageData = canvas.toDataURL('image/png');
                   
-                  const Tesseract = (await import('tesseract.js')).default;
+                  const TesseractModule = await import('tesseract.js');
+                  const Tesseract = TesseractModule.default || (TesseractModule as any);
                   const result = await Tesseract.recognize(imageData, 'por');
                   fullText = result.data.text;
                 }
@@ -351,31 +380,31 @@ export default function CirilaBotWidget() {
                 file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                 file.name.toLowerCase().endsWith('.docx')
               ) {
-                // Processamento de Word (DOCX) no Cliente
-                const mammoth = await import('mammoth');
+                setProcessingStatus('📝 Lendo documento Word...');
+                const mammothModule = await import('mammoth');
+                const mammoth = mammothModule.default || (mammothModule as any);
                 const arrayBuffer = await file.arrayBuffer();
                 const result = await mammoth.extractRawText({ arrayBuffer });
                 extractedText = result.value;
               } else {
-                // Envio para API apenas para Texto Puro ou outros
-                const formData = new FormData();
-                formData.append('file', file);
-                const res = await fetch('/api/cirila/ocr', { method: 'POST', body: formData });
-                const data = await res.json();
-                if (data.error) throw new Error(data.error);
-                extractedText = data.text;
+                setProcessingStatus('📑 Processando arquivo de texto...');
+                const text = await file.text();
+                extractedText = text;
               }
 
+              setProcessingStatus('✨ Finalizando extração...');
 
               if (extractedText.trim()) {
+                // Injetar comando de geração de etiquetas automaticamente
                 handleSend(`Gerar etiquetas para o seguinte pedido extraído do documento: \n\n${extractedText}`);
               } else {
-                setMessages(prev => [...prev, { text: '❌ Não consegui extrair texto legível deste documento.', sender: 'ai' }]);
+                setMessages(prev => [...prev, { text: '❌ Não consegui extrair texto legível deste documento. Verifique se o arquivo não está corrompido ou protegido.', sender: 'ai' }]);
               }
             } catch (err: any) {
               console.error('Erro no processamento:', err);
-              setMessages(prev => [...prev, { text: `❌ Erro ao ler arquivo: ${err.message}`, sender: 'ai' }]);
+              setMessages(prev => [...prev, { text: `❌ Erro ao ler arquivo: ${err.message || 'Erro desconhecido'}`, sender: 'ai' }]);
             } finally {
+              setProcessingStatus(null);
               setLoading(false);
               setExpression('neutral');
               e.target.value = '';
@@ -393,10 +422,10 @@ export default function CirilaBotWidget() {
 
         <button 
           onClick={() => handleSend()}
-          disabled={!input.trim()}
+          disabled={!input.trim() || loading}
           style={{ background: input.trim() ? '#0f172a' : '#cbd5e1', border: 'none', color: 'white', width: '54px', height: '54px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.3s' }}
         >
-          <Send size={22} />
+          {loading ? <Loader2 className="animate-spin" size={22} /> : <Send size={22} />}
         </button>
 
       </div>
@@ -409,6 +438,7 @@ export default function CirilaBotWidget() {
           10% { opacity: 0.7; transform: skewY(-1deg) scale(0.99); }
           15% { opacity: 1; transform: skewY(0deg) scale(1); }
         }
+        .animate-spin { animation: spin 1s linear infinite; }
         @media (max-width: 768px) {
           .cirila-chat-container { width: 100vw !important; height: 100vh !important; max-width: none !important; border-radius: 0 !important; top: 0 !important; left: 0 !important; transform: none !important; }
         }
