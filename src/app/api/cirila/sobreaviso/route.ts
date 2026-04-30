@@ -60,8 +60,12 @@ export async function GET(req: NextRequest) {
   });
 
   const buffer = await Packer.toBuffer(doc);
+  const uint8Array = new Uint8Array(buffer);
+  const blob = new Blob([uint8Array], { 
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+  });
 
-  return new NextResponse(buffer, {
+  return new NextResponse(blob, {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'Content-Disposition': `attachment; filename=sobreaviso_${Date.now()}.docx`,
