@@ -166,7 +166,7 @@ export async function GET(req: NextRequest) {
   // --- LÓGICA DE MESCLAGEM SE HOUVER TEMPLATE ---
   if (templateId) {
     try {
-      const uploadDir = path.join(process.cwd(), 'uploads');
+      const uploadDir = '/tmp/uploads';
       const files = fs.readdirSync(uploadDir);
       const templateFile = files.find(f => f.startsWith(templateId));
 

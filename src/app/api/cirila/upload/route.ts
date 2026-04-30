@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const fileName = `${fileId}_${file.name}`;
     
     // Garantir que o diretório de uploads existe
-    const uploadDir = path.join(process.cwd(), 'uploads');
+    const uploadDir = '/tmp/uploads';
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
