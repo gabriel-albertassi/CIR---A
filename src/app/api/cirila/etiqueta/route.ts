@@ -19,24 +19,24 @@ export async function GET(req: NextRequest) {
   const exam = searchParams.get('exam')?.replace(/\+/g, ' ') || 'EXAME';
   const profKey = searchParams.get('professional')?.toLowerCase() || 'paola';
 
-  // --- MAPA DE PROFISSIONAIS (ATUALIZADO) ---
+  // --- MAPA DE PROFISSIONAIS (ATUALIZADO CONFORME IMAGEM) ---
   const profMap: Record<string, any> = {
     "paola": {
       "nome": "Paola Calderaro Nogueira Leite",
-      "registro": "COREN-RJ 88367",
-      "cargo": "Enfermeira Supervisora",
+      "registro": "Coren-RJ 88367",
+      "cargo": "Enfermeira supervisora",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
     "inima": {
       "nome": "Inimá J. O. Junior",
-      "registro": "COREN-RJ 83798",
-      "cargo": "Enfermeiro Supervisor",
+      "registro": "Coren-RJ 83798",
+      "cargo": "Enfermeiro supervisor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
-    "inimat": { 
-      "nome": "Inimá J. O. Junior",
-      "registro": "COREN-RJ 83798",
-      "cargo": "Enfermeiro Supervisor",
+    "rosely": {
+      "nome": "Rosely Frossard de Andrade",
+      "registro": "Mat.1778/PMVR",
+      "cargo": "DCRAA/SMSVR",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
     "carlos_alves": {
@@ -45,19 +45,7 @@ export async function GET(req: NextRequest) {
       "cargo": "Enfermeiro Supervisor / Auditor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
-    "carlos": {
-      "nome": "Carlos Roberto Alves",
-      "registro": "COREN-RJ 289648",
-      "cargo": "Enfermeiro Supervisor / Auditor",
-      "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
-    },
     "roberto_lopes": {
-      "nome": "Roberto R. Lopes",
-      "registro": "COREN-RJ 262240",
-      "cargo": "Enfermeiro Supervisor",
-      "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
-    },
-    "roberto": {
       "nome": "Roberto R. Lopes",
       "registro": "COREN-RJ 262240",
       "cargo": "Enfermeiro Supervisor",
@@ -70,9 +58,15 @@ export async function GET(req: NextRequest) {
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
     "barenco": {
-      "nome": "Dr. Carlos Augusto Barenco",
+      "nome": "DR. Carlos Augusto Barenco",
       "registro": "CRO 11981",
       "cargo": "Supervisor",
+      "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
+    },
+    "mazoni": {
+      "nome": "Dr Marcelo Henrique da Costa Mazoni",
+      "registro": "CRM 52-37297-5",
+      "cargo": "Médico Supervisor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     }
   };
@@ -128,30 +122,31 @@ export async function GET(req: NextRequest) {
                   margins: { top: 150, bottom: 150, left: 150, right: 150 },
                   verticalAlign: VerticalAlign.CENTER,
                   children: [
-                    // Cabeçalho Profissional
+                    // Linha 1: Profissional (Negrito, Arial)
                     new Paragraph({
-                      spacing: { after: 80 },
+                      spacing: { after: 40 },
                       children: [
                         new TextRun({
                           text: `${prof.nome} – ${prof.registro} – ${prof.cargo}`,
                           bold: true,
-                          size: 18,
-                          font: "Segoe UI"
+                          size: 20,
+                          font: "Arial"
                         })
                       ]
                     }),
+                    // Linha 2: Departamento (Negrito, Arial)
                     new Paragraph({
-                      spacing: { after: 200 },
+                      spacing: { after: 120 },
                       children: [
                         new TextRun({
                           text: prof.departamento,
-                          size: 16,
-                          font: "Segoe UI",
-                          color: "475569"
+                          bold: true,
+                          size: 20,
+                          font: "Arial"
                         })
                       ]
                     }),
-                    // Linha da Autorização
+                    // Linha 3: Etiqueta de Autorização (Exatamente abaixo, Arial)
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
                       children: [
@@ -159,26 +154,25 @@ export async function GET(req: NextRequest) {
                           text: `${dateStr} : `,
                           bold: true,
                           size: 20,
-                          font: "Segoe UI"
+                          font: "Arial"
                         }),
                         new TextRun({
                           text: `${authKey} - `,
                           bold: true,
-                          color: "2563eb",
-                          size: 22,
-                          font: "Courier New"
+                          size: 20,
+                          font: "Arial"
                         }),
                         new TextRun({
                           text: `${patient.toUpperCase()} - ${examUpper} `,
                           size: 20,
-                          font: "Segoe UI"
+                          font: "Arial"
                         }),
                         new TextRun({
                           text: `AUTORIZADO PARA ${destination}`,
                           bold: true,
                           size: 20,
                           color: "b91c1c", // Vermelho institucional (Red 700)
-                          font: "Segoe UI"
+                          font: "Arial"
                         })
                       ]
                     })
