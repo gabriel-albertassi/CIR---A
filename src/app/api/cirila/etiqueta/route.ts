@@ -10,8 +10,7 @@ import {
   TextRun,
   BorderStyle,
   AlignmentType,
-  VerticalAlign,
-  SpacingMode
+  VerticalAlign
 } from 'docx';
 
 export async function GET(req: NextRequest) {
