@@ -140,39 +140,58 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     // Ex: "Gerar TC de crânio para Gabriel Albertassi, etiqueta Paola"
     // Ou: "30/04/2026 : XEF5H - PACIENTE - EXAME ETIQUETA INIMÁ"
     if (text.toLowerCase().includes('etiqueta')) {
-      // Tentativa 1: Formato padrão "Gerar [EXAME] para [PACIENTE], etiqueta [PROFISSIONAL]"
-      let etiquetaMatch = text.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+)(?:,\s*etiqueta\s+([a-záàâãéèêíïóôõöúç\s]+))?/i);
+      // 2.1: Função auxiliar para expandir exames (ex: "TC de tórax e abdome" -> "TC DE TÓRAX, TC DE ABDOME")
+      const expandExams = (examStr: string): string => {
+        const upper = examStr.toUpperCase();
+        let baseType = '';
+        if (upper.includes('ANGIOTC')) baseType = 'ANGIOTC';
+        else if (upper.includes('TC')) baseType = 'TC';
+        else if (upper.includes('RNM') || upper.includes('RESSONANCIA')) baseType = 'RNM';
+        else if (upper.includes('COLANGIO')) baseType = 'COLANGIO RNM';
+
+        // Split por vírgula ou " E "
+        const parts = upper.split(/,|\s+E\s+/).map(p => p.trim());
+        const expanded = parts.map(p => {
+          if (baseType && !p.includes(baseType)) {
+            // Se a parte não tem o tipo base (ex: "ABDOME" numa lista de "TC"), adiciona
+            return `${baseType} ${p.replace(/^DE\s+/, '')}`;
+          }
+          return p;
+        });
+        return expanded.join(', ');
+      };
+
+      // Tentativa 1: Formato natural "Gerar [EXAME] para [PACIENTE] [na/com] etiqueta [PROF]"
+      let etiquetaMatch = text.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+)?etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
       
-      // Tentativa 2: Formato alternativo "Gerar etiqueta [PROFISSIONAL] para [PACIENTE], exame [EXAME]"
+      // Tentativa 2: Formato direto "Etiqueta [PROF] para [PACIENTE] exame [EXAME]"
       if (!etiquetaMatch) {
-        etiquetaMatch = text.match(/etiqueta\s+([a-záàâãéèêíïóôõöúç\s]+)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+)(?:,\s*exame\s+(.+))?/i);
+        etiquetaMatch = text.match(/etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:exame\s+)?(.+))?$/i);
         if (etiquetaMatch) {
-          const professional = etiquetaMatch[1].trim().toLowerCase();
+          const professional = etiquetaMatch[1].trim().toLowerCase().split(/\s+/)[0];
           const patient = etiquetaMatch[2].trim().toUpperCase();
-          const exam = (etiquetaMatch[3] || 'EXAME').trim().toUpperCase();
+          const examRaw = (etiquetaMatch[3] || 'EXAME').trim();
+          const exam = expandExams(examRaw);
           
           return {
-            text: `Preparando etiqueta profissional para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
+            text: `Preparando etiquetas profissionais para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
             sender: 'ai',
             actions: [{ 
-              label: '📄 Baixar Etiqueta (.docx)', 
+              label: '📄 Baixar Etiquetas (.docx)', 
               payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professional}` 
             }]
           };
         }
       }
 
-      // Tentativa 3: Formato completo de autorização (Copy-Paste)
-      // Ex: "30/04/2026 : XEF5H - PACIENTE NÃO IDENTIFICADO - TC DE ABDOME ETIQUETA INIMÁ"
+      // Tentativa 3: Formato completo de autorização (Copy-Paste de Log)
       if (!etiquetaMatch) {
-        // Regex mais flexível para capturar o padrão de log da regulação
-        // Captura: [DATA] : [CHAVE] - [PACIENTE] - [EXAME] ETIQUETA [PROF]
         const fullMatch = text.match(/(?:\d{2}\/\d{2}\/\d{4}\s*:\s*)?[A-Z0-9]{5}\s*-\s*(.+?)\s*-\s*(.+?)\s*ETIQUETA\s+([A-ZÀ-Úa-zà-ú\s]+)/i);
         
         if (fullMatch) {
           const patient = fullMatch[1].trim().toUpperCase();
-          const exam = fullMatch[2].trim().toUpperCase();
-          // Pega a primeira palavra após "ETIQUETA" como o nome do profissional
+          const examRaw = fullMatch[2].trim();
+          const exam = expandExams(examRaw);
           const professional = fullMatch[3].trim().split(/\s+/)[0].toLowerCase();
           
           const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'barenco', 'rosely', 'mazoni'];
@@ -185,10 +204,10 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
           }
 
           return {
-            text: `Identifiquei uma autorização completa. Gerando etiqueta para **${patient}** (${exam}) com assinatura de **${professional.toUpperCase()}**.`,
+            text: `Identifiquei uma autorização completa. Gerando etiquetas para **${patient}** (${exam}) com assinatura de **${professional.toUpperCase()}**.`,
             sender: 'ai',
             actions: [{ 
-              label: '📄 Baixar Etiqueta (.docx)', 
+              label: '📄 Baixar Etiquetas (.docx)', 
               payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professional}` 
             }]
           };
@@ -196,31 +215,32 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       }
 
       if (etiquetaMatch) {
-        const exam = etiquetaMatch[1].trim().toUpperCase();
+        const examRaw = etiquetaMatch[1].trim();
+        const exam = expandExams(examRaw);
         const patient = etiquetaMatch[2].trim().toUpperCase();
-        const professionalRaw = (etiquetaMatch[3] || '').trim().toLowerCase();
+        const professionalRaw = (etiquetaMatch[3] || '').trim().toLowerCase().split(/\s+/)[0];
         
         const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'barenco', 'rosely', 'mazoni'];
         
         if (!professionalRaw || !validProfs.includes(professionalRaw)) {
           return {
-            text: `Chefe, não identifiquei qual enfermeiro(a) supervisor(a) vai assinar esta etiqueta de **${exam}** para **${patient}**. \n\nPor favor, informe o nome (ex: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco).`,
+            text: `Chefe, não identifiquei qual enfermeiro(a) supervisor(a) vai assinar esta etiqueta para **${patient}**. \n\nPor favor, informe o nome (ex: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco).`,
             sender: 'ai'
           };
         }
 
         return {
-          text: `Preparando etiqueta profissional para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
+          text: `Preparando etiquetas profissionais para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
           sender: 'ai',
           actions: [{ 
-            label: '📄 Baixar Etiqueta (.docx)', 
+            label: '📄 Baixar Etiquetas (.docx)', 
             payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professionalRaw}` 
           }]
         };
       }
     }
 
-    // 2.1 Caso: Mapa de Sobreaviso
+    // 2.2 Caso: Mapa de Sobreaviso
     if (text.includes('sobreaviso') || text.includes('mapa') || text.includes('planilha')) {
       return {
         text: `Entendido chefe! Vou gerar o **Mapa de Sobreaviso** configurado para 15 entradas. Você pode imprimir e preencher manualmente os plantões.`,
@@ -232,7 +252,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // 3. Caso: Autorização de Exames (Texto)
+    // 3. Caso: Autorização de Exames (Texto no Chat)
     const patientMatch = text.match(/para\s+([a-záàâãéèêíïóôõöúç\s]+)/i);
     const patientName = patientMatch ? patientMatch[1].trim().toUpperCase() : 'PACIENTE NÃO IDENTIFICADO';
 
@@ -250,29 +270,22 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
       while ((match = examRegex.exec(textForExams)) !== null) {
         const fullExamName = match[0].toUpperCase();
-        // Evita duplicatas ex: "TC" e "Tomografia" na mesma frase se referindo ao mesmo exame
-        // Mas o prompt diz "separar corretamente cada exame", então se houver "TC e RNM" ok.
-        // Se houver "Tomografia de abdome e pelve", precisamos tratar o "e"
 
-        // Ajuste para "abdome e pelve"
-        if (fullExamName.includes(' E ')) {
-          const parts = fullExamName.split(' E ');
-          parts.forEach(p => {
-            const cleanPart = p.trim().replace(/^GERAR\s+/, '');
-            authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${info.code} ${cleanPart.replace(info.code, '').trim()} AUTORIZADO PARA ${info.destination}`);
-          });
-        } else {
-          const cleanExam = fullExamName.replace(/^GERAR\s+/, '').trim();
-          // Se o trigger for um sinônimo (ex: Tomografia), substitui pelo código (TC)
-          const displayExam = cleanExam.startsWith(info.code) ? cleanExam : `${info.code} ${cleanExam.replace(new RegExp(trigger, 'i'), '').trim()}`;
-
-          authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${displayExam.trim()} AUTORIZADO PARA ${info.destination}`);
-        }
+        // Ajuste para listas como "abdome e pelve" ou "tórax, abdome"
+        const parts = fullExamName.split(/,|\s+E\s+/).map(p => p.trim());
+        parts.forEach(p => {
+          if (p.length < 3) return; // Filtra conectivos residuais
+          const cleanPart = p.replace(/^GERAR\s+/, '').replace(/^DE\s+/, '');
+          // Garante que o código do exame (TC/RNM) esteja no início
+          const finalExam = cleanPart.startsWith(info.code) ? cleanPart : `${info.code} ${cleanPart.replace(new RegExp(trigger, 'i'), '').trim()}`;
+          
+          authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${finalExam.trim()} AUTORIZADO PARA ${info.destination}`);
+        });
       }
     });
 
     if (authorizations.length > 0) {
-      // Remover duplicatas de autorizações idênticas (mesmo exame mapeado por gatilhos diferentes)
+      // Remover duplicatas de autorizações idênticas
       const uniqueAuths = Array.from(new Set(authorizations));
       return {
         text: uniqueAuths.join('\n'),
