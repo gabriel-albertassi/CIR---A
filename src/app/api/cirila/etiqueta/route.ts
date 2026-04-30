@@ -146,7 +146,9 @@ export async function GET(req: NextRequest) {
   });
 
   const buffer = await Packer.toBuffer(doc);
-  return new NextResponse(buffer, {
+  const uint8Array = new Uint8Array(buffer);
+
+  return new NextResponse(uint8Array, {
     headers: {
       'Content-Disposition': `attachment; filename="Etiquetas_${patient.replace(/\s/g, '_')}.docx"`,
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
