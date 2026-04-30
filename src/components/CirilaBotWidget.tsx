@@ -258,14 +258,14 @@ export default function CirilaBotWidget() {
                       justifyContent: 'center',
                       color: m.sender === 'user' ? 'white' : '#0f172a'
                     }}>
-                      {m.file?.type.includes('pdf') ? <FileText size={20} /> : <Paperclip size={20} />}
+                      {m.file?.type?.includes('pdf') ? <FileText size={20} /> : <Paperclip size={20} />}
                     </div>
                     <div style={{ flex: 1, overflow: 'hidden' }}>
                       <div style={{ fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {m.file?.name}
                       </div>
                       <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                        {m.file?.size ? `${(m.file.size / 1024).toFixed(1)} KB` : 'Arquivo anexado'}
+                        {m.file && m.file.size ? `${(m.file.size / 1024).toFixed(1)} KB` : 'Arquivo anexado'}
                       </div>
                     </div>
                     <CheckCircle2 size={16} color="#10b981" />

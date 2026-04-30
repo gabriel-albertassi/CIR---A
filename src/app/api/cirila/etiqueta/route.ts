@@ -191,7 +191,9 @@ export async function GET(req: NextRequest) {
           const doc = new Document({
             sections: [{
               properties: { 
-                margin: { top: 720, right: 720, bottom: 1200, left: 720 }, // Margem inferior maior para o rodapé
+                page: {
+                  margin: { top: 720, right: 720, bottom: 1200, left: 720 }, // Margem inferior maior para o rodapé
+                }
               },
               footers: {
                 default: new Footer({
@@ -224,7 +226,9 @@ export async function GET(req: NextRequest) {
   const finalDoc = new Document({
     sections: [{
       properties: { 
-        margin: { top: 720, right: 720, bottom: 1200, left: 720 } 
+        page: {
+          margin: { top: 720, right: 720, bottom: 1200, left: 720 } 
+        }
       },
       footers: {
         default: new Footer({
