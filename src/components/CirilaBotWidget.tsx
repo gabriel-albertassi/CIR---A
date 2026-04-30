@@ -122,6 +122,11 @@ export default function CirilaBotWidget() {
       router.push('/patients');
       setTimeout(() => alert('Acesso transferido para a Fila Dinâmica.\n\nVocê também pode pedir: "Cirila, envie o paciente [NOME] para a rede pública"'), 500);
     }
+
+    if (payload.startsWith('DOWNLOAD_DOCX_')) {
+      const count = payload.split('_')[2];
+      window.open(`/api/cirila/sobreaviso?count=${count}`, '_blank');
+    }
   }
 
   return (

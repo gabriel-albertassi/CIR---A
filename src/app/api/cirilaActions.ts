@@ -88,6 +88,100 @@ export async function executeEmailDispatch(patientId: string, targetType: string
 export async function askCirila(query: string): Promise<CirilaResponse> {
   const text = query.toLowerCase();
 
+  // --- LÓGICA DE REGULAÇÃO DE EXAMES E CHAVES (CIRILA ESPECIALIZADA) ---
+  
+  const generateKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return Array.from({ length: 5 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+  };
+
+  const examMap: Record<string, { code: string, destination: string }> = {
+    'tc': { code: 'TC', destination: 'HSJB' },
+    'tomografia': { code: 'TC', destination: 'HSJB' },
+    'angiotc': { code: 'ANGIOTC', destination: 'HMMR' },
+    'angiotomografia': { code: 'ANGIOTC', destination: 'HMMR' },
+    'rnm': { code: 'RNM', destination: 'RADIO VIDA' },
+    'ressonancia': { code: 'RNM', destination: 'RADIO VIDA' },
+    'ressonância': { code: 'RNM', destination: 'RADIO VIDA' },
+    'colangio rnm': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
+    'colangiornm': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
+    'colangio ressonância': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
+    'colangio ressonancia': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
+  };
+
+  const isGenerating = text.includes('gerar') || text.includes('gera ');
+  
+  if (isGenerating) {
+    // 1. Caso: Chaves Avulsas (ex: "Gerar 10 chaves", "Gerar chave avulsa", "chaves para sobreaviso")
+    const isStandaloneKey = text.includes('chave avulsa') || text.includes('chaves para sobreaviso') || (text.includes('chave') && !text.includes('para '));
+    const keyQtyMatch = text.match(/gerar (\d+) chaves?/);
+    
+    if (isStandaloneKey || keyQtyMatch) {
+      const count = keyQtyMatch ? parseInt(keyQtyMatch[1]) : (text.includes('chave avulsa') ? 1 : 5);
+      
+      // Caso especial: Documento Word (Sobreaviso)
+      if (text.includes('sobreaviso') && (text.includes('documento') || text.includes('word') || text.includes('planilha'))) {
+        return {
+          text: `Gerando documento de sobreaviso com **${count} chaves**... Clique no botão abaixo para baixar.`,
+          sender: 'ai',
+          actions: [{ label: '⬇️ Baixar Documento (.docx)', payload: `DOWNLOAD_DOCX_${count}` }]
+        };
+      }
+
+      const keys = Array.from({ length: count }, () => generateKey());
+      return {
+        text: keys.join('\n'),
+        sender: 'ai'
+      };
+    }
+
+    // 2. Caso: Autorização de Exames
+    // Tenta identificar o paciente (geralmente após "para")
+    const patientMatch = text.match(/para\s+([a-záàâãéèêíïóôõöúç\s]+)/i);
+    const patientName = patientMatch ? patientMatch[1].trim().toUpperCase() : 'PACIENTE NÃO IDENTIFICADO';
+
+    const authorizations: string[] = [];
+    const dateStr = new Date().toLocaleDateString('pt-BR');
+
+    // Busca por todos os exames mencionados na frase
+    Object.entries(examMap).forEach(([trigger, info]) => {
+      // Regex para encontrar o termo isolado ou seguido de "de" (ex: "TC de crânio")
+      const examRegex = new RegExp(`(${trigger})(\\s+de\\s+[a-záàâãéèêíïóôõöúç\\s,]+)?`, 'gi');
+      let match;
+      
+      while ((match = examRegex.exec(text)) !== null) {
+        const fullExamName = match[0].toUpperCase();
+        // Evita duplicatas ex: "TC" e "Tomografia" na mesma frase se referindo ao mesmo exame
+        // Mas o prompt diz "separar corretamente cada exame", então se houver "TC e RNM" ok.
+        // Se houver "Tomografia de abdome e pelve", precisamos tratar o "e"
+        
+        // Ajuste para "abdome e pelve"
+        if (fullExamName.includes(' E ')) {
+           const parts = fullExamName.split(' E ');
+           parts.forEach(p => {
+             const cleanPart = p.trim().replace(/^GERAR\s+/, '');
+             authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${info.code} ${cleanPart.replace(info.code, '').trim()} AUTORIZADO PARA ${info.destination}`);
+           });
+        } else {
+           const cleanExam = fullExamName.replace(/^GERAR\s+/, '').trim();
+           // Se o trigger for um sinônimo (ex: Tomografia), substitui pelo código (TC)
+           const displayExam = cleanExam.startsWith(info.code) ? cleanExam : `${info.code} ${cleanExam.replace(new RegExp(trigger, 'i'), '').trim()}`;
+           
+           authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${displayExam.trim()} AUTORIZADO PARA ${info.destination}`);
+        }
+      }
+    });
+
+    if (authorizations.length > 0) {
+      // Remover duplicatas de autorizações idênticas (mesmo exame mapeado por gatilhos diferentes)
+      const uniqueAuths = Array.from(new Set(authorizations));
+      return {
+        text: uniqueAuths.join('\n'),
+        sender: 'ai'
+      };
+    }
+  }
+
   await new Promise(resolve => setTimeout(resolve, 800)); // Simular "digitando..."
 
   try {
