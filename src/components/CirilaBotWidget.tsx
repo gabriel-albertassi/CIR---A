@@ -237,7 +237,7 @@ export default function CirilaBotWidget() {
               }}>
                 <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                 
-                {m.file && (
+                {(m as CirilaResponse).file && (
                   <div style={{ 
                     marginTop: '0.75rem', 
                     padding: '0.75rem', 

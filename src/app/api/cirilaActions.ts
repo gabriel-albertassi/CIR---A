@@ -14,7 +14,7 @@ export type CirilaResponse = {
     size?: number;
     type: string;
   };
-}
+};
 
 /**
  * Função real para disparar os e-mails baseada na triagem inteligente

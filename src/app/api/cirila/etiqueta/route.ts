@@ -194,9 +194,9 @@ export async function GET(req: NextRequest) {
           templateZip.file("word/document.xml", mergedXml);
           
           const finalBuffer = await templateZip.generateAsync({ type: 'nodebuffer' });
-          const finalUint8Array = new Uint8Array(finalBuffer);
           
-          return new NextResponse(finalUint8Array, {
+          
+          return new NextResponse(finalBuffer as any, {
             headers: {
               'Content-Disposition': `attachment; filename="Requisicao_Com_Etiqueta_${patient.replace(/\s/g, '_')}.docx"`,
               'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -211,8 +211,8 @@ export async function GET(req: NextRequest) {
   }
 
   // Retorno padrão (apenas etiqueta)
-  const labelUint8Array = new Uint8Array(labelBuffer);
-  return new NextResponse(labelUint8Array, {
+  
+  return new NextResponse(labelBuffer as any, {
     headers: {
       'Content-Disposition': `attachment; filename="Etiquetas_${patient.replace(/\s/g, '_')}.docx"`,
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
