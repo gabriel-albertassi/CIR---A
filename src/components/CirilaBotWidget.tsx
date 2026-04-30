@@ -127,6 +127,11 @@ export default function CirilaBotWidget() {
       const count = payload.split('_')[2];
       window.open(`/api/cirila/sobreaviso?count=${count}`, '_blank');
     }
+
+    if (payload.startsWith('DOWNLOAD_ETIQUETA_DOCX_')) {
+      const [,,, patient, exam, professional] = payload.split('_');
+      window.open(`/api/cirila/etiqueta?patient=${patient}&exam=${exam}&professional=${professional}`, '_blank');
+    }
   }
 
   return (

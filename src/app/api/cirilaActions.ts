@@ -136,8 +136,28 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // 2. Caso: Autorização de Exames
-    // Tenta identificar o paciente (geralmente após "para")
+    // 2. Caso: Etiqueta Profissional (Word)
+    // Ex: "Gerar TC de crânio para Gabriel Albertassi, etiqueta Paola"
+    if (text.includes('etiqueta')) {
+      const etiquetaMatch = text.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+)(?:,\s*etiqueta\s+([a-záàâãéèêíïóôõöúç\s]+))?/i);
+      
+      if (etiquetaMatch) {
+        const exam = etiquetaMatch[1].trim().toUpperCase();
+        const patient = etiquetaMatch[2].trim().toUpperCase();
+        const professional = (etiquetaMatch[3] || 'REGULADOR').trim().toLowerCase();
+
+        return {
+          text: `Preparando etiqueta profissional para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
+          sender: 'ai',
+          actions: [{ 
+            label: '📄 Baixar Etiqueta (.docx)', 
+            payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professional}` 
+          }]
+        };
+      }
+    }
+
+    // 3. Caso: Autorização de Exames (Texto)
     const patientMatch = text.match(/para\s+([a-záàâãéèêíïóôõöúç\s]+)/i);
     const patientName = patientMatch ? patientMatch[1].trim().toUpperCase() : 'PACIENTE NÃO IDENTIFICADO';
 

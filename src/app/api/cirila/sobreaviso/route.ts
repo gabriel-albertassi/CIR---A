@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     15, // DIAGNÓSTICO
     13, // HOSPITAL ORIGEM
     18, // PROCEDIMENTO
-    10, // PRESTADOR / REDE
+    10, // HOSP. DESTINO
     7,  // CNS
     5   // AUDITOR
   ];
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     'DIAGNÓSTICO', 
     'HOSPITAL ORIGEM', 
     'PROCEDIMENTO', 
-    'PRESTADOR / REDE', 
+    'HOSP. DESTINO', 
     'CNS', 
     'AUD'
   ];
@@ -175,22 +175,24 @@ export async function GET(req: NextRequest) {
             new TableRow({
               children: [
                 new TableCell({
+                  verticalAlign: VerticalAlign.BOTTOM,
                   children: [
                     new Paragraph({
                       children: [
-                        new TextRun({ text: 'CIRILA', bold: true, size: 32, color: '0f172a' }),
-                        new TextRun({ text: ' | REGULAÇÃO MUNICIPAL', size: 16, color: '64748b' })
+                        new TextRun({ text: 'CIR - A', bold: true, size: 36, color: '0f172a' }),
+                        new TextRun({ text: ' CENTRAL INTELIGENTE DE REGULAÇÃO AUTOMATIZADA - SMSVR', size: 14, color: '475569' })
                       ]
                     })
                   ]
                 }),
                 new TableCell({
+                  verticalAlign: VerticalAlign.BOTTOM,
                   children: [
                     new Paragraph({
                       alignment: AlignmentType.RIGHT,
                       children: [
-                        new TextRun({ text: 'DATA DE EMISSÃO: ', size: 16, color: '64748b' }),
-                        new TextRun({ text: dateStr, bold: true, size: 16, color: '1e293b' })
+                        new TextRun({ text: 'DATA DE EMISSÃO: ', size: 14, color: '64748b' }),
+                        new TextRun({ text: dateStr, bold: true, size: 18, color: '0f172a' })
                       ]
                     })
                   ]
@@ -203,7 +205,7 @@ export async function GET(req: NextRequest) {
           text: 'MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO',
           heading: HeadingLevel.HEADING_1,
           alignment: AlignmentType.CENTER,
-          spacing: { before: 200, after: 400 }
+          spacing: { before: 300, after: 400 }
         }),
         table,
         new Paragraph({ text: '', spacing: { before: 400 } }),
