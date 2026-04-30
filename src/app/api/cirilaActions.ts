@@ -9,6 +9,11 @@ export type CirilaResponse = {
   sender: 'ai' | 'user';
   actions?: { label: string, payload: string }[];
   image?: string;
+  file?: {
+    name: string;
+    size?: number;
+    type: string;
+  };
 }
 
 /**

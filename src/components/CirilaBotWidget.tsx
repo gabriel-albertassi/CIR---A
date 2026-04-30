@@ -268,7 +268,7 @@ export default function CirilaBotWidget() {
                         {m.file.size ? `${(m.file.size / 1024).toFixed(1)} KB` : 'Arquivo anexado'}
                       </div>
                     </div>
-                    {m.sender === 'user' && <CheckCircle2 size={16} color="#10b981" title="Sincronizado com o sistema" />}
+                    {m.sender === 'user' && <CheckCircle2 size={16} color="#10b981" />}
                     {m.sender === 'ai' && <CheckCircle2 size={16} color="#10b981" />}
                   </div>
                 )}
