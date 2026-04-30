@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const exam = searchParams.get('exam')?.replace(/\+/g, ' ') || 'EXAME';
   const profKey = searchParams.get('professional')?.toLowerCase() || 'paola';
 
-  // --- MAPA DE PROFISSIONAIS ---
+  // --- MAPA DE PROFISSIONAIS (ATUALIZADO) ---
   const profMap: Record<string, any> = {
     "paola": {
       "nome": "Paola Calderaro Nogueira Leite",
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       "cargo": "Enfermeiro Supervisor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
-    "inimat": { // Alias para facilitar
+    "inimat": { 
       "nome": "Inimá J. O. Junior",
       "registro": "COREN-RJ 83798",
       "cargo": "Enfermeiro Supervisor",
@@ -107,7 +107,9 @@ export async function GET(req: NextRequest) {
   // --- CRIAÇÃO DO DOCUMENTO ---
   const doc = new Document({
     sections: [{
-      properties: {},
+      properties: {
+        margin: { top: 720, right: 720, bottom: 720, left: 720 },
+      },
       children: [
         new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
@@ -116,33 +118,34 @@ export async function GET(req: NextRequest) {
               children: [
                 new TableCell({
                   borders: {
-                    top: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
-                    bottom: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
-                    left: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
-                    right: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
+                    top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+                    bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+                    left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+                    right: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
                   },
-                  margins: { top: 200, bottom: 200, left: 200, right: 200 },
+                  margins: { top: 150, bottom: 150, left: 150, right: 150 },
                   verticalAlign: VerticalAlign.CENTER,
                   children: [
                     // Cabeçalho Profissional
                     new Paragraph({
-                      spacing: { after: 100 },
+                      spacing: { after: 80 },
                       children: [
                         new TextRun({
                           text: `${prof.nome} – ${prof.registro} – ${prof.cargo}`,
                           bold: true,
-                          size: 20,
+                          size: 18,
                           font: "Segoe UI"
                         })
                       ]
                     }),
                     new Paragraph({
-                      spacing: { after: 300 },
+                      spacing: { after: 200 },
                       children: [
                         new TextRun({
                           text: prof.departamento,
-                          size: 18,
-                          font: "Segoe UI"
+                          size: 16,
+                          font: "Segoe UI",
+                          color: "475569"
                         })
                       ]
                     }),
@@ -159,8 +162,8 @@ export async function GET(req: NextRequest) {
                         new TextRun({
                           text: `${authKey} - `,
                           bold: true,
-                          color: "2D3748",
-                          size: 20,
+                          color: "2563eb",
+                          size: 22,
                           font: "Courier New"
                         }),
                         new TextRun({
@@ -172,7 +175,7 @@ export async function GET(req: NextRequest) {
                           text: `AUTORIZADO PARA ${destination}`,
                           bold: true,
                           size: 20,
-                          color: "C53030", // Vermelho institucional
+                          color: "b91c1c", // Vermelho institucional (Red 700)
                           font: "Segoe UI"
                         })
                       ]
@@ -188,8 +191,12 @@ export async function GET(req: NextRequest) {
   });
 
   const buffer = await Packer.toBuffer(doc);
+  const uint8Array = new Uint8Array(buffer);
+  const blob = new Blob([uint8Array], { 
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+  });
 
-  return new NextResponse(buffer, {
+  return new NextResponse(blob, {
     headers: {
       'Content-Disposition': `attachment; filename="Etiqueta_${patient.replace(/\s/g, '_')}.docx"`,
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

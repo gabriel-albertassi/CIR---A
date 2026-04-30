@@ -139,8 +139,28 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     // 2. Caso: Etiqueta Profissional (Word)
     // Ex: "Gerar TC de crânio para Gabriel Albertassi, etiqueta Paola"
     if (text.includes('etiqueta')) {
-      const etiquetaMatch = text.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+)(?:,\s*etiqueta\s+([a-záàâãéèêíïóôõöúç\s]+))?/i);
+      // Tentativa 1: Formato padrão "Gerar [EXAME] para [PACIENTE], etiqueta [PROFISSIONAL]"
+      let etiquetaMatch = text.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+)(?:,\s*etiqueta\s+([a-záàâãéèêíïóôõöúç\s]+))?/i);
       
+      // Tentativa 2: Formato alternativo "Gerar etiqueta [PROFISSIONAL] para [PACIENTE], exame [EXAME]"
+      if (!etiquetaMatch) {
+        etiquetaMatch = text.match(/etiqueta\s+([a-záàâãéèêíïóôõöúç\s]+)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+)(?:,\s*exame\s+(.+))?/i);
+        if (etiquetaMatch) {
+          const professional = etiquetaMatch[1].trim().toLowerCase();
+          const patient = etiquetaMatch[2].trim().toUpperCase();
+          const exam = (etiquetaMatch[3] || 'EXAME').trim().toUpperCase();
+          
+          return {
+            text: `Preparando etiqueta profissional para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
+            sender: 'ai',
+            actions: [{ 
+              label: '📄 Baixar Etiqueta (.docx)', 
+              payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professional}` 
+            }]
+          };
+        }
+      }
+
       if (etiquetaMatch) {
         const exam = etiquetaMatch[1].trim().toUpperCase();
         const patient = etiquetaMatch[2].trim().toUpperCase();
