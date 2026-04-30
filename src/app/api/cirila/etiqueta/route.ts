@@ -322,7 +322,7 @@ export async function GET(req: NextRequest) {
               ? pdfText.split('\n').map(line => new Paragraph({
                   children: [new TextRun({ text: line, size: 20, font: "Arial" })]
                 }))
-              : [new Paragraph({ text: "[DOCUMENTO PDF ANEXADO - CONTEÚDO VISUAL PRESERVADO NO ORIGINAL]", italic: true })];
+              : [new Paragraph({ children: [new TextRun({ text: "[DOCUMENTO PDF ANEXADO - CONTEÚDO VISUAL PRESERVADO NO ORIGINAL]", italic: true })] })];
           } else if (['.png', '.jpg', '.jpeg'].some(ext => templateFile.toLowerCase().endsWith(ext))) {
             mainContent = [
               new Paragraph({
