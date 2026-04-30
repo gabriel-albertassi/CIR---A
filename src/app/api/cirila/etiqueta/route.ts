@@ -108,7 +108,9 @@ export async function GET(req: NextRequest) {
   const doc = new Document({
     sections: [{
       properties: {
-        margin: { top: 720, right: 720, bottom: 720, left: 720 },
+        page: {
+          margin: { top: 720, right: 720, bottom: 720, left: 720 },
+        },
       },
       children: [
         new Table({
