@@ -311,9 +311,8 @@ export default function CirilaBotWidget() {
                 const result = await Tesseract.recognize(file, 'por');
                 extractedText = result.data.text;
               } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                // Processamento de PDF no Cliente (Browser) para evitar erros de servidor
+                // Processamento de PDF no Cliente
                 const pdfjsLib = await import('pdfjs-dist');
-                // Configuração do worker via CDN para evitar problemas de build local
                 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
                 
                 const arrayBuffer = await file.arrayBuffer();
@@ -321,12 +320,32 @@ export default function CirilaBotWidget() {
                 const pdf = await loadingTask.promise;
                 let fullText = '';
                 
-                for (let i = 1; i <= pdf.numPages; i++) {
+                // 1. Tentar extração direta de texto (para PDFs digitais)
+                for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) { // Limita a 3 páginas para performance
                   const page = await pdf.getPage(i);
                   const content = await page.getTextContent();
                   const strings = content.items.map((item: any) => 'str' in item ? item.str : '');
                   fullText += strings.join(' ') + '\n';
                 }
+
+                // 2. Se falhar (PDF é uma imagem/scan), usar OCR na primeira página
+                if (!fullText.trim() && pdf.numPages > 0) {
+                  setMessages(prev => [...prev, { text: '🔍 *Documento parece ser uma imagem. Iniciando OCR...*', sender: 'ai' }]);
+                  const page = await pdf.getPage(1);
+                  const viewport = page.getViewport({ scale: 2.0 }); // Escala maior para melhor OCR
+                  const canvas = document.createElement('canvas');
+                  const context = canvas.getContext('2d');
+                  canvas.height = viewport.height;
+                  canvas.width = viewport.width;
+                  
+                  await page.render({ canvasContext: context!, viewport }).promise;
+                  const imageData = canvas.toDataURL('image/png');
+                  
+                  const Tesseract = (await import('tesseract.js')).default;
+                  const result = await Tesseract.recognize(imageData, 'por');
+                  fullText = result.data.text;
+                }
+                
                 extractedText = fullText;
               } else if (
                 file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
