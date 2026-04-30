@@ -143,14 +143,24 @@ export default function CirilaBotWidget() {
 
     if (payload.startsWith('DOWNLOAD_ETIQUETA_DOCX:::')) {
       const parts = payload.split(':::');
-      // Payload: DOWNLOAD_ETIQUETA_DOCX:::PATIENT+NAME:::EXAM+NAME:::PROFESSIONAL_KEY:::KEY:::FILEID
-      const patient = parts[1] || 'PACIENTE';
+      // Ordem Padronizada: PATIENT:::EXAM:::PROFESSIONAL:::KEY:::FILEID:::QTY
+      const patient = parts[1] || 'AVULSA';
       const exam = parts[2] || 'EXAME';
       const professional = parts[3] || 'paola';
       const key = parts[4] || '';
       const fileId = parts[5] || '';
+      const qty = parts[6] || '1';
       
-      window.open(`/api/cirila/etiqueta?patient=${patient}&exam=${exam}&professional=${professional}&key=${key}&templateId=${fileId}`, '_blank');
+      const query = new URLSearchParams({
+        patient: patient,
+        exam: exam,
+        professional: professional,
+        key: key,
+        templateId: fileId,
+        qty: qty
+      }).toString();
+
+      window.open(`/api/cirila/etiqueta?${query}`, '_blank');
     }
   }
 

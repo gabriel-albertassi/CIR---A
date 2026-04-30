@@ -121,18 +121,49 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   const currentFileId = fileIdMatch ? fileIdMatch[1] : null;
   const isDocumentAttached = !!currentFileId || text.includes('anexo');
 
-    // 2. COMANDO DE GERAÇÃO DE ETIQUETA
-    const isGeneratingEtiqueta = text.includes('gerar') && (text.includes('etiqueta') || text.includes('tc') || text.includes('rnm') || text.includes('angiotc'));
+    // 2. COMANDO DE GERAÇÃO DE ETIQUETA / PLANILHA
+    const isGeneratingEtiqueta = text.includes('gerar') && (text.includes('etiqueta') || text.includes('tc') || text.includes('rnm') || text.includes('angiotc') || text.includes('chave') || text.includes('planilha'));
 
     if (isGeneratingEtiqueta) {
-      // Extração de dados apenas do comando do usuário
-      // Ex: "Gerar TC de crânio para Gabriel Albertassi, etiqueta Inimá"
       const cleanedText = text.replace(/\[file_id:.+?\]/gi, '').trim();
       
+      // PADRÃO A: Planilha de Sobreaviso / Chaves em Lote
+      const isSobreavisoQuery = cleanedText.includes('planilha') || cleanedText.includes('sobreaviso') || cleanedText.includes('sobre aviso');
+      
+      if (isSobreavisoQuery) {
+        const qtyMatch = cleanedText.match(/(\d+)/);
+        const qty = qtyMatch ? parseInt(qtyMatch[1]) : 10;
+        
+        // Detectar profissional na query
+        const professionalRaw = validProfs.find(p => cleanedText.includes(p)) || 'inima';
+        const authKey = generateKey(); // Chave base
+        
+        return {
+          text: `✅ **CIRILA:** Entendido! Gerando sua **Planilha de Sobreaviso** com **${qty} chaves**. \n\nEstou preparando o documento oficial (MAPA DE SUPERVISÃO) para você.`,
+          sender: 'ai',
+          actions: [{ 
+            label: `📄 Baixar Planilha de Sobreaviso (.docx)`, 
+            payload: `DOWNLOAD_ETIQUETA_DOCX:::SOBREAVISO:::AVULSA:::${professionalRaw}:::${authKey}:::${currentFileId || ''}:::${qty}` 
+          }]
+        };
+      }
+
+      // PADRÃO B: Etiqueta Única (Com ou sem anexo)
       let etiquetaMatch = cleanedText.match(/gerar\s+etiqueta\s+(?:de\s+)?(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?(?:etiqueta\s+)?(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
       
       if (!etiquetaMatch) {
         etiquetaMatch = cleanedText.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
+      }
+
+      if (!etiquetaMatch && (text.includes('avulsa') || text.includes('chave'))) {
+        const qtyMatch = text.match(/(\d+)/);
+        const qty = qtyMatch ? parseInt(qtyMatch[1]) : 1;
+        const generatedKeys = Array.from({ length: qty }, () => generateKey()).join(', ');
+        
+        return {
+          text: `🔑 **${generatedKeys}**`,
+          sender: 'ai'
+        };
       }
 
       if (etiquetaMatch) {
@@ -162,7 +193,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         const authKey = generateKey();
 
         const statusMsg = isDocumentAttached 
-          ? `Estou processando seu documento original como template e inserindo a etiqueta oficial da regulação no rodapé.`
+          ? `Estou processando seu documento original como template e inserindo a etiqueta oficial da regulação ao final dele.`
           : `Gerando sua etiqueta avulsa oficial da regulação.`;
 
         return {
@@ -170,7 +201,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
           sender: 'ai',
           actions: [{ 
             label: isDocumentAttached ? '📄 Baixar Documento com Etiqueta (.docx)' : '📄 Baixar Etiqueta Avulsa (.docx)', 
-            payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileId || ''}` 
+            payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileId || ''}:::1` 
           }]
         };
       }
@@ -189,7 +220,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
   if (text.includes('anexo') || text.includes('documento')) {
     return {
-      text: `Recebi o documento, chefe! Ele será usado como **Template Visual** para a etiqueta. \n\nAgora, por favor, me diga: **Qual exame e qual paciente devo regular neste documento?**`,
+      text: `Recebi o documento, chefe! Ele será usado como **Template Visual** para a etiqueta. \n\n**Dica:** Se o documento for um PDF escaneado (sem texto), tente enviar uma foto (PNG/JPG) para que eu possa inseri-lo visualmente no Word. \n\nAgora, por favor, me diga: **Qual exame e qual paciente devo regular neste documento?**`,
       sender: 'ai'
     };
   }
