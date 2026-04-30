@@ -20,10 +20,10 @@ export async function executeEmailDispatch(patientId: string, targetType: string
     if (!patient) return { success: false, error: 'Paciente não encontrado' };
 
     const hospitals = await prisma.hospital.findMany();
-    
+
     // Filtro de Triagem Inteligente
     const isGrave = ['CTI', 'SALA_VERMELHA', 'CRITICAL', 'HIGH'].includes(patient.severity.toUpperCase());
-    
+
     let targets = hospitals.filter(h => {
       // REGRA: Ignorar o hospital onde o paciente JÁ ESTÁ (Origem)
       if (h.name.toLowerCase().trim() === patient.origin_hospital.toLowerCase().trim()) return false;
@@ -33,14 +33,14 @@ export async function executeEmailDispatch(patientId: string, targetType: string
 
       // Regra da Rede Pública
       if (targetType === 'PUBLIC' && h.type !== 'PUBLICO') return false;
-      
+
       // Regra Nelson Gonçalves: Só aceita Clínica Médica (não aceita CTI/GRAVE)
       if (h.name.toLowerCase().includes('nelson') && isGrave) return false;
-      
+
       // Filtro de Capacidade do Hospital
       if (isGrave && !h.accepts_cti) return false;
       if (!isGrave && !h.accepts_clinica) return false;
-      
+
       return !!h.email; // Só hospitais com e-mail cadastrado
     });
 
@@ -89,7 +89,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   const text = query.toLowerCase();
 
   // --- LÓGICA DE REGULAÇÃO DE EXAMES E CHAVES (CIRILA ESPECIALIZADA) ---
-  
+
   const generateKey = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return Array.from({ length: 5 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
@@ -110,15 +110,15 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   };
 
   const isGenerating = text.includes('gerar') || text.includes('gera ');
-  
+
   if (isGenerating) {
     // 1. Caso: Chaves Avulsas (ex: "Gerar 10 chaves", "Gerar chave avulsa", "chaves para sobreaviso")
     const isStandaloneKey = text.includes('chave avulsa') || text.includes('chaves para sobreaviso') || (text.includes('chave') && !text.includes('para '));
     const keyQtyMatch = text.match(/gerar (\d+) chaves?/);
-    
+
     if (isStandaloneKey || keyQtyMatch) {
       const count = keyQtyMatch ? parseInt(keyQtyMatch[1]) : (text.includes('chave avulsa') ? 1 : 5);
-      
+
       // Caso especial: Documento Word (Sobreaviso)
       if (text.includes('sobreaviso') && (text.includes('documento') || text.includes('word') || text.includes('planilha'))) {
         return {
@@ -151,28 +151,26 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       // Regex para encontrar o termo isolado ou seguido de "de" (ex: "TC de crânio")
       const examRegex = new RegExp(`(${trigger})(\\s+de\\s+[a-záàâãéèêíïóôõöúç\\s,]+)?`, 'gi');
       let match;
-      
+
       while ((match = examRegex.exec(textForExams)) !== null) {
         const fullExamName = match[0].toUpperCase();
         // Evita duplicatas ex: "TC" e "Tomografia" na mesma frase se referindo ao mesmo exame
         // Mas o prompt diz "separar corretamente cada exame", então se houver "TC e RNM" ok.
         // Se houver "Tomografia de abdome e pelve", precisamos tratar o "e"
-        
+
         // Ajuste para "abdome e pelve"
         if (fullExamName.includes(' E ')) {
-           const parts = fullExamName.split(/\s+E\s+/i);
-           parts.forEach(p => {
-             const cleanPart = p.trim().replace(/^GERAR\s+/i, '');
-             // Mesma lógica de substituição de gatilho pelo código
-             const displayPart = cleanPart.startsWith(info.code) ? cleanPart : `${info.code} ${cleanPart.replace(new RegExp(trigger, 'i'), '').trim()}`;
-             authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${displayPart.trim()} AUTORIZADO PARA ${info.destination}`);
-           });
+          const parts = fullExamName.split(' E ');
+          parts.forEach(p => {
+            const cleanPart = p.trim().replace(/^GERAR\s+/, '');
+            authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${info.code} ${cleanPart.replace(info.code, '').trim()} AUTORIZADO PARA ${info.destination}`);
+          });
         } else {
-           const cleanExam = fullExamName.replace(/^GERAR\s+/i, '').trim();
-           // Se o trigger for um sinônimo (ex: Tomografia), substitui pelo código (TC)
-           const displayExam = cleanExam.startsWith(info.code) ? cleanExam : `${info.code} ${cleanExam.replace(new RegExp(trigger, 'i'), '').trim()}`;
-           
-           authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${displayExam.trim()} AUTORIZADO PARA ${info.destination}`);
+          const cleanExam = fullExamName.replace(/^GERAR\s+/, '').trim();
+          // Se o trigger for um sinônimo (ex: Tomografia), substitui pelo código (TC)
+          const displayExam = cleanExam.startsWith(info.code) ? cleanExam : `${info.code} ${cleanExam.replace(new RegExp(trigger, 'i'), '').trim()}`;
+
+          authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${displayExam.trim()} AUTORIZADO PARA ${info.destination}`);
         }
       }
     });
@@ -206,8 +204,8 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     if (text.includes('vermelha') || text.includes('grave') || text.includes('emergencia') || text.includes('emergência')) {
       const critical = await prisma.patient.count({ where: { severity: 'SALA_VERMELHA', status: { in: ['WAITING', 'OFFERED'] } } });
       return {
-        text: critical > 0 
-          ? `Alerta Vermelho! Temos **${critical} pacientes** com prioridade máxima (Vaga Zero) parados na Sala Vermelha.` 
+        text: critical > 0
+          ? `Alerta Vermelho! Temos **${critical} pacientes** com prioridade máxima (Vaga Zero) parados na Sala Vermelha.`
           : `Boas notícias! Censo zerado na Sala Vermelha para os aguardos atuais!`,
         sender: 'ai',
         image: '/cirila_2.png'
@@ -247,87 +245,87 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     // --- NOVO: DISPARO DE E-MAIL POR COMANDO (Reconhece intenção de disparo) ---
     const lowerText = text.toLowerCase();
-    const isCommand = lowerText.includes('enviar') || 
-                      lowerText.includes('envie') || 
-                      lowerText.includes('mande') || 
-                      lowerText.includes('manda') || 
-                      lowerText.includes('solicita') || 
-                      lowerText.includes('encaminha') ||
-                      lowerText.includes('peça') ||
-                      lowerText.includes('vaga');
-    
+    const isCommand = lowerText.includes('enviar') ||
+      lowerText.includes('envie') ||
+      lowerText.includes('mande') ||
+      lowerText.includes('manda') ||
+      lowerText.includes('solicita') ||
+      lowerText.includes('encaminha') ||
+      lowerText.includes('peça') ||
+      lowerText.includes('vaga');
+
     if (isCommand) {
       const hospitals = await prisma.hospital.findMany();
       const patients = await prisma.patient.findMany({ where: { status: { in: ['WAITING', 'OFFERED'] } } });
-      
+
       // Busca flexível pelo nome do paciente ignorando "o paciente" ou conectivos
       const targetPatient = patients.find(p => {
         const nameNormalized = p.name.toLowerCase();
-        return lowerText.includes(nameNormalized) || 
-               nameNormalized.split(' ').some(part => part.length > 3 && lowerText.includes(part));
+        return lowerText.includes(nameNormalized) ||
+          nameNormalized.split(' ').some(part => part.length > 3 && lowerText.includes(part));
       });
-        
-        if (targetPatient) {
-          const specificHospital = hospitals.find(h => 
-            text.includes(h.name.toLowerCase()) || 
-            (h.name.toLowerCase().includes('teste') && text.includes('teste'))
-          );
 
-          // Lógica robusta de detecção de Rede
-          let isPublic = text.includes('publica') || text.includes('pública') || text.includes('rede') || text.includes('sus');
-          let isPrivate = text.includes('privado') || text.includes('privada') || text.includes('particular') || text.includes('convenio');
-          let isAll = text.includes('ambas') || (isPublic && isPrivate) || text.includes('todos') || text.includes('geral');
-          
-          // Se não especificou nada, assume Pública (Rede) por segurança
-          if (!isPublic && !isPrivate && !isAll) isPublic = true;
+      if (targetPatient) {
+        const specificHospital = hospitals.find(h =>
+          text.includes(h.name.toLowerCase()) ||
+          (h.name.toLowerCase().includes('teste') && text.includes('teste'))
+        );
 
-          // Detecção de Tipo de Leito mencionado
-          let requestedProfile = '';
-          if (text.includes('cti') || text.includes('intensiv')) requestedProfile = 'CTI';
-          else if (text.includes('vermelha')) requestedProfile = 'SALA VERMELHA';
-          else if (text.includes('clinica') || text.includes('clínica') || text.includes('enfermaria')) requestedProfile = 'CLÍNICA MÉDICA';
-          
-          let levelText = requestedProfile || targetPatient.severity;
-          
-          if (specificHospital) {
-            return {
-              text: `Localizei a unidade **${specificHospital.name}**. Deseja disparar a solicitação do paciente **${targetPatient.name}** (${levelText}) somente para ela?`,
-              sender: 'ai',
-              actions: [
-                { label: `Sim, só para ${specificHospital.name}`, payload: `EXECUTE_SEND_${targetPatient.id}_ONLY_${specificHospital.id}` },
-                { label: 'Não, disparar para Rede', payload: `SEND_MAIL_${targetPatient.id}_${isPrivate ? 'PRIVATE' : 'PUBLIC'}` }
-              ],
-              image: '/cirila_2.png'
-            };
-          }
+        // Lógica robusta de detecção de Rede
+        let isPublic = text.includes('publica') || text.includes('pública') || text.includes('rede') || text.includes('sus');
+        let isPrivate = text.includes('privado') || text.includes('privada') || text.includes('particular') || text.includes('convenio');
+        let isAll = text.includes('ambas') || (isPublic && isPrivate) || text.includes('todos') || text.includes('geral');
 
-          const targetType = isAll ? 'ALL' : (isPrivate && !isPublic ? 'PRIVATE' : 'PUBLIC');
-          const targetLabel = isAll ? 'Pública e Privada' : (isPrivate && !isPublic ? 'Privada' : 'Pública (Rede)');
+        // Se não especificou nada, assume Pública (Rede) por segurança
+        if (!isPublic && !isPrivate && !isAll) isPublic = true;
 
-          // ALERTA DE SEGURANÇA: Se o alvo é privado mas o paciente é público
-          if ((isPrivate || isAll) && !(targetPatient as any).is_private) {
-            return {
-              text: `⚠️ **Atenção Chefe**: O paciente **${targetPatient.name}** não possui perfil para a rede privada cadastrado. \n\nDeseja disparar as solicitações **apenas para a rede pública**?`,
-              sender: 'ai',
-              actions: [
-                { label: 'Sim, disparar para Rede Pública', payload: `EXECUTE_SEND_${targetPatient.id}_PUBLIC` },
-                { label: 'Cancelar', payload: 'CANCEL' }
-              ],
-              image: '/cirila_2.png'
-            };
-          }
+        // Detecção de Tipo de Leito mencionado
+        let requestedProfile = '';
+        if (text.includes('cti') || text.includes('intensiv')) requestedProfile = 'CTI';
+        else if (text.includes('vermelha')) requestedProfile = 'SALA VERMELHA';
+        else if (text.includes('clinica') || text.includes('clínica') || text.includes('enfermaria')) requestedProfile = 'CLÍNICA MÉDICA';
 
+        let levelText = requestedProfile || targetPatient.severity;
+
+        if (specificHospital) {
           return {
-            text: `Perfeito chefe! Paciente **${targetPatient.name}** para **${levelText}**. Vou disparar a solicitação para a rede **${targetLabel}**. Posso confirmar?`,
+            text: `Localizei a unidade **${specificHospital.name}**. Deseja disparar a solicitação do paciente **${targetPatient.name}** (${levelText}) somente para ela?`,
             sender: 'ai',
             actions: [
-              { label: `Confirmar Disparo (${targetLabel})`, payload: `EXECUTE_SEND_${targetPatient.id}_${targetType}` },
+              { label: `Sim, só para ${specificHospital.name}`, payload: `EXECUTE_SEND_${targetPatient.id}_ONLY_${specificHospital.id}` },
+              { label: 'Não, disparar para Rede', payload: `SEND_MAIL_${targetPatient.id}_${isPrivate ? 'PRIVATE' : 'PUBLIC'}` }
+            ],
+            image: '/cirila_2.png'
+          };
+        }
+
+        const targetType = isAll ? 'ALL' : (isPrivate && !isPublic ? 'PRIVATE' : 'PUBLIC');
+        const targetLabel = isAll ? 'Pública e Privada' : (isPrivate && !isPublic ? 'Privada' : 'Pública (Rede)');
+
+        // ALERTA DE SEGURANÇA: Se o alvo é privado mas o paciente é público
+        if ((isPrivate || isAll) && !(targetPatient as any).is_private) {
+          return {
+            text: `⚠️ **Atenção Chefe**: O paciente **${targetPatient.name}** não possui perfil para a rede privada cadastrado. \n\nDeseja disparar as solicitações **apenas para a rede pública**?`,
+            sender: 'ai',
+            actions: [
+              { label: 'Sim, disparar para Rede Pública', payload: `EXECUTE_SEND_${targetPatient.id}_PUBLIC` },
               { label: 'Cancelar', payload: 'CANCEL' }
             ],
             image: '/cirila_2.png'
           };
         }
+
+        return {
+          text: `Perfeito chefe! Paciente **${targetPatient.name}** para **${levelText}**. Vou disparar a solicitação para a rede **${targetLabel}**. Posso confirmar?`,
+          sender: 'ai',
+          actions: [
+            { label: `Confirmar Disparo (${targetLabel})`, payload: `EXECUTE_SEND_${targetPatient.id}_${targetType}` },
+            { label: 'Cancelar', payload: 'CANCEL' }
+          ],
+          image: '/cirila_2.png'
+        };
       }
+    }
 
     if (text.includes('disparar') || text.includes('vaga') || text.includes('email')) {
       return {
