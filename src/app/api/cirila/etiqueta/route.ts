@@ -178,26 +178,31 @@ export async function GET(req: NextRequest) {
     });
 
     const headers = [
-      "DATA / CHAVE", "CLIENTE (PACIENTE)", "DIAGNÓSTICO", "HOSPITAL ORIGEM", 
-      "PROCEDIMENTO", "PRESTADOR / REDE", "CNS", "AUD"
+      { text: "DATA / CHAVE", width: 15 },
+      { text: "CLIENTE (PACIENTE)", width: 20 },
+      { text: "DIAGNÓSTICO", width: 15 },
+      { text: "HOSPITAL ORIGEM", width: 10 },
+      { text: "PROCEDIMENTO", width: 15 },
+      { text: "PRESTADOR / REDE", width: 10 },
+      { text: "CNS", width: 8 },
+      { text: "AUD", width: 7 }
     ];
 
     const tableRows = finalExams.map((examName, index) => {
       const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
-      
-      // Para Planilha de Sobreaviso, deixamos as colunas de preenchimento manual vazias
       const isManualFill = patient.toUpperCase() === 'SOBREAVISO';
       
       return new TableRow({
+        height: { value: 400, rule: "atLeast" }, // Altura mínima para escrever à mão
         children: [
           new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${dateStr} ${authKey}`, size: 18, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ text: "" })] }), // CLIENTE
-          new TableCell({ children: [new Paragraph({ text: "" })] }), // DIAGNÓSTICO
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : "SMC", size: 18, font: "Arial" })] })] }), // HOSPITAL ORIGEM
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : examName.toUpperCase(), size: 16, font: "Arial" })] })] }), // PROCEDIMENTO
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : getDestination(examName), size: 18, font: "Arial" })] })] }), // PRESTADOR
-          new TableCell({ children: [new Paragraph({ text: "" })] }), // CNS
-          new TableCell({ children: [new Paragraph({ text: "" })] }), // AUD
+          new TableCell({ children: [new Paragraph({ text: "" })] }), 
+          new TableCell({ children: [new Paragraph({ text: "" })] }), 
+          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : "SMC", size: 18, font: "Arial" })] })] }),
+          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : examName.toUpperCase(), size: 16, font: "Arial" })] })] }),
+          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : getDestination(examName), size: 18, font: "Arial" })] })] }),
+          new TableCell({ children: [new Paragraph({ text: "" })] }),
+          new TableCell({ children: [new Paragraph({ text: "" })] }),
         ]
       });
     });
@@ -208,11 +213,12 @@ export async function GET(req: NextRequest) {
         new TableRow({
           tableHeader: true,
           children: headers.map(h => new TableCell({
+            width: { size: h.width, type: WidthType.PERCENTAGE },
             shading: { fill: "002060" },
             verticalAlign: AlignmentType.CENTER,
             children: [new Paragraph({ 
               alignment: AlignmentType.CENTER, 
-              children: [new TextRun({ text: h, bold: true, size: 18, color: "FFFFFF", font: "Arial" })] 
+              children: [new TextRun({ text: h.text, bold: true, size: 18, color: "FFFFFF", font: "Arial" })] 
             })]
           }))
         }),
@@ -288,15 +294,10 @@ export async function GET(req: NextRequest) {
           if (bodyMatch && bodyMatch[1]) {
             let labelBody = bodyMatch[1];
             // Spacer para garantir que a etiqueta não fique colada no texto anterior
-            const spacer = '<w:p><w:pPr><w:spacing w:before="400"/></w:pPr><w:r><w:br w:type="page"/></w:r></w:p>';
+            const spacer = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
             
-            // Tentar inserir antes do sectPr da última seção
-            let mergedXml;
-            if (templateXml.includes('<w:sectPr')) {
-              mergedXml = templateXml.replace(/(<w:sectPr[^>]*>)/, `${spacer}${labelBody}$1`);
-            } else {
-              mergedXml = templateXml.replace('</w:body>', `${spacer}${labelBody}</w:body>`);
-            }
+            // Inserir antes da tag de fechamento do corpo para garantir que fique no final
+            const mergedXml = templateXml.replace(/<\/w:body>/, `${spacer}${labelBody}</w:body>`);
             
             templateZip.file("word/document.xml", mergedXml);
             const finalBuffer = await templateZip.generateAsync({ type: 'nodebuffer' });
@@ -339,7 +340,7 @@ export async function GET(req: NextRequest) {
           const doc = new Document({
             sections: [{
               properties: { 
-                page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } }
+                margins: { top: 720, right: 720, bottom: 720, left: 720 }
               },
               children: [
                 ...mainContent,
@@ -372,7 +373,7 @@ export async function GET(req: NextRequest) {
     sections: [{
       headers: pageHeader ? { default: pageHeader } : undefined,
       properties: { 
-        page: { margin: { top: isSobreaviso ? 1600 : 720, right: 720, bottom: 1200, left: 720 } } 
+        margins: { top: isSobreaviso ? 1600 : 720, right: 720, bottom: 1200, left: 720 } 
       },
       children: labelElements
     }]
