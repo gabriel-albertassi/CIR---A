@@ -112,15 +112,16 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   const isGenerating = text.includes('gerar') || text.includes('gera ');
 
   if (isGenerating) {
-    // 1. Caso: Chaves Avulsas (ex: "Gerar 10 chaves", "Gerar chave avulsa", "chaves para sobreaviso")
+    // 1. Caso: Chaves Avulsas ou Documentos (ex: "Gerar 10 chaves", "Gerar planilha de sobreaviso")
+    const isSobreaviso = text.includes('sobreaviso') && (text.includes('documento') || text.includes('word') || text.includes('planilha'));
     const isStandaloneKey = text.includes('chave avulsa') || text.includes('chaves para sobreaviso') || (text.includes('chave') && !text.includes('para '));
     const keyQtyMatch = text.match(/gerar (\d+) chaves?/);
 
-    if (isStandaloneKey || keyQtyMatch) {
-      const count = keyQtyMatch ? parseInt(keyQtyMatch[1]) : (text.includes('chave avulsa') ? 1 : 5);
+    if (isSobreaviso || isStandaloneKey || keyQtyMatch) {
+      const count = keyQtyMatch ? parseInt(keyQtyMatch[1]) : (text.includes('sobreaviso') ? 15 : (text.includes('chave avulsa') ? 1 : 5));
 
       // Caso especial: Documento Word (Sobreaviso)
-      if (text.includes('sobreaviso') && (text.includes('documento') || text.includes('word') || text.includes('planilha'))) {
+      if (isSobreaviso) {
         return {
           text: `Gerando documento de sobreaviso com **${count} chaves**... Clique no botão abaixo para baixar.`,
           sender: 'ai',

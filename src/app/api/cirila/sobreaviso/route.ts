@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, VerticalAlign } from 'docx';
+import { 
+  Document, 
+  Packer, 
+  Paragraph, 
+  Table, 
+  TableCell, 
+  TableRow, 
+  WidthType, 
+  AlignmentType, 
+  VerticalAlign, 
+  PageOrientation, 
+  TextRun,
+  HeadingLevel,
+  BorderStyle,
+  TableLayoutType
+} from 'docx';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const count = parseInt(searchParams.get('count') || '10');
+  const count = parseInt(searchParams.get('count') || '15'); // Aumentado para 15 por padrão em landscape
 
   const generateKey = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -12,49 +27,194 @@ export async function GET(req: NextRequest) {
 
   const dateStr = new Date().toLocaleDateString('pt-BR');
 
+  // Definição de larguras de colunas (Total: 100%)
+  const columnWidths = [
+    12, // DATA / CHAVE
+    20, // CLIENTE (PACIENTE)
+    15, // DIAGNÓSTICO
+    13, // HOSPITAL ORIGEM
+    18, // PROCEDIMENTO
+    10, // PRESTADOR / REDE
+    7,  // CNS
+    5   // AUDITOR
+  ];
+
+  const headers = [
+    'DATA / CHAVE', 
+    'CLIENTE (PACIENTE)', 
+    'DIAGNÓSTICO', 
+    'HOSPITAL ORIGEM', 
+    'PROCEDIMENTO', 
+    'PRESTADOR / REDE', 
+    'CNS', 
+    'AUD'
+  ];
+
+  // Estilo comum para células de cabeçalho
+  const headerCellStyle = {
+    shading: { fill: '0f172a' }, // Slate 900 (Ultra Profissional)
+    verticalAlign: VerticalAlign.CENTER,
+    margins: { top: 120, bottom: 120, left: 50, right: 50 },
+  };
+
+  const headerTextStyle = {
+    color: 'ffffff',
+    bold: true,
+    size: 16, // 8pt
+    font: 'Segoe UI',
+  };
+
   // Cabeçalho da Tabela
   const headerRow = new TableRow({
-    children: [
-      'DATA E CHAVE', 'CLIENTE', 'DIAGNOSTICO', 'HOSPITAL DE ORIGEM', 
-      'PROCEDIMENTO SOLICITADO', 'PRESTADOR DA REDE OU PRIVADO', 'CNS', 'AUDITOR'
-    ].map(text => new TableCell({
-      children: [new Paragraph({ text, alignment: AlignmentType.CENTER })],
-      shading: { fill: 'E2E8F0' },
-      verticalAlign: VerticalAlign.CENTER,
+    children: headers.map((text, i) => new TableCell({
+      ...headerCellStyle,
+      width: { size: columnWidths[i], type: WidthType.PERCENTAGE },
+      children: [new Paragraph({ 
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ ...headerTextStyle, text: text.toUpperCase() })] 
+      })],
     })),
   });
 
-  // Linhas de Dados
-  const dataRows = Array.from({ length: count }, () => {
+  // Linhas de Dados com altura aumentada para escrita
+  const dataRows = Array.from({ length: count }, (_, index) => {
     const key = generateKey();
+    const isEven = index % 2 === 0;
+    const rowColor = isEven ? 'f8fafc' : 'ffffff';
+    
     return new TableRow({
+      height: { value: 900, rule: 'atLeast' }, // Altura aumentada para 900 (aprox 1.5cm)
       children: [
         new TableCell({
+          shading: { fill: rowColor },
+          verticalAlign: VerticalAlign.CENTER,
+          width: { size: columnWidths[0], type: WidthType.PERCENTAGE },
           children: [
-            new Paragraph({ text: `Data: ${dateStr}` }),
-            new Paragraph({ text: `Chave: ${key}` }),
+            new Paragraph({ 
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: dateStr, size: 14, color: '64748b' }),
+                new TextRun({ text: `\n${key}`, size: 22, bold: true, color: '2563eb', font: 'Courier New' }) 
+              ] 
+            }),
           ],
         }),
-        ...Array.from({ length: 7 }, () => new TableCell({ children: [] })),
+        ...columnWidths.slice(1).map((width, i) => new TableCell({ 
+          shading: { fill: rowColor },
+          width: { size: width, type: WidthType.PERCENTAGE },
+          children: [] 
+        })),
       ],
     });
   });
 
   const table = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
+    layout: TableLayoutType.FIXED,
     rows: [headerRow, ...dataRows],
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 2, color: '0f172a' },
+      bottom: { style: BorderStyle.SINGLE, size: 2, color: '0f172a' },
+      left: { style: BorderStyle.SINGLE, size: 1, color: 'cbd5e1' },
+      right: { style: BorderStyle.SINGLE, size: 1, color: 'cbd5e1' },
+      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: 'cbd5e1' },
+      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: 'cbd5e1' },
+    }
+  });
+
+  // Seção de Assinaturas
+  const signatureTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: BorderStyle.NONE as any,
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({ text: '', spacing: { before: 800 } }),
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({ text: '________________________________________', color: '94a3b8' }),
+                  new TextRun({ text: '\nMÉDICO REGULADOR DE PLANTÃO', bold: true, size: 16, color: '475569' })
+                ]
+              })
+            ]
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({ text: '', spacing: { before: 800 } }),
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({ text: '________________________________________', color: '94a3b8' }),
+                  new TextRun({ text: '\nSUPERVISOR DE REGULAÇÃO', bold: true, size: 16, color: '475569' })
+                ]
+              })
+            ]
+          })
+        ]
+      })
+    ]
   });
 
   const doc = new Document({
     sections: [{
+      properties: {
+        page: {
+          size: { orientation: PageOrientation.LANDSCAPE },
+          margin: { top: 500, right: 500, bottom: 500, left: 500 },
+        },
+      },
       children: [
-        new Paragraph({
-          text: 'PLANILHA DE PROCEDIMENTOS AUTORIZADOS - SUPERVISÃO SOBRE AVISO',
-          heading: 'Heading1',
-          alignment: AlignmentType.CENTER,
+        // Cabeçalho Premium
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: BorderStyle.NONE as any,
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({ text: 'CIRILA', bold: true, size: 32, color: '0f172a' }),
+                        new TextRun({ text: ' | REGULAÇÃO MUNICIPAL', size: 16, color: '64748b' })
+                      ]
+                    })
+                  ]
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.RIGHT,
+                      children: [
+                        new TextRun({ text: 'DATA DE EMISSÃO: ', size: 16, color: '64748b' }),
+                        new TextRun({ text: dateStr, bold: true, size: 16, color: '1e293b' })
+                      ]
+                    })
+                  ]
+                })
+              ]
+            })
+          ]
         }),
-        new Paragraph({ text: '' }), // Espaçamento
+        new Paragraph({
+          text: 'MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO',
+          heading: HeadingLevel.HEADING_1,
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 200, after: 400 }
+        }),
         table,
+        new Paragraph({ text: '', spacing: { before: 400 } }),
+        signatureTable,
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: 400 },
+          children: [
+            new TextRun({ text: 'Documento gerado automaticamente pelo Sistema Cirila - CIR-A', size: 14, color: '94a3b8', italics: true })
+          ]
+        })
       ],
     }],
   });
@@ -72,3 +232,4 @@ export async function GET(req: NextRequest) {
     },
   });
 }
+
