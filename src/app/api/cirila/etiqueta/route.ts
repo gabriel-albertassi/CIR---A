@@ -331,7 +331,7 @@ export async function GET(req: NextRequest) {
                   new ImageRun({
                     data: fileBuffer,
                     transformation: { width: 500, height: 400 },
-                  }),
+                  } as any),
                 ],
               }),
             ];
@@ -340,7 +340,9 @@ export async function GET(req: NextRequest) {
           const doc = new Document({
             sections: [{
               properties: { 
-                margins: { top: 720, right: 720, bottom: 720, left: 720 }
+                page: {
+                  margin: { top: 720, right: 720, bottom: 720, left: 720 }
+                }
               },
               children: [
                 ...mainContent,
@@ -373,7 +375,9 @@ export async function GET(req: NextRequest) {
     sections: [{
       headers: pageHeader ? { default: pageHeader } : undefined,
       properties: { 
-        margins: { top: isSobreaviso ? 1600 : 720, right: 720, bottom: 1200, left: 720 } 
+        page: {
+          margin: { top: isSobreaviso ? 1600 : 720, right: 720, bottom: 1200, left: 720 } 
+        }
       },
       children: labelElements
     }]
