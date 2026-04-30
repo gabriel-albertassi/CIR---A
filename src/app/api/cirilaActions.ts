@@ -163,14 +163,27 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       }
 
       // Tentativa 3: Formato completo de autorização (Copy-Paste)
-      // Ex: "30/04/2026 : XEF5H - PACIENTE NÃO IDENTIFICADO - TC DE ABDOME GABRIEL ALBERTASSI ETIQUETA INIMÁ AUTORIZADO PARA HSJB"
+      // Ex: "30/04/2026 : XEF5H - PACIENTE NÃO IDENTIFICADO - TC DE ABDOME ETIQUETA INIMÁ"
       if (!etiquetaMatch) {
-        const fullMatch = text.match(/(?:.+:\s+)?(?:[A-Z0-9]+\s+-\s+)?(.+?)\s+-\s+([A-Z\s]+?)(?:\s+[A-Z\s]+)?\s+ETIQUETA\s+([A-ZÀ-Úa-zà-ú\s]+)/i);
+        // Regex mais flexível para capturar o padrão de log da regulação
+        // Captura: [DATA] : [CHAVE] - [PACIENTE] - [EXAME] ETIQUETA [PROF]
+        const fullMatch = text.match(/(?:\d{2}\/\d{2}\/\d{4}\s*:\s*)?[A-Z0-9]{5}\s*-\s*(.+?)\s*-\s*(.+?)\s*ETIQUETA\s+([A-ZÀ-Úa-zà-ú\s]+)/i);
+        
         if (fullMatch) {
           const patient = fullMatch[1].trim().toUpperCase();
           const exam = fullMatch[2].trim().toUpperCase();
-          const professional = fullMatch[3].split(' ')[0].trim().toLowerCase(); // Pega apenas o primeiro nome do prof
+          // Pega a primeira palavra após "ETIQUETA" como o nome do profissional
+          const professional = fullMatch[3].trim().split(/\s+/)[0].toLowerCase();
           
+          const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'barenco', 'rosely', 'mazoni'];
+          
+          if (!validProfs.includes(professional)) {
+            return {
+              text: `Identifiquei uma autorização para **${patient}**, mas não reconheci o nome do profissional "**${professional}**". \n\nPor favor, use um dos nomes autorizados (Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco).`,
+              sender: 'ai'
+            };
+          }
+
           return {
             text: `Identifiquei uma autorização completa. Gerando etiqueta para **${patient}** (${exam}) com assinatura de **${professional.toUpperCase()}**.`,
             sender: 'ai',
@@ -185,14 +198,23 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       if (etiquetaMatch) {
         const exam = etiquetaMatch[1].trim().toUpperCase();
         const patient = etiquetaMatch[2].trim().toUpperCase();
-        const professional = (etiquetaMatch[3] || 'REGULADOR').trim().toLowerCase();
+        const professionalRaw = (etiquetaMatch[3] || '').trim().toLowerCase();
+        
+        const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'barenco', 'rosely', 'mazoni'];
+        
+        if (!professionalRaw || !validProfs.includes(professionalRaw)) {
+          return {
+            text: `Chefe, não identifiquei qual enfermeiro(a) supervisor(a) vai assinar esta etiqueta de **${exam}** para **${patient}**. \n\nPor favor, informe o nome (ex: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco).`,
+            sender: 'ai'
+          };
+        }
 
         return {
           text: `Preparando etiqueta profissional para **${patient}** (${exam})... Clique abaixo para baixar o arquivo pronto para impressão.`,
           sender: 'ai',
           actions: [{ 
             label: '📄 Baixar Etiqueta (.docx)', 
-            payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professional}` 
+            payload: `DOWNLOAD_ETIQUETA_DOCX_${patient.replace(/\s/g, '+')}_${exam.replace(/\s/g, '+')}_${professionalRaw}` 
           }]
         };
       }

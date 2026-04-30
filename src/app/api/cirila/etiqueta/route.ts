@@ -19,73 +19,66 @@ export async function GET(req: NextRequest) {
   const exam = searchParams.get('exam')?.replace(/\+/g, ' ') || 'EXAME';
   const profKey = searchParams.get('professional')?.toLowerCase() || 'paola';
 
-  // --- MAPA DE PROFISSIONAIS (ATUALIZADO CONFORME IMAGEM) ---
+  // --- MAPA DE PROFISSIONAIS (MAPEAMENTO FIXO CONFORME REGRA) ---
   const profMap: Record<string, any> = {
     "paola": {
-      "nome": "Paola Calderaro Nogueira Leite",
-      "registro": "Coren-RJ 88367",
-      "cargo": "Enfermeira supervisora",
+      "full": "Paola Calderaro Nogueira Leite – COREN-RJ 88367 – Enfermeira Supervisora",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
     "inima": {
-      "nome": "Inimá J. O. Junior",
-      "registro": "Coren-RJ 83798",
-      "cargo": "Enfermeiro supervisor",
+      "full": "Inimá J. O. Junior – COREN-RJ 83798 – Enfermeiro Supervisor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
-    "rosely": {
-      "nome": "Rosely Frossard de Andrade",
-      "registro": "Mat.1778/PMVR",
-      "cargo": "DCRAA/SMSVR",
+    "inimá": {
+      "full": "Inimá J. O. Junior – COREN-RJ 83798 – Enfermeiro Supervisor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
-    "carlos_alves": {
-      "nome": "Carlos Roberto Alves",
-      "registro": "COREN-RJ 289648",
-      "cargo": "Enfermeiro Supervisor / Auditor",
+    "carlos": {
+      "full": "Carlos Roberto Alves – COREN-RJ 289648 – Enfermeiro Supervisor / Auditor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
-    "roberto_lopes": {
-      "nome": "Roberto R. Lopes",
-      "registro": "COREN-RJ 262240",
-      "cargo": "Enfermeiro Supervisor",
+    "roberto": {
+      "full": "Roberto R. Lopes – COREN-RJ 262240 – Enfermeiro Supervisor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
     "sabrina": {
-      "nome": "Sabrina Silva Ramalho",
-      "registro": "COREN-RJ 146764",
-      "cargo": "Enfermeira Supervisora",
+      "full": "Sabrina Silva Ramalho – COREN-RJ 146764 – Enfermeira Supervisora",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
     "barenco": {
-      "nome": "DR. Carlos Augusto Barenco",
-      "registro": "CRO 11981",
-      "cargo": "Supervisor",
+      "full": "Dr. Carlos Augusto Barenco – CRO 11981 – Supervisor",
+      "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
+    },
+    "dr. barenco": {
+      "full": "Dr. Carlos Augusto Barenco – CRO 11981 – Supervisor",
+      "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
+    },
+    // Mantendo os extras como fallback se necessário, mas priorizando os acima
+    "rosely": {
+      "full": "Rosely Frossard de Andrade – Mat.1778/PMVR – DCRAA/SMSVR",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     },
     "mazoni": {
-      "nome": "Dr Marcelo Henrique da Costa Mazoni",
-      "registro": "CRM 52-37297-5",
-      "cargo": "Médico Supervisor",
+      "full": "Dr Marcelo Henrique da Costa Mazoni – CRM 52-37297-5 – Médico Supervisor",
       "departamento": "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
     }
   };
 
   const prof = profMap[profKey] || {
-    nome: profKey.toUpperCase(),
-    registro: "COREN-RJ / CRM",
-    cargo: "Regulador(a)",
+    full: `${profKey.toUpperCase()} – REGISTRO – CARGO`,
     departamento: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR"
   };
 
-  // --- LÓGICA DE DESTINO AUTOMÁTICO ---
+  // --- LÓGICA DE DESTINO AUTOMÁTICO (ATUALIZADA) ---
   let destination = "HOSPITAL DESTINO";
   const examUpper = exam.toUpperCase();
-  if (examUpper.includes('TC') || examUpper.includes('TOMOGRAFIA')) {
+  
+  if (examUpper.includes('ANGIOTC')) {
+    destination = "HMMR";
+  } else if (examUpper.includes('TC') || examUpper.includes('TOMOGRAFIA')) {
     destination = "HSJB";
-    if (examUpper.includes('ANGIOTC') || examUpper.includes('ANGIOTOMOGRAFIA')) {
-      destination = "HMMR";
-    }
+  } else if (examUpper.includes('COLANGIO RNM') || examUpper.includes('COLANGIORNM')) {
+    destination = "RADIO VIDA";
   } else if (examUpper.includes('RNM') || examUpper.includes('RESSONANCIA') || examUpper.includes('RESSONÂNCIA')) {
     destination = "RADIO VIDA";
   }
@@ -124,10 +117,11 @@ export async function GET(req: NextRequest) {
                   children: [
                     // Linha 1: Profissional (Negrito, Arial)
                     new Paragraph({
+                      alignment: AlignmentType.CENTER,
                       spacing: { after: 40 },
                       children: [
                         new TextRun({
-                          text: `${prof.nome} – ${prof.registro} – ${prof.cargo}`,
+                          text: prof.full,
                           bold: true,
                           size: 20,
                           font: "Arial"
@@ -136,6 +130,7 @@ export async function GET(req: NextRequest) {
                     }),
                     // Linha 2: Departamento (Negrito, Arial)
                     new Paragraph({
+                      alignment: AlignmentType.CENTER,
                       spacing: { after: 120 },
                       children: [
                         new TextRun({
@@ -146,26 +141,29 @@ export async function GET(req: NextRequest) {
                         })
                       ]
                     }),
-                    // Linha 3: Etiqueta de Autorização (Exatamente abaixo, Arial)
+                    // Linha 3: Etiqueta de Autorização (Arial)
                     new Paragraph({
-                      alignment: AlignmentType.LEFT,
+                      alignment: AlignmentType.CENTER,
                       children: [
                         new TextRun({
                           text: `${dateStr} : `,
                           bold: true,
                           size: 20,
-                          font: "Arial"
+                          font: "Arial",
+                          color: "000000"
                         }),
                         new TextRun({
                           text: `${authKey} - `,
                           bold: true,
                           size: 20,
-                          font: "Arial"
+                          font: "Arial",
+                          color: "000000"
                         }),
                         new TextRun({
                           text: `${patient.toUpperCase()} - ${examUpper} `,
                           size: 20,
-                          font: "Arial"
+                          font: "Arial",
+                          color: "000000"
                         }),
                         new TextRun({
                           text: `AUTORIZADO PARA ${destination}`,
