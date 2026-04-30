@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as mammoth from 'mammoth';
 
-// Polyfill para evitar o erro "DOMMatrix is not defined" no ambiente de servidor
-if (typeof global.DOMMatrix === 'undefined') {
-  (global as any).DOMMatrix = class DOMMatrix {
-    constructor() {}
-  };
-}
-
 export async function POST(req: NextRequest) {
-  let file: File | null = null;
-  
   try {
     const formData = await req.formData();
-    file = formData.get('file') as File;
+    const file = formData.get('file') as File;
 
     if (!file) {
       return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 });
@@ -24,21 +15,21 @@ export async function POST(req: NextRequest) {
     
     let text = '';
 
-    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-      // Require padrão que o Turbopack aceita
-      const pdf = require('pdf-parse');
-      
-      // Opção para ignorar renderização visual que causa erros de DOM
-      const data = await pdf(buffer, { pagerender: () => "" });
-      text = data.text || '';
-    } else if (
+    // PDFs são processados no cliente agora
+    if (
       file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
       file.name.toLowerCase().endsWith('.docx')
     ) {
       const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
       text = result.value || '';
-    } else {
+    } else if (file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')) {
       text = buffer.toString('utf-8');
+    } else {
+      // Se for PDF enviado por engano ou outro formato, avisamos que deve ser processado no cliente
+      return NextResponse.json({ 
+        error: 'Este formato deve ser processado no navegador ou não é suportado no servidor.',
+        format: file.type 
+      }, { status: 400 });
     }
 
     if (!text.trim()) {
@@ -49,8 +40,8 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('Erro no processamento de arquivo:', error);
     return NextResponse.json({ 
-        error: 'Erro ao processar arquivo: ' + error.message,
-        details: error.stack 
+        error: 'Erro ao processar arquivo: ' + error.message
     }, { status: 500 });
   }
 }
+

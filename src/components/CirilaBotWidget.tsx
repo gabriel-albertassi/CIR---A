@@ -307,12 +307,38 @@ export default function CirilaBotWidget() {
               let extractedText = '';
 
               if (file.type.startsWith('image/')) {
-                // Processamento OCR no Cliente para Imagens
                 const Tesseract = (await import('tesseract.js')).default;
                 const result = await Tesseract.recognize(file, 'por');
                 extractedText = result.data.text;
+              } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                // Processamento de PDF no Cliente (Browser) para evitar erros de servidor
+                const pdfjsLib = await import('pdfjs-dist');
+                // Configuração do worker via CDN para evitar problemas de build local
+                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+                let fullText = '';
+                
+                for (let i = 1; i <= pdf.numPages; i++) {
+                  const page = await pdf.getPage(i);
+                  const content = await page.getTextContent();
+                  const strings = content.items.map((item: any) => 'str' in item ? item.str : '');
+                  fullText += strings.join(' ') + '\n';
+                }
+                extractedText = fullText;
+              } else if (
+                file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                file.name.toLowerCase().endsWith('.docx')
+              ) {
+                // Processamento de Word (DOCX) no Cliente
+                const mammoth = await import('mammoth');
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                extractedText = result.value;
               } else {
-                // Envio para API para PDF/DOCX
+                // Envio para API apenas para Texto Puro ou outros
                 const formData = new FormData();
                 formData.append('file', file);
                 const res = await fetch('/api/cirila/ocr', { method: 'POST', body: formData });
@@ -321,17 +347,18 @@ export default function CirilaBotWidget() {
                 extractedText = data.text;
               }
 
+
               if (extractedText.trim()) {
                 handleSend(`Gerar etiquetas para o seguinte pedido extraído do documento: \n\n${extractedText}`);
               } else {
                 setMessages(prev => [...prev, { text: '❌ Não consegui extrair texto legível deste documento.', sender: 'ai' }]);
               }
             } catch (err: any) {
+              console.error('Erro no processamento:', err);
               setMessages(prev => [...prev, { text: `❌ Erro ao ler arquivo: ${err.message}`, sender: 'ai' }]);
             } finally {
               setLoading(false);
               setExpression('neutral');
-              // Limpar input
               e.target.value = '';
             }
           }}
