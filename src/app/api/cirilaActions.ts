@@ -143,13 +143,16 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const authorizations: string[] = [];
     const dateStr = new Date().toLocaleDateString('pt-BR');
 
+    // Removemos a parte do paciente do texto de busca de exames para evitar redundância
+    const textForExams = patientMatch ? text.replace(patientMatch[0], '').trim() : text;
+
     // Busca por todos os exames mencionados na frase
     Object.entries(examMap).forEach(([trigger, info]) => {
       // Regex para encontrar o termo isolado ou seguido de "de" (ex: "TC de crânio")
       const examRegex = new RegExp(`(${trigger})(\\s+de\\s+[a-záàâãéèêíïóôõöúç\\s,]+)?`, 'gi');
       let match;
       
-      while ((match = examRegex.exec(text)) !== null) {
+      while ((match = examRegex.exec(textForExams)) !== null) {
         const fullExamName = match[0].toUpperCase();
         // Evita duplicatas ex: "TC" e "Tomografia" na mesma frase se referindo ao mesmo exame
         // Mas o prompt diz "separar corretamente cada exame", então se houver "TC e RNM" ok.
@@ -157,13 +160,15 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         
         // Ajuste para "abdome e pelve"
         if (fullExamName.includes(' E ')) {
-           const parts = fullExamName.split(' E ');
+           const parts = fullExamName.split(/\s+E\s+/i);
            parts.forEach(p => {
-             const cleanPart = p.trim().replace(/^GERAR\s+/, '');
-             authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${info.code} ${cleanPart.replace(info.code, '').trim()} AUTORIZADO PARA ${info.destination}`);
+             const cleanPart = p.trim().replace(/^GERAR\s+/i, '');
+             // Mesma lógica de substituição de gatilho pelo código
+             const displayPart = cleanPart.startsWith(info.code) ? cleanPart : `${info.code} ${cleanPart.replace(new RegExp(trigger, 'i'), '').trim()}`;
+             authorizations.push(`${dateStr} : ${generateKey()} - ${patientName} - ${displayPart.trim()} AUTORIZADO PARA ${info.destination}`);
            });
         } else {
-           const cleanExam = fullExamName.replace(/^GERAR\s+/, '').trim();
+           const cleanExam = fullExamName.replace(/^GERAR\s+/i, '').trim();
            // Se o trigger for um sinônimo (ex: Tomografia), substitui pelo código (TC)
            const displayExam = cleanExam.startsWith(info.code) ? cleanExam : `${info.code} ${cleanExam.replace(new RegExp(trigger, 'i'), '').trim()}`;
            
