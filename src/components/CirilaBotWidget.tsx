@@ -64,17 +64,23 @@ export default function CirilaBotWidget() {
     };
   }, []);
 
-  async function handleSend(textOverride?: string) {
+  async function handleSend(textOverride?: string, isSilent: boolean = false) {
     const textToSend = textOverride || input;
     if (!textToSend.trim()) return;
 
-    setInput('');
-    setMessages(prev => [...prev, { text: textToSend, sender: 'user' }]);
+    if (!isSilent) {
+      setMessages(prev => [...prev, { text: textToSend, sender: 'user' }]);
+      setInput('');
+    }
+    
     setLoading(true);
     setExpression('thinking');
 
     try {
-      const reply = await askCirila(textToSend);
+      const fileId = (window as any).lastCirilaFileId;
+      const finalQuery = fileId ? `${textToSend} [FILE_ID:${fileId}]` : textToSend;
+      
+      const reply = await askCirila(finalQuery);
       setMessages(prev => [...prev, reply]);
     } catch (err) {
       setMessages(prev => [...prev, { text: '❌ Erro ao conectar com o servidor da Cirila.', sender: 'ai' }]);
@@ -137,11 +143,14 @@ export default function CirilaBotWidget() {
 
     if (payload.startsWith('DOWNLOAD_ETIQUETA_DOCX_')) {
       const parts = payload.split('_');
-      // Payload: DOWNLOAD_ETIQUETA_DOCX_PATIENT+NAME_EXAM+NAME_PROFESSIONAL
+      // Payload: DOWNLOAD_ETIQUETA_DOCX_PATIENT+NAME_EXAM+NAME_PROFESSIONAL_KEY_FILEID
       const patient = parts[3] || 'PACIENTE';
       const exam = parts[4] || 'EXAME';
       const professional = parts[5] || 'paola';
-      window.open(`/api/cirila/etiqueta?patient=${patient}&exam=${exam}&professional=${professional}`, '_blank');
+      const key = parts[6] || '';
+      const fileId = parts[7] || '';
+      
+      window.open(`/api/cirila/etiqueta?patient=${patient}&exam=${exam}&professional=${professional}&key=${key}&templateId=${fileId}`, '_blank');
     }
   }
 
@@ -227,6 +236,42 @@ export default function CirilaBotWidget() {
                 fontWeight: 500
               }}>
                 <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                
+                {m.file && (
+                  <div style={{ 
+                    marginTop: '0.75rem', 
+                    padding: '0.75rem', 
+                    background: m.sender === 'user' ? 'rgba(255,255,255,0.1)' : '#f1f5f9', 
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    border: m.sender === 'user' ? '1px solid rgba(255,255,255,0.2)' : '1px solid #e2e8f0'
+                  }}>
+                    <div style={{ 
+                      width: '40px', 
+                      height: '40px', 
+                      background: m.sender === 'user' ? 'rgba(255,255,255,0.2)' : 'white', 
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: m.sender === 'user' ? 'white' : '#0f172a'
+                    }}>
+                      {m.file.type.includes('pdf') ? <FileText size={20} /> : <Paperclip size={20} />}
+                    </div>
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {m.file.name}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>
+                        {m.file.size ? `${(m.file.size / 1024).toFixed(1)} KB` : 'Arquivo anexado'}
+                      </div>
+                    </div>
+                    {m.sender === 'user' && <CheckCircle2 size={16} color="#10b981" title="Sincronizado com o sistema" />}
+                    {m.sender === 'ai' && <CheckCircle2 size={16} color="#10b981" />}
+                  </div>
+                )}
               </div>
 
               {/* PROJEÇÃO HOLOGRÁFICA DE EMERGÊNCIA */}
@@ -320,89 +365,38 @@ export default function CirilaBotWidget() {
 
             setLoading(true);
             setExpression('thinking');
-            setProcessingStatus(`📂 Carregando arquivo: ${file.name}...`);
-            setMessages(prev => [...prev, { text: `📂 *Anexando arquivo: ${file.name}...*`, sender: 'user' }]);
-
+            setProcessingStatus(`📂 Enviando arquivo: ${file.name}...`);
+            
             try {
-              let extractedText = '';
+              // 1. Realiza o upload real para o servidor
+              const formData = new FormData();
+              formData.append('file', file);
+              
+              const uploadRes = await fetch('/api/cirila/upload', {
+                method: 'POST',
+                body: formData
+              });
+              const uploadData = await uploadRes.json();
 
-              if (file.type.startsWith('image/')) {
-                setProcessingStatus('🧠 Iniciando OCR na imagem...');
-                const TesseractModule = await import('tesseract.js');
-                const Tesseract = TesseractModule.default || (TesseractModule as any);
-                const result = await Tesseract.recognize(file, 'por');
-                extractedText = result.data.text;
-              } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                setProcessingStatus('📄 Lendo PDF digital...');
-                
-                // Processamento de PDF no Cliente (v4)
-                const pdfjsLibModule = await import('pdfjs-dist');
-                const pdfjsLib = pdfjsLibModule.default || (pdfjsLibModule as any);
-                
-                // Configuração robusta do worker
-                const version = pdfjsLib.version || '4.10.38';
-                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`;
-                
-                const arrayBuffer = await file.arrayBuffer();
-                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-                const pdf = await loadingTask.promise;
-                let fullText = '';
-                
-                // 1. Tentar extração direta de texto (para PDFs digitais)
-                for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) { 
-                  const page = await pdf.getPage(i);
-                  const content = await page.getTextContent();
-                  const strings = content.items.map((item: any) => 'str' in item ? item.str : '');
-                  fullText += strings.join(' ') + '\n';
+              if (!uploadRes.ok) throw new Error(uploadData.error || 'Erro no upload');
+
+              // Adiciona o arquivo visualmente no chat com confirmação de "Recebido"
+              setMessages(prev => [...prev, { 
+                text: `Documento **${file.name}** recebido chefe! Ele será usado como **Template Visual**. \n\nAgora me diga: **Qual paciente e qual exame devo regular nele?**`, 
+                sender: 'ai',
+                file: {
+                  name: uploadData.name,
+                  size: uploadData.size,
+                  type: uploadData.type
                 }
+              }]);
 
-                // 2. Se falhar (PDF é uma imagem/scan), usar OCR na primeira página
-                if (!fullText.trim() || fullText.trim().length < 50) {
-                  setProcessingStatus('🔍 PDF parece escaneado. Iniciando OCR...');
-                  const page = await pdf.getPage(1);
-                  const viewport = page.getViewport({ scale: 2.0 }); 
-                  const canvas = document.createElement('canvas');
-                  const context = canvas.getContext('2d');
-                  canvas.height = viewport.height;
-                  canvas.width = viewport.width;
-                  
-                  await page.render({ canvasContext: context!, viewport }).promise;
-                  const imageData = canvas.toDataURL('image/png');
-                  
-                  const TesseractModule = await import('tesseract.js');
-                  const Tesseract = TesseractModule.default || (TesseractModule as any);
-                  const result = await Tesseract.recognize(imageData, 'por');
-                  fullText = result.data.text;
-                }
-                
-                extractedText = fullText;
-              } else if (
-                file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                file.name.toLowerCase().endsWith('.docx')
-              ) {
-                setProcessingStatus('📝 Lendo documento Word...');
-                const mammothModule = await import('mammoth');
-                const mammoth = mammothModule.default || (mammothModule as any);
-                const arrayBuffer = await file.arrayBuffer();
-                const result = await mammoth.extractRawText({ arrayBuffer });
-                extractedText = result.value;
-              } else {
-                setProcessingStatus('📑 Processando arquivo de texto...');
-                const text = await file.text();
-                extractedText = text;
-              }
+              // Armazena o ID do último arquivo anexado para a próxima mensagem
+              (window as any).lastCirilaFileId = uploadData.fileId;
 
-              setProcessingStatus('✨ Finalizando extração...');
-
-              if (extractedText.trim()) {
-                // Injetar comando de geração de etiquetas automaticamente
-                handleSend(`Gerar etiquetas para o seguinte pedido extraído do documento: \n\n${extractedText}`);
-              } else {
-                setMessages(prev => [...prev, { text: '❌ Não consegui extrair texto legível deste documento. Verifique se o arquivo não está corrompido ou protegido.', sender: 'ai' }]);
-              }
             } catch (err: any) {
-              console.error('Erro no processamento:', err);
-              setMessages(prev => [...prev, { text: `❌ Erro ao ler arquivo: ${err.message || 'Erro desconhecido'}`, sender: 'ai' }]);
+              console.error('Erro no anexo:', err);
+              setMessages(prev => [...prev, { text: `❌ Erro no anexo: ${err.message || 'Erro desconhecido'}`, sender: 'ai' }]);
             } finally {
               setProcessingStatus(null);
               setLoading(false);
@@ -411,6 +405,7 @@ export default function CirilaBotWidget() {
             }
           }}
         />
+
 
         <button 
           onClick={() => document.getElementById('cirila-file-upload')?.click()}
