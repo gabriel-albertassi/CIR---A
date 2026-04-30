@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// @ts-ignore
-import pdf from 'pdf-parse/lib/pdf-parse.js';
 import * as mammoth from 'mammoth';
 
 export async function POST(req: NextRequest) {
@@ -17,16 +14,14 @@ export async function POST(req: NextRequest) {
     let text = '';
 
     if (file.type === 'application/pdf') {
+      // Usando require dinâmico para evitar erros de build com pdf-parse (CommonJS)
+      const pdf = require('pdf-parse');
       const data = await pdf(buffer);
       text = data.text;
     } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
     } else if (file.type.startsWith('image/')) {
-      // Para imagens, o ideal é processar no cliente com tesseract.js 
-      // ou enviar para uma API de OCR externa. 
-      // Como tesseract.js é pesado para o servidor sem as libs de sistema, 
-      // vamos retornar um aviso para processar no cliente.
       return NextResponse.json({ error: 'Imagens devem ser processadas via OCR no cliente' }, { status: 400 });
     } else {
       text = buffer.toString('utf-8');
