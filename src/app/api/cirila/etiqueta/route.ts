@@ -88,7 +88,6 @@ export async function GET(req: NextRequest) {
           relativeHorizontalPosition: RelativeHorizontalPosition.CENTER,
           relativeVerticalPosition: pos === 'bottom' ? RelativeVerticalPosition.BOTTOM : RelativeVerticalPosition.TOP,
           overlap: OverlapType.OVERLAP,
-          margin: { top: 400, bottom: 400, left: 400, right: 400 }
         } : undefined,
         rows: [
           new TableRow({
