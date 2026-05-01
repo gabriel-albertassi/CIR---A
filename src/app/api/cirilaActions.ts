@@ -147,26 +147,54 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // PADRÃO B: Etiqueta Única / Lote (Regex mais flexível)
-    // "Gerar TC para João Silva assinado por Inimá" ou "Gera chave do João Silva TC Sabina"
+    // --- REGRA CRÍTICA: EXIGE ANEXO PARA ETIQUETAS DE REGULAÇÃO ---
+    if (!isDocumentAttached) {
+      return {
+        text: `Olá! Eu sou a **CIRILA** e estou pronta para regular este pedido. 🤖\n\n⚠️ **Regra de Segurança:** Para garantir a integridade do processo, preciso que você **anexe o documento original (PDF ou Word)**. \n\nAssim que você anexar, poderei inserir a etiqueta oficial no topo preservando 100% do conteúdo original. Estou aguardando seu arquivo!`,
+        sender: 'ai'
+      };
+    }
+
+    // PADRÃO B: Etiqueta Única / Lote (Regex mais robusto)
     let examRaw = "EXAME";
     let patient = "PACIENTE";
-    let professionalRaw = "inima";
+    let professionalRaw = "";
 
-    // Tentativa de extração simplificada
-    if (text.includes('para')) {
-      const parts = text.split('para');
-      patient = parts[1].split(',')[0].split('assinado')[0].split('assinada')[0].trim().toUpperCase();
+    // 1. Tentar capturar o Exame Primeiro (Palavras-chave)
+    if (cleanedText.includes('angiotc')) examRaw = "ANGIOTC";
+    else if (cleanedText.includes('rnm') || cleanedText.includes('ressonancia') || cleanedText.includes('ressonância')) examRaw = "RESSONÂNCIA";
+    else if (cleanedText.includes('tc') || cleanedText.includes('tomografia')) examRaw = "TC";
+    else if (cleanedText.includes('etiqueta')) examRaw = "EXAME";
+
+    // 2. Extrair Paciente (Tenta capturar após o exame ou após "para")
+    const patientKeywords = ['para', 'do', 'da', 'de', 'paciente'];
+    let foundPatient = false;
+    
+    for (const kw of patientKeywords) {
+      const regex = new RegExp(`${kw}\\s+([^,;\\.\\n]+)`, 'i');
+      const match = cleanedText.match(regex);
+      if (match && match[1]) {
+        // Filtra palavras que seriam o profissional ou comandos
+        const nameCandidate = match[1].split('assinado')[0].split('assinada')[0].split('com')[0].trim();
+        if (nameCandidate.length > 3 && !validProfs.some(p => nameCandidate.includes(p))) {
+          patient = nameCandidate.toUpperCase();
+          foundPatient = true;
+          break;
+        }
+      }
+    }
+
+    // Fallback: se não achou "para", tenta pegar o que sobrou após o exame
+    if (!foundPatient) {
+      const afterExam = cleanedText.split(examRaw.toLowerCase())[1];
+      if (afterExam) {
+        const candidate = afterExam.split('assinado')[0].split('assinada')[0].trim();
+        if (candidate.length > 2) patient = candidate.toUpperCase();
+      }
     }
     
-    // Profissional
-    professionalRaw = validProfs.find(p => text.includes(p)) || "";
-    
-    // Exame
-    if (text.includes('tc')) examRaw = "TC";
-    else if (text.includes('rnm') || text.includes('ressonancia')) examRaw = "RESSONÂNCIA";
-    else if (text.includes('angiotc')) examRaw = "ANGIOTC";
-    else if (text.includes('etiqueta')) examRaw = "EXAME";
+    // 3. Profissional
+    professionalRaw = validProfs.find(p => cleanedText.includes(p)) || "";
 
     if (!professionalRaw) {
       return {
@@ -198,7 +226,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     const authKey = generateKey();
     return {
-      text: `✅ **CIRILA:** Excelente! Documento recebido. Estou preservando o conteúdo original e inserindo a etiqueta de autorização no **topo** com a chave **${authKey}**. \n\nO documento finalizado para **${patient}** está pronto para download.`,
+      text: `✅ **CIRILA:** Excelente! Documento recebido. \n\nEstou processando a autorização para **${patient}** com a chave **${authKey}**. Como manda o protocolo, o conteúdo original foi **100% preservado** e a etiqueta oficial foi inserida no topo. \n\nO documento (.docx) está pronto para impressão.`,
       sender: 'ai',
       actions: [{ 
         label: '📄 Baixar Pedido Autorizado (.docx)', 

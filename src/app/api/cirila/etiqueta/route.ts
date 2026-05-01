@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
     "carlos": { name: "Carlos Roberto Alves", registro: "COREN-RJ 289648", cargo: "Enfermeiro Supervisor / Auditor" },
     "roberto": { name: "Roberto R. Lopes", registro: "COREN-RJ 262240", cargo: "Enfermeiro Supervisor" },
     "sabrina": { name: "Sabrina Silva Ramalho", registro: "COREN-RJ 146764", cargo: "Enfermeira Supervisora" },
+    "sabina": { name: "Sabrina Silva Ramalho", registro: "COREN-RJ 146764", cargo: "Enfermeira Supervisora" },
     "barenco": { name: "Dr. Carlos Augusto Barenco", registro: "CRO 11981", cargo: "Supervisor" },
     "dr. barenco": { name: "Dr. Carlos Augusto Barenco", registro: "CRO 11981", cargo: "Supervisor" },
     "rosely": { name: "Rosely Frossard de Andrade", registro: "Mat.1778/PMVR", cargo: "DCRAA/SMSVR" },
@@ -94,42 +95,53 @@ export async function GET(req: NextRequest) {
           children: [
             new TableCell({
               borders: {
-                top: { style: BorderStyle.SINGLE, size: 15, color: "000000" },
-                bottom: { style: BorderStyle.SINGLE, size: 15, color: "000000" },
-                left: { style: BorderStyle.SINGLE, size: 15, color: "000000" },
-                right: { style: BorderStyle.SINGLE, size: 15, color: "000000" },
+                top: { style: BorderStyle.SINGLE, size: 25, color: "000000" },
+                bottom: { style: BorderStyle.SINGLE, size: 25, color: "000000" },
+                left: { style: BorderStyle.SINGLE, size: 25, color: "000000" },
+                right: { style: BorderStyle.SINGLE, size: 25, color: "000000" },
               },
-              margins: { top: 200, bottom: 200, left: 300, right: 300 },
+              margins: { top: 250, bottom: 250, left: 400, right: 400 },
               children: [
-                // LINHA 1: NOME PROFISSIONAL (NEGRITO/SUBINHADO) + REGISTRO + CARGO
+                // LINHA 1: [NOME – REGISTRO – CARGO]
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
                   children: [
-                    new TextRun({ text: prof.name, bold: true, size: 24, font: "Arial", underline: {} }),
-                    new TextRun({ text: ` - ${prof.registro} - ${prof.cargo}`, bold: true, size: 24, font: "Arial" })
+                    new TextRun({ 
+                      text: `${prof.name} – ${prof.registro} – ${prof.cargo}`, 
+                      bold: true, 
+                      size: 24, 
+                      font: "Arial", 
+                      underline: { type: "single" } 
+                    })
                   ]
                 }),
-                // LINHA 2: DEPARTAMENTO (DCRAA - SMSVR)
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  children: [new TextRun({ text: "Departamento Controle, Regulação, Avaliação e Auditoria - DCRAA / SMSVR", bold: true, size: 22, font: "Arial" })]
-                }),
-                // LINHA 3: CHAVE DE ACESSO (VERMELHO)
+                // LINHA 2: Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
                   spacing: { before: 100 },
                   children: [
-                    new TextRun({ text: "CHAVE DE ACESSO: ", bold: true, size: 28, font: "Arial" }),
-                    new TextRun({ text: authKey, bold: true, size: 30, font: "Arial", color: "FF0000" })
+                    new TextRun({ 
+                      text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR", 
+                      bold: true, 
+                      size: 22, 
+                      font: "Arial" 
+                    })
                   ]
                 }),
-                // LINHA 4: DETALHES (AZUL)
+                // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] - [EXAME] AUTORIZADO PARA [DESTINO]
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
-                  spacing: { before: 100 },
+                  spacing: { before: 150 },
                   children: [
-                    new TextRun({ text: `${dateStr} - ${finalPatient} - ${finalExam} - `, bold: true, size: 22, font: "Arial" }),
-                    new TextRun({ text: `AUTORIZADO PARA ${destination}`, bold: true, size: 22, color: "0000FF", font: "Arial" })
+                    new TextRun({ text: `${dateStr} : `, bold: true, size: 26, font: "Arial", color: "0000FF" }),
+                    new TextRun({ text: authKey, bold: true, size: 30, font: "Arial", color: "FF0000" }),
+                    new TextRun({ 
+                      text: ` - ${finalPatient} - ${finalExam} AUTORIZADO PARA ${destination}`, 
+                      bold: true, 
+                      size: 24, 
+                      color: "0000FF", 
+                      font: "Arial" 
+                    })
                   ]
                 })
               ]
@@ -198,7 +210,7 @@ export async function GET(req: NextRequest) {
       const isManualFill = patient.toUpperCase() === 'SOBREAVISO';
       
       return new TableRow({
-        height: { value: 600, rule: HeightRule.ATLEAST }, // Altura maior para preenchimento manual
+        height: { value: 800, rule: HeightRule.ATLEAST }, // Altura maior para preenchimento manual
         children: [
           new TableCell({ 
             verticalAlign: VerticalAlign.CENTER,
@@ -310,8 +322,8 @@ export async function GET(req: NextRequest) {
           const bodyMatch = labelXml.match(/<w:body>([\s\S]*?)(?:<w:sectPr|<\/w:body>)/);
           if (bodyMatch && bodyMatch[1]) {
             let labelBody = bodyMatch[1];
-            // Spacer para garantir que a etiqueta não fique colada no texto anterior
-            const spacer = '<w:p><w:pPr><w:pbdr><w:bottom w:val="single" w:sz="4" w:space="1" w:color="auto"/></w:pbdr></w:pPr></w:p>';
+            // Spacer simples sem linha para não poluir
+            const spacer = '<w:p><w:pPr><w:spacing w:before="400" w:after="400"/></w:pPr></w:p>';
             
             // Inserir no TOPO (logo após <w:body>) de forma robusta
             const mergedXml = templateXml.replace(/(<w:body[^>]*>)/, `$1${labelBody}${spacer}`);
@@ -412,7 +424,7 @@ export async function GET(req: NextRequest) {
               },
               rows: [
                 new TableRow({
-                  height: { value: 9000, rule: HeightRule.ATLEAST }, // Altura na linha para empurrar o conteúdo
+                  height: { value: 11000, rule: HeightRule.ATLEAST }, // Aumentado para empurrar mais pro rodapé
                   children: [
                     new TableCell({
                       verticalAlign: VerticalAlign.BOTTOM,
