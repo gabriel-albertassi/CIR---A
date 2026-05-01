@@ -61,14 +61,14 @@ const NO_BORDERS = {
 // ─── Colunas (DXA total ~10800) ───────────────────────────────────────────────
 
 const COLS = [
-  { label: 'DATA / CHAVE',       dxa: 1200 },
-  { label: 'CLIENTE (PACIENTE)', dxa: 2000 },
-  { label: 'DIAGNÓSTICO',        dxa: 1500 },
-  { label: 'HOSPITAL ORIGEM',    dxa: 1400 },
-  { label: 'PROCEDIMENTO',       dxa: 1800 },
-  { label: 'PRESTADOR / REDE',   dxa: 1400 },
-  { label: 'CNS',                dxa: 900  },
-  { label: 'AUDITOR',            dxa: 600  },
+  { label: 'DATA / CHAVE',              dxa: 1200 },
+  { label: 'CLIENTE (PACIENTE)',         dxa: 2000 },
+  { label: 'DIAGNÓSTICO',               dxa: 1500 },
+  { label: 'HOSPITAL ORIGEM',           dxa: 1400 },
+  { label: 'PROCEDIMENTO',              dxa: 1800 },
+  { label: 'PRESTADOR: REDE / PRIVADO', dxa: 1400 },
+  { label: 'CNS',                       dxa: 900  },
+  { label: 'AUDITOR',                   dxa: 600  },
 ];
 
 // ─── Cabeçalho de página ─────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ function buildTableHeader(): TableRow {
 
 // ─── Linha de dados ───────────────────────────────────────────────────────────
 
-function buildDataRow(index: number, dateStr: string, nextKey: () => string): TableRow {
+function buildDataRow(index: number, dateStr: string, nextKey: () => string, rowHeight = 780): TableRow {
   const key = nextKey();
   const fill = index % 2 === 0 ? 'EEF2F7' : 'FFFFFF';
 
@@ -207,7 +207,7 @@ function buildDataRow(index: number, dateStr: string, nextKey: () => string): Ta
     });
 
   return new TableRow({
-    height: { value: 780, rule: HeightRule.ATLEAST },
+    height: { value: rowHeight, rule: HeightRule.ATLEAST },
     children: [
       // DATA / CHAVE
       new TableCell({
@@ -288,6 +288,12 @@ export async function GET(req: NextRequest) {
   const nextKey = makeKeyGenerator();
   const totalDxa = COLS.reduce((s, c) => s + c.dxa, 0);
 
+  // ── Calcula altura das linhas para preencher a folha inteira ──────────────
+  // A4 landscape ≈ 11906 twip; margens 0.6+0.6 in = 1728 twip; header ≈ 900 twip
+  const AVAILABLE_HEIGHT = 11906 - 1728 - 900;
+  const rowsPerPage = count <= 50 ? count : Math.ceil(count / Math.ceil(count / 30));
+  const rowHeight = Math.max(400, Math.floor(AVAILABLE_HEIGHT / Math.min(rowsPerPage, count)));
+
   const mainTable = new Table({
     width: { size: totalDxa, type: WidthType.DXA },
     layout: TableLayoutType.FIXED,
@@ -295,7 +301,7 @@ export async function GET(req: NextRequest) {
     borders: TABLE_BORDERS,
     rows: [
       buildTableHeader(),
-      ...Array.from({ length: count }, (_, i) => buildDataRow(i, dateStr, nextKey)),
+      ...Array.from({ length: count }, (_, i) => buildDataRow(i, dateStr, nextKey, rowHeight)),
     ],
   });
 

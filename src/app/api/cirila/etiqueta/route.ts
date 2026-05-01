@@ -15,14 +15,9 @@ import {
   BorderStyle,
   AlignmentType,
   Header,
-  ImageRun,
   PageOrientation,
   VerticalAlign,
   HeightRule,
-  RelativeHorizontalPosition,
-  RelativeVerticalPosition,
-  TableAnchorType,
-  OverlapType
 } from 'docx';
 
 const generateKey = () => {
@@ -74,81 +69,67 @@ export async function GET(req: NextRequest) {
       return "HOSPITAL DESTINO";
     };
 
-    // --- FUNÇÃO PARA CRIAR A ETIQUETA FLUTUANTE ("UNLOCKED") ---
-    const createLabelTable = (examName: string, authKey: string, destination: string, pName: string, isFloating = true) => {
-      const isAvulsa = examName.toUpperCase() === 'AVULSA';
-      const finalExam = isAvulsa ? "EXAME A SER PREENCHIDO" : examName.toUpperCase();
-      const finalPatient = pName === 'SOBREAVISO' || pName === 'AVULSA' || pName === 'ETIQUETA AVULSA' ? "PACIENTE A SER PREENCHIDO" : pName.toUpperCase();
+    // --- ETIQUETA INSTITUCIONAL (FORMATO EXATO DO MODELO) ---
+    // Formato: bordas pretas, texto esquerda, 3 linhas fixas
+    const createLabelTable = (examName: string, authKey: string, destination: string, pName: string) => {
+      const isAvulsa = examName.toUpperCase().includes('AVULSA');
+      const finalExam    = isAvulsa ? 'EXAME A SER PREENCHIDO'    : examName.toUpperCase();
+      const finalPatient = isAvulsa ? 'PACIENTE A SER PREENCHIDO' : pName.toUpperCase();
+      const labelBorder  = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
 
       return new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
-        float: isFloating ? {
-          horizontalAnchor: TableAnchorType.PAGE,
-          verticalAnchor: TableAnchorType.PAGE,
-          relativeHorizontalPosition: RelativeHorizontalPosition.CENTER,
-          relativeVerticalPosition: pos === 'bottom' ? RelativeVerticalPosition.BOTTOM : RelativeVerticalPosition.TOP,
-          overlap: OverlapType.OVERLAP,
-        } : undefined,
+        borders: {
+          top: labelBorder, bottom: labelBorder, left: labelBorder, right: labelBorder,
+          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+          insideVertical:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        },
         rows: [
           new TableRow({
             children: [
               new TableCell({
-                borders: {
-                  top: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
-                  bottom: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
-                  left: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
-                  right: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
-                },
-                shading: { fill: "FFFFFF" },
-                margins: { top: 200, bottom: 200, left: 300, right: 300 },
+                margins: { top: 160, bottom: 160, left: 200, right: 200 },
                 children: [
-                  // LINHA 1: [NOME – REGISTRO – CARGO]
+                  // LINHA 1: Nome – Registro – Cargo (negrito + sublinhado)
                   new Paragraph({
-                    alignment: AlignmentType.CENTER,
+                    alignment: AlignmentType.LEFT,
+                    spacing: { after: 80 },
                     children: [
                       new TextRun({
                         text: `${prof.name} – ${prof.registro} – ${prof.cargo}`,
-                        bold: true,
-                        size: 26,
-                        font: "Arial",
-                        underline: { type: "single" }
-                      })
-                    ]
+                        bold: true, size: 22, font: 'Arial',
+                        underline: { type: 'single' },
+                      }),
+                    ],
                   }),
-                  // LINHA 2: Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR
+                  // LINHA 2: Departamento
                   new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    spacing: { before: 80 },
+                    alignment: AlignmentType.LEFT,
+                    spacing: { after: 100 },
                     children: [
                       new TextRun({
-                        text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR",
-                        bold: true,
-                        size: 22,
-                        font: "Arial"
-                      })
-                    ]
+                        text: 'Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR',
+                        bold: true, size: 20, font: 'Arial',
+                      }),
+                    ],
                   }),
                   // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] - [EXAME] AUTORIZADO PARA [DESTINO]
                   new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    spacing: { before: 120 },
+                    alignment: AlignmentType.LEFT,
                     children: [
-                      new TextRun({ text: `${dateStr} : `, bold: true, size: 26, font: "Arial", color: "0000FF" }),
-                      new TextRun({ text: authKey, bold: true, size: 32, font: "Arial", color: "FF0000" }),
+                      new TextRun({ text: `${dateStr} : `, bold: true, size: 22, font: 'Arial', color: '0000FF' }),
+                      new TextRun({ text: authKey,         bold: true, size: 26, font: 'Arial', color: 'FF0000' }),
                       new TextRun({
                         text: ` - ${finalPatient} - ${finalExam} AUTORIZADO PARA ${destination}`,
-                        bold: true,
-                        size: 26,
-                        color: "0000FF",
-                        font: "Arial"
-                      })
-                    ]
-                  })
-                ]
-              })
-            ]
-          })
-        ]
+                        bold: true, size: 22, font: 'Arial', color: '0000FF',
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
       });
     };
 
@@ -243,9 +224,10 @@ export async function GET(req: NextRequest) {
       finalExams.forEach((examName, index) => {
         const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
         const destination = getDestination(examName);
-        labelElements.push(createLabelTable(examName, authKey, destination, patient, !templateUrl));
+        labelElements.push(createLabelTable(examName, authKey, destination, patient));
         if (index < finalExams.length - 1) {
-          labelElements.push(new Paragraph({ text: "", spacing: { before: 200, after: 200 } }));
+          // Espaço entre etiquetas múltiplas
+          labelElements.push(new Paragraph({ spacing: { before: 400, after: 400 }, children: [] }));
         }
       });
     }
@@ -291,14 +273,30 @@ export async function GET(req: NextRequest) {
           });
         }
       } else if (isPdf) {
-        const pdfData = await pdf(fileBuffer);
-        const pdfParagraphs = pdfData.text.split('\n').map(line => new Paragraph({
-          children: [new TextRun({ text: line, size: 20, font: "Arial" })]
-        }));
+        // Tenta extrair texto do PDF — se falhar, gera só a etiqueta
+        let pdfParagraphs: Paragraph[] = [];
+        try {
+          const pdfData = await pdf(fileBuffer);
+          pdfParagraphs = pdfData.text
+            .split('\n')
+            .filter(l => l.trim())
+            .map(line => new Paragraph({
+              children: [new TextRun({ text: line, size: 20, font: 'Arial' })]
+            }));
+        } catch {
+          pdfParagraphs = [
+            new Paragraph({
+              children: [new TextRun({ text: '[Conteúdo do PDF original]', size: 18, font: 'Arial', italics: true, color: '888888' })]
+            })
+          ];
+        }
 
         const doc = new Document({
           sections: [{
-            children: pos === 'bottom' ? [...pdfParagraphs, ...labelElements] : [...labelElements, ...pdfParagraphs]
+            properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
+            children: pos === 'bottom'
+              ? [...pdfParagraphs, new Paragraph({ spacing: { before: 600 }, children: [] }), ...labelElements]
+              : [...labelElements, new Paragraph({ spacing: { after: 600 }, children: [] }), ...pdfParagraphs]
           }]
         });
         const finalBuffer = await Packer.toBuffer(doc);
