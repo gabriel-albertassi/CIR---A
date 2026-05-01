@@ -17,7 +17,8 @@ import {
   Footer,
   Header,
   ImageRun,
-  TableLayoutType
+  TableLayoutType,
+  PageOrientation
 } from 'docx';
 
 export async function GET(req: NextRequest) {
@@ -178,13 +179,13 @@ export async function GET(req: NextRequest) {
     });
 
     const headers = [
-      { text: "DATA / CHAVE", width: 15 },
+      { text: "DATA / CHAVE", width: 12 },
       { text: "CLIENTE (PACIENTE)", width: 20 },
       { text: "DIAGNÓSTICO", width: 15 },
-      { text: "HOSPITAL ORIGEM", width: 10 },
+      { text: "HOSPITAL ORIGEM", width: 12 },
       { text: "PROCEDIMENTO", width: 15 },
-      { text: "PRESTADOR / REDE", width: 10 },
-      { text: "CNS", width: 8 },
+      { text: "PRESTADOR / REDE", width: 12 },
+      { text: "CNS", width: 7 },
       { text: "AUD", width: 7 }
     ];
 
@@ -376,8 +377,9 @@ export async function GET(req: NextRequest) {
       headers: pageHeader ? { default: pageHeader } : undefined,
       properties: { 
         page: {
-          margin: { top: isSobreaviso ? 1600 : 720, right: 720, bottom: 1200, left: 720 } 
-        }
+          margin: { top: isSobreaviso ? 1600 : 720, right: 720, bottom: 1200, left: 720 }
+        },
+        ...(isSobreaviso ? { size: { orientation: PageOrientation.LANDSCAPE } } : {})
       },
       children: labelElements
     }]

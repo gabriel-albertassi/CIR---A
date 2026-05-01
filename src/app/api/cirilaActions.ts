@@ -155,7 +155,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         etiquetaMatch = cleanedText.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
       }
 
-      if ((text.includes('avulsa') || text.includes('chave')) && !isSobreavisoQuery) {
+      if ((text.includes('avulsa') || text.includes('chave')) && !isSobreavisoQuery && !isDocumentAttached && !etiquetaMatch) {
         const qtyMatch = text.match(/(\d+)/);
         const qty = qtyMatch ? parseInt(qtyMatch[1]) : 1;
         const generatedKeys = Array.from({ length: qty }, () => generateKey()).join(', ');
