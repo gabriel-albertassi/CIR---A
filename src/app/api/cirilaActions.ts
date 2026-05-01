@@ -141,15 +141,16 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     };
   }
 
-  // 3-A. ETIQUETAS AVULSAS (sem PDF, só a chave formatada para preencher à mão)
+  // 3-A. ETIQUETAS AVULSAS — SOMENTE quando não há anexo E o texto pede explicitamente avulsa/branca/limpa
   const isAvulsaQuery =
-    cleanedText.includes('avulsa') ||
-    (cleanedText.includes('etiqueta') && (
-      cleanedText.includes('branca') ||
-      cleanedText.includes('limpa') ||
-      cleanedText.includes('vazia') ||
-      (cleanedText.includes('gerar') && !isDocumentAttached)
-    ));
+    !isDocumentAttached && (
+      cleanedText.includes('avulsa') ||
+      (cleanedText.includes('etiqueta') && (
+        cleanedText.includes('branca') ||
+        cleanedText.includes('limpa') ||
+        cleanedText.includes('vazia')
+      ))
+    );
 
   if (isAvulsaQuery) {
     const qtyMatch = cleanedText.match(/(\d+)/);
@@ -169,7 +170,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     }
 
     return {
-      text: `✅ **CIRILA:** Gerando **${qty} etiqueta(s) avulsa(s)** para preenchimento manual, assinadas por **${professionalRaw.toUpperCase()}**.\n\nFormato: \`[DATA] : [CHAVE] - PACIENTE A PREENCHER - EXAME AUTORIZADO PARA DESTINO\`\n\nA etiqueta fica no **final da folha** para você recortar e colar onde precisar.`,
+      text: `✅ **CIRILA:** Gerando **${qty} etiqueta(s) avulsa(s)** para preenchimento manual, assinadas por **${professionalRaw.toUpperCase()}**.\n\nFormato: \`[DATA] : [CHAVE] - PACIENTE A PREENCHER - EXAME AUTORIZADO PARA DESTINO\``,
       sender: 'ai',
       actions: [{
         label: `📄 Baixar ${qty} Etiqueta(s) Avulsa(s)`,
@@ -204,36 +205,80 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     let patient = "PACIENTE";
     let professionalRaw = "";
 
-    // 1. Tentar capturar o Exame Primeiro (Palavras-chave)
-    if (cleanedText.includes('angiotc')) examRaw = "ANGIOTC";
-    else if (cleanedText.includes('rnm') || cleanedText.includes('ressonancia') || cleanedText.includes('ressonância')) examRaw = "RESSONÂNCIA";
-    else if (cleanedText.includes('tc') || cleanedText.includes('tomografia')) examRaw = "TC";
-    else if (cleanedText.includes('etiqueta')) examRaw = "EXAME";
+    // 1. Capturar Exame (palavras-chave de exames médicos)
+    const examKeywords: Record<string, string> = {
+      'angiotc': 'ANGIOTC',
+      'angio': 'ANGIOTC',
+      'rnm': 'RESSONÂNCIA',
+      'rmn': 'RESSONÂNCIA',
+      'ressonancia': 'RESSONÂNCIA',
+      'ressonância': 'RESSONÂNCIA',
+      'tomografia': 'TC',
+      'ecografia': 'ECOGRAFIA',
+      'ecocardiograma': 'ECOCARDIOGRAMA',
+      'eco': 'ECOCARDIOGRAMA',
+      'endoscopia': 'ENDOSCOPIA',
+      'colonoscopia': 'COLONOSCOPIA',
+      'holter': 'HOLTER',
+      'mapa': 'MAPA PRESSÓRICO',
+      'ergo': 'ERGOMETRIA',
+      'densitometria': 'DENSITOMETRIA',
+      'mamografia': 'MAMOGRAFIA',
+      'cintilografia': 'CINTILOGRAFIA',
+      'pet': 'PET-SCAN',
+      'biópsia': 'BIÓPSIA',
+      'biopsia': 'BIÓPSIA',
+    };
+    // verifica tc por último para não conflitar com angiotc
+    for (const [kw, label] of Object.entries(examKeywords)) {
+      if (cleanedText.includes(kw)) { examRaw = label; break; }
+    }
+    if (examRaw === 'EXAME' && (cleanedText.includes(' tc ') || cleanedText.startsWith('tc '))) examRaw = 'TC';
 
-    // 2. Extrair Paciente (Tenta capturar após o exame ou após "para")
-    const patientKeywords = ['para', 'do', 'da', 'de', 'paciente'];
+    // 2. Extrair Paciente — estratégia em camadas
     let foundPatient = false;
 
-    for (const kw of patientKeywords) {
-      const regex = new RegExp(`${kw}\\s+([^,;.\\n]+)`, 'i');
-      const match = cleanedText.match(regex);
-      if (match && match[1]) {
-        // Filtra palavras que seriam o profissional ou comandos
-        const nameCandidate = match[1].split('assinado')[0].split('assinada')[0].split('com')[0].trim();
-        if (nameCandidate.length > 3 && !validProfs.some(p => nameCandidate.includes(p))) {
-          patient = nameCandidate.toUpperCase();
+    // Camada 1: "paciente [nome]"
+    const m1 = cleanedText.match(/paciente\s+([\w\s]{3,50?}?)(?:\s+assinado|\s+assinada|\s+com|\s+para|,|;|\n|$)/i);
+    if (m1 && m1[1] && !validProfs.some(p => m1[1].toLowerCase().includes(p))) {
+      patient = m1[1].trim().toUpperCase();
+      foundPatient = true;
+    }
+
+    // Camada 2: "para o/a [nome]" ou "para [nome]"
+    if (!foundPatient) {
+      const m2 = cleanedText.match(/para\s+(?:o\s+|a\s+|paciente\s+)?([A-ZÀ-Ú][\w\s]{2,50?})(?:\s+assinado|\s+assinada|\s+com|,|;|\n|$)/i);
+      if (m2 && m2[1]) {
+        const candidate = m2[1].trim();
+        const isExamWord = Object.keys(examKeywords).some(k => candidate.toLowerCase().startsWith(k));
+        if (!isExamWord && !validProfs.some(p => candidate.toLowerCase().includes(p))) {
+          patient = candidate.toUpperCase();
           foundPatient = true;
-          break;
         }
       }
     }
 
-    // Fallback: se não achou "para", tenta pegar o que sobrou após o exame
+    // Camada 3: "de [nome]" (ex: "tc de João da Silva")
     if (!foundPatient) {
-      const parts = cleanedText.split(examRaw.toLowerCase());
-      if (parts.length > 1) {
-        const candidate = parts[1].split('assinado')[0].split('assinada')[0].trim();
-        if (candidate.length > 2 && !validProfs.some(p => candidate.includes(p))) patient = candidate.toUpperCase();
+      const m3 = cleanedText.match(/\bde\s+([A-ZÀ-Ú][\w\s]{2,40?})(?:\s+assinado|\s+assinada|,|;|\n|$)/i);
+      if (m3 && m3[1]) {
+        const candidate = m3[1].trim();
+        if (!validProfs.some(p => candidate.toLowerCase().includes(p))) {
+          patient = candidate.toUpperCase();
+          foundPatient = true;
+        }
+      }
+    }
+
+    // Camada 4 (fallback): texto após o exame antes de "assinado"
+    if (!foundPatient) {
+      const examLower = examRaw.toLowerCase().replace('ã', 'a').replace('ô', 'o');
+      const afterExam = cleanedText.split(examLower)[1];
+      if (afterExam) {
+        const candidate = afterExam.split(/assinado|assinada|,|;|\n/)[0].trim();
+        if (candidate.length > 3 && !validProfs.some(p => candidate.includes(p))) {
+          patient = candidate.toUpperCase();
+        }
       }
     }
 

@@ -61,12 +61,19 @@ export async function GET(req: NextRequest) {
     const dateStr = new Date().toLocaleDateString('pt-BR');
 
     const getDestination = (exam: string) => {
-      const e = exam.toUpperCase();
-      if (e.includes('ANGIOTC')) return "HMMR";
-      if (e.includes('COLANGIO')) return "RADIO VIDA";
-      if (e.includes('TC') || e.includes('TOMOGRAFIA')) return "HSJB";
-      if (e.includes('RNM') || e.includes('RESSONANCIA')) return "RADIO VIDA";
-      return "HOSPITAL DESTINO";
+      const e = exam.toUpperCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (e.includes('ANGIOTC') || e.includes('ANGIO')) return 'HMMR';
+      if (e.includes('COLANGIO'))                        return 'RADIO VIDA';
+      if (e.includes('RNM') || e.includes('RMN') ||
+          e.includes('RESSONANCIA') || e.includes('RESSON')) return 'RADIO VIDA';
+      if (e.includes('TC') || e.includes('TOMOGRAFIA')) return 'HSJB';
+      if (e.includes('ECO') || e.includes('ECOGRAFIA') ||
+          e.includes('ECOCARDIOGRAMA'))                  return 'HSJB';
+      if (e.includes('ENDOSCOPIA') || e.includes('COLONOSCOPIA')) return 'HSJB';
+      if (e.includes('PET') || e.includes('CINTILOGRAFIA') ||
+          e.includes('MAMOGRAFIA') || e.includes('DENSITOMETRIA')) return 'RADIO VIDA';
+      return 'HOSPITAL DESTINO';
     };
 
     // --- ETIQUETA INSTITUCIONAL (FORMATO EXATO DO MODELO) ---
