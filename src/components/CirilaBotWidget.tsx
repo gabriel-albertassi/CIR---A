@@ -77,10 +77,16 @@ export default function CirilaBotWidget() {
     setExpression('thinking');
 
     try {
-      const fileId = (window as any).lastCirilaFileId;
-      const finalQuery = fileId ? `${textToSend} [FILE_ID:${fileId}]` : textToSend;
+      const fileUrl = (window as any).lastCirilaFileUrl;
+      const finalQuery = fileUrl ? `${textToSend} [file_url:${fileUrl}]` : textToSend;
       
       const reply = await askCirila(finalQuery);
+      
+      // Limpa o arquivo após o envio para não repetir em mensagens subsequentes
+      if (fileUrl) {
+        (window as any).lastCirilaFileUrl = null;
+      }
+
       setMessages(prev => [...prev, reply]);
     } catch (err) {
       setMessages(prev => [...prev, { text: '❌ Erro ao conectar com o servidor da Cirila.', sender: 'ai' }]);
@@ -143,24 +149,20 @@ export default function CirilaBotWidget() {
 
     if (payload.startsWith('DOWNLOAD_ETIQUETA_DOCX:::')) {
       const parts = payload.split(':::');
-      // Ordem Padronizada: PATIENT:::EXAM:::PROFESSIONAL:::KEY:::FILEID:::QTY
-      const patient = parts[1] || 'AVULSA';
-      const exam = parts[2] || 'EXAME';
+      // Ordem: PATIENT:::EXAM:::PROFESSIONAL:::KEY:::FILEURL:::QTY:::POS
+      const patient      = parts[1] || 'AVULSA';
+      const exam         = parts[2] || 'EXAME';
       const professional = parts[3] || 'paola';
-      const key = parts[4] || '';
-      const fileId = parts[5] || '';
-      const qty = parts[6] || '1';
-      
-      const query = new URLSearchParams({
-        patient: patient,
-        exam: exam,
-        professional: professional,
-        key: key,
-        templateId: fileId,
-        qty: qty
-      }).toString();
+      const key          = parts[4] || '';
+      const fileUrl      = parts[5] || '';   // URL do arquivo anexado (pode ser vazio)
+      const qty          = parts[6] || '1';
+      const pos          = parts[7] || 'top';
 
-      window.open(`/api/cirila/etiqueta?${query}`, '_blank');
+      const params: Record<string, string> = { patient, exam, professional, key, qty, pos };
+      // ⚠️ SÓ inclui templateUrl quando o arquivo realmente existe
+      if (fileUrl.trim()) params.templateUrl = fileUrl.trim();
+
+      window.open(`/api/cirila/etiqueta?${new URLSearchParams(params).toString()}`, '_blank');
     }
   }
 
@@ -400,8 +402,8 @@ export default function CirilaBotWidget() {
                 }
               }]);
 
-              // Armazena o ID do último arquivo anexado para a próxima mensagem
-              (window as any).lastCirilaFileId = uploadData.fileId;
+              // Armazena a URL do último arquivo anexado para a próxima mensagem
+              (window as any).lastCirilaFileUrl = uploadData.url;
 
             } catch (err: any) {
               console.error('Erro no anexo:', err);

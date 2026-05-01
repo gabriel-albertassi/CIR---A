@@ -1,237 +1,337 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  Document, 
-  Packer, 
-  Paragraph, 
-  Table, 
-  TableCell, 
-  TableRow, 
-  WidthType, 
-  AlignmentType, 
-  VerticalAlign, 
-  PageOrientation, 
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  WidthType,
+  AlignmentType,
+  VerticalAlign,
+  PageOrientation,
   TextRun,
-  HeadingLevel,
   BorderStyle,
-  TableLayoutType
+  TableLayoutType,
+  HeightRule,
+  Header,
+  Footer,
+  convertInchesToTwip,
 } from 'docx';
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const count = parseInt(searchParams.get('count') || '15'); // Aumentado para 15 por padrão em landscape
+// ─── Chave única ─────────────────────────────────────────────────────────────
 
-  const generateKey = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    return Array.from({ length: 5 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+function makeKeyGenerator() {
+  const used = new Set<string>();
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  return function (): string {
+    let k: string;
+    do {
+      k = Array.from({ length: 5 }, () =>
+        chars.charAt(Math.floor(Math.random() * chars.length))
+      ).join('');
+    } while (used.has(k));
+    used.add(k);
+    return k;
   };
+}
 
-  const dateStr = new Date().toLocaleDateString('pt-BR');
+// ─── Bordas ───────────────────────────────────────────────────────────────────
 
-  // Definição de larguras de colunas (Total: 100%)
-  const columnWidths = [
-    12, // DATA / CHAVE
-    20, // CLIENTE (PACIENTE)
-    15, // DIAGNÓSTICO
-    13, // HOSPITAL ORIGEM
-    18, // PROCEDIMENTO
-    10, // HOSP. DESTINO
-    7,  // CNS
-    5   // AUDITOR
-  ];
+const BD = BorderStyle;
 
-  const headers = [
-    'DATA / CHAVE', 
-    'CLIENTE (PACIENTE)', 
-    'DIAGNÓSTICO', 
-    'HOSPITAL ORIGEM', 
-    'PROCEDIMENTO', 
-    'HOSP. DESTINO', 
-    'CNS', 
-    'AUD'
-  ];
+const TABLE_BORDERS = {
+  top:              { style: BD.SINGLE, size: 4, color: '1e3a5f' },
+  bottom:           { style: BD.SINGLE, size: 4, color: '1e3a5f' },
+  left:             { style: BD.SINGLE, size: 4, color: '1e3a5f' },
+  right:            { style: BD.SINGLE, size: 4, color: '1e3a5f' },
+  insideHorizontal: { style: BD.SINGLE, size: 1, color: 'b0bec5' },
+  insideVertical:   { style: BD.SINGLE, size: 1, color: 'b0bec5' },
+};
 
-  // Estilo comum para células de cabeçalho
-  const headerCellStyle = {
-    shading: { fill: '0f172a' }, // Slate 900 (Ultra Profissional)
-    verticalAlign: VerticalAlign.CENTER,
-    margins: { top: 120, bottom: 120, left: 50, right: 50 },
-  };
+const NO_BORDERS = {
+  top:              { style: BD.NONE, size: 0, color: 'FFFFFF' },
+  bottom:           { style: BD.NONE, size: 0, color: 'FFFFFF' },
+  left:             { style: BD.NONE, size: 0, color: 'FFFFFF' },
+  right:            { style: BD.NONE, size: 0, color: 'FFFFFF' },
+  insideHorizontal: { style: BD.NONE, size: 0, color: 'FFFFFF' },
+  insideVertical:   { style: BD.NONE, size: 0, color: 'FFFFFF' },
+};
 
-  const headerTextStyle = {
-    color: 'ffffff',
-    bold: true,
-    size: 16, // 8pt
-    font: 'Segoe UI',
-  };
+// ─── Colunas (DXA total ~10800) ───────────────────────────────────────────────
 
-  // Cabeçalho da Tabela
-  const headerRow = new TableRow({
-    children: headers.map((text, i) => new TableCell({
-      ...headerCellStyle,
-      width: { size: columnWidths[i], type: WidthType.PERCENTAGE },
-      children: [new Paragraph({ 
-        alignment: AlignmentType.CENTER,
-        children: [new TextRun({ ...headerTextStyle, text: text.toUpperCase() })] 
-      })],
-    })),
-  });
+const COLS = [
+  { label: 'DATA / CHAVE',       dxa: 1200 },
+  { label: 'CLIENTE (PACIENTE)', dxa: 2000 },
+  { label: 'DIAGNÓSTICO',        dxa: 1500 },
+  { label: 'HOSPITAL ORIGEM',    dxa: 1400 },
+  { label: 'PROCEDIMENTO',       dxa: 1800 },
+  { label: 'PRESTADOR / REDE',   dxa: 1400 },
+  { label: 'CNS',                dxa: 900  },
+  { label: 'AUDITOR',            dxa: 600  },
+];
 
-  // Linhas de Dados com altura aumentada para escrita
-  const dataRows = Array.from({ length: count }, (_, index) => {
-    const key = generateKey();
-    const isEven = index % 2 === 0;
-    const rowColor = isEven ? 'f8fafc' : 'ffffff';
-    
-    return new TableRow({
-      height: { value: 900, rule: 'atLeast' }, // Altura aumentada para 900 (aprox 1.5cm)
-      children: [
-        new TableCell({
-          shading: { fill: rowColor },
-          verticalAlign: VerticalAlign.CENTER,
-          width: { size: columnWidths[0], type: WidthType.PERCENTAGE },
-          children: [
-            new Paragraph({ 
-              alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({ text: dateStr, size: 14, color: '64748b' }),
-                new TextRun({ text: `\n${key}`, size: 22, bold: true, color: '2563eb', font: 'Courier New' }) 
-              ] 
-            }),
-          ],
-        }),
-        ...columnWidths.slice(1).map((width, i) => new TableCell({ 
-          shading: { fill: rowColor },
-          width: { size: width, type: WidthType.PERCENTAGE },
-          children: [] 
-        })),
-      ],
-    });
-  });
+// ─── Cabeçalho de página ─────────────────────────────────────────────────────
 
-  const table = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    layout: TableLayoutType.FIXED,
-    rows: [headerRow, ...dataRows],
-    borders: {
-      top: { style: BorderStyle.SINGLE, size: 2, color: '0f172a' },
-      bottom: { style: BorderStyle.SINGLE, size: 2, color: '0f172a' },
-      left: { style: BorderStyle.SINGLE, size: 1, color: 'cbd5e1' },
-      right: { style: BorderStyle.SINGLE, size: 1, color: 'cbd5e1' },
-      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: 'cbd5e1' },
-      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: 'cbd5e1' },
-    }
-  });
-
-  // Seção de Assinaturas
-  const signatureTable = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: BorderStyle.NONE as any,
-    rows: [
-      new TableRow({
+function buildHeader(dateStr: string): Header {
+  const row = new TableRow({
+    children: [
+      // Esquerda: identidade
+      new TableCell({
+        width: { size: 45, type: WidthType.PERCENTAGE },
+        borders: NO_BORDERS,
+        verticalAlign: VerticalAlign.BOTTOM,
         children: [
-          new TableCell({
+          new Paragraph({
+            spacing: { after: 80 },
             children: [
-              new Paragraph({ text: '', spacing: { before: 800 } }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({ text: '________________________________________', color: '94a3b8' }),
-                  new TextRun({ text: '\nMÉDICO REGULADOR DE PLANTÃO', bold: true, size: 16, color: '475569' })
-                ]
-              })
-            ]
+              new TextRun({ text: 'CIRILA', bold: true, size: 28, color: '1e3a5f', font: 'Arial' }),
+              new TextRun({ text: '  |  REGULAÇÃO MUNICIPAL', size: 18, color: '546e7a', font: 'Arial' }),
+            ],
           }),
-          new TableCell({
+        ],
+      }),
+      // Centro: título
+      new TableCell({
+        width: { size: 30, type: WidthType.PERCENTAGE },
+        borders: NO_BORDERS,
+        verticalAlign: VerticalAlign.BOTTOM,
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 40 },
             children: [
-              new Paragraph({ text: '', spacing: { before: 800 } }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({ text: '________________________________________', color: '94a3b8' }),
-                  new TextRun({ text: '\nSUPERVISOR DE REGULAÇÃO', bold: true, size: 16, color: '475569' })
-                ]
-              })
-            ]
-          })
-        ]
-      })
-    ]
+              new TextRun({ text: 'MAPA DE SUPERVISÃO', bold: true, size: 20, color: '1e3a5f', font: 'Arial', allCaps: true }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 80 },
+            children: [
+              new TextRun({ text: 'SOBREAVISO NOTURNO', bold: true, size: 16, color: '37474f', font: 'Arial', allCaps: true }),
+            ],
+          }),
+        ],
+      }),
+      // Direita: data de emissão
+      new TableCell({
+        width: { size: 25, type: WidthType.PERCENTAGE },
+        borders: NO_BORDERS,
+        verticalAlign: VerticalAlign.BOTTOM,
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.RIGHT,
+            spacing: { after: 80 },
+            children: [
+              new TextRun({ text: 'DATA DE EMISSÃO: ', size: 16, color: '546e7a', font: 'Arial' }),
+              new TextRun({ text: dateStr, bold: true, size: 18, color: '1e3a5f', font: 'Arial' }),
+            ],
+          }),
+        ],
+      }),
+    ],
   });
 
-  const doc = new Document({
-    sections: [{
-      properties: {
-        page: {
-          size: { orientation: PageOrientation.LANDSCAPE },
-          margin: { top: 500, right: 500, bottom: 500, left: 500 },
-        },
-      },
-      children: [
-        // Cabeçalho Premium
-        new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          borders: BorderStyle.NONE as any,
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  verticalAlign: VerticalAlign.BOTTOM,
-                  children: [
-                    new Paragraph({
-                      children: [
-                        new TextRun({ text: 'CIR - A', bold: true, size: 36, color: '0f172a' }),
-                        new TextRun({ text: ' CENTRAL INTELIGENTE DE REGULAÇÃO AUTOMATIZADA - SMSVR', size: 14, color: '475569' })
-                      ]
-                    })
-                  ]
-                }),
-                new TableCell({
-                  verticalAlign: VerticalAlign.BOTTOM,
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.RIGHT,
-                      children: [
-                        new TextRun({ text: 'DATA DE EMISSÃO: ', size: 14, color: '64748b' }),
-                        new TextRun({ text: dateStr, bold: true, size: 18, color: '0f172a' })
-                      ]
-                    })
-                  ]
-                })
-              ]
-            })
-          ]
-        }),
-        new Paragraph({
-          text: 'MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO',
-          heading: HeadingLevel.HEADING_1,
-          alignment: AlignmentType.CENTER,
-          spacing: { before: 300, after: 400 }
-        }),
-        table,
-        new Paragraph({ text: '', spacing: { before: 400 } }),
-        signatureTable,
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          spacing: { before: 400 },
-          children: [
-            new TextRun({ text: 'Documento gerado automaticamente pelo Sistema Cirila - CIR-A', size: 14, color: '94a3b8', italics: true })
-          ]
-        })
-      ],
-    }],
-  });
-
-  const buffer = await Packer.toBuffer(doc);
-  const uint8Array = new Uint8Array(buffer);
-  const blob = new Blob([uint8Array], { 
-    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-  });
-
-  return new NextResponse(blob, {
-    headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'Content-Disposition': `attachment; filename=sobreaviso_${Date.now()}.docx`,
+  const headerTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      ...NO_BORDERS,
+      bottom: { style: BD.SINGLE, size: 4, color: '1e3a5f' },
     },
+    rows: [row],
+  });
+
+  return new Header({ children: [headerTable, new Paragraph({ spacing: { after: 160 }, children: [] })] });
+}
+
+// ─── Rodapé de página ─────────────────────────────────────────────────────────
+
+function buildFooter(dateStr: string): Footer {
+  return new Footer({
+    children: [
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        spacing: { before: 80 },
+        children: [
+          new TextRun({
+            text: `Emitido em ${dateStr}   |   Documento gerado pelo Sistema Cirila — CIR-A / SMSVR`,
+            size: 14,
+            color: '90a4ae',
+            font: 'Arial',
+            italics: true,
+          }),
+        ],
+      }),
+    ],
   });
 }
 
+// ─── Linha de cabeçalho da tabela ────────────────────────────────────────────
+
+function buildTableHeader(): TableRow {
+  return new TableRow({
+    tableHeader: true,
+    cantSplit: true,
+    children: COLS.map((col) =>
+      new TableCell({
+        width: { size: col.dxa, type: WidthType.DXA },
+        shading: { fill: '1e3a5f', color: '1e3a5f', type: 'solid' },
+        verticalAlign: VerticalAlign.CENTER,
+        margins: { top: 100, bottom: 100, left: 80, right: 80 },
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({ text: col.label, bold: true, size: 16, color: 'FFFFFF', font: 'Arial' }),
+            ],
+          }),
+        ],
+      })
+    ),
+  });
+}
+
+// ─── Linha de dados ───────────────────────────────────────────────────────────
+
+function buildDataRow(index: number, dateStr: string, nextKey: () => string): TableRow {
+  const key = nextKey();
+  const fill = index % 2 === 0 ? 'EEF2F7' : 'FFFFFF';
+
+  const emptyCell = (colIndex: number) =>
+    new TableCell({
+      width: { size: COLS[colIndex].dxa, type: WidthType.DXA },
+      shading: { fill, color: fill, type: 'solid' },
+      verticalAlign: VerticalAlign.CENTER,
+      margins: { top: 60, bottom: 60, left: 80, right: 80 },
+      children: [new Paragraph({ children: [] })],
+    });
+
+  return new TableRow({
+    height: { value: 780, rule: HeightRule.ATLEAST },
+    children: [
+      // DATA / CHAVE
+      new TableCell({
+        width: { size: COLS[0].dxa, type: WidthType.DXA },
+        shading: { fill, color: fill, type: 'solid' },
+        verticalAlign: VerticalAlign.CENTER,
+        margins: { top: 60, bottom: 60, left: 80, right: 80 },
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 20 },
+            children: [new TextRun({ text: dateStr, size: 14, color: '546e7a', font: 'Arial' })],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: key, bold: true, size: 20, color: '1565c0', font: 'Courier New' })],
+          }),
+        ],
+      }),
+      emptyCell(1),
+      emptyCell(2),
+      emptyCell(3),
+      emptyCell(4),
+      emptyCell(5),
+      emptyCell(6),
+      emptyCell(7),
+    ],
+  });
+}
+
+// ─── Assinaturas ──────────────────────────────────────────────────────────────
+
+function buildSignatures(): Table {
+  const signCell = (label: string) =>
+    new TableCell({
+      borders: NO_BORDERS,
+      children: [
+        new Paragraph({ spacing: { before: 1200 }, children: [] }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({ text: '____________________________________________', color: '78909c', font: 'Arial', size: 18 })],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 80 },
+          children: [new TextRun({ text: label, bold: true, size: 16, color: '37474f', font: 'Arial', allCaps: true })],
+        }),
+      ],
+    });
+
+  const spacerCell = new TableCell({
+    borders: NO_BORDERS,
+    width: { size: 20, type: WidthType.PERCENTAGE },
+    children: [new Paragraph({ children: [] })],
+  });
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: NO_BORDERS,
+    rows: [
+      new TableRow({
+        children: [signCell('Médico Regulador de Plantão'), spacerCell, signCell('Supervisor de Regulação')],
+      }),
+    ],
+  });
+}
+
+// ─── Handler ──────────────────────────────────────────────────────────────────
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const count = Math.max(1, Math.min(300, parseInt(searchParams.get('count') || '15')));
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR');
+  const dateFileStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+
+  const nextKey = makeKeyGenerator();
+  const totalDxa = COLS.reduce((s, c) => s + c.dxa, 0);
+
+  const mainTable = new Table({
+    width: { size: totalDxa, type: WidthType.DXA },
+    layout: TableLayoutType.FIXED,
+    columnWidths: COLS.map((c) => c.dxa),
+    borders: TABLE_BORDERS,
+    rows: [
+      buildTableHeader(),
+      ...Array.from({ length: count }, (_, i) => buildDataRow(i, dateStr, nextKey)),
+    ],
+  });
+
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            size: { orientation: PageOrientation.LANDSCAPE },
+            margin: {
+              top:    convertInchesToTwip(0.6),
+              right:  convertInchesToTwip(0.5),
+              bottom: convertInchesToTwip(0.6),
+              left:   convertInchesToTwip(0.5),
+              header: convertInchesToTwip(0.3),
+              footer: convertInchesToTwip(0.3),
+            },
+          },
+        },
+        headers: { default: buildHeader(dateStr) },
+        footers: { default: buildFooter(dateStr) },
+        children: [
+          mainTable,
+          new Paragraph({ spacing: { before: 400 }, children: [] }),
+          buildSignatures(),
+        ],
+      },
+    ],
+  });
+
+  const buffer = await Packer.toBuffer(doc);
+
+  return new NextResponse(buffer as unknown as BodyInit, {
+    headers: {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Disposition': `attachment; filename="Mapa_Sobreaviso_${dateFileStr}.docx"`,
+    },
+  });
+}
