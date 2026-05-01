@@ -21,7 +21,7 @@ import {
   HeightRule,
   RelativeHorizontalPosition,
   RelativeVerticalPosition,
-  TableAnchor,
+  TableAnchorType,
   OverlapType
 } from 'docx';
 
@@ -83,8 +83,8 @@ export async function GET(req: NextRequest) {
       return new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         float: isFloating ? {
-          horizontalAnchor: TableAnchor.PAGE,
-          verticalAnchor: TableAnchor.PAGE,
+          horizontalAnchor: TableAnchorType.PAGE,
+          verticalAnchor: TableAnchorType.PAGE,
           relativeHorizontalPosition: RelativeHorizontalPosition.CENTER,
           relativeVerticalPosition: pos === 'bottom' ? RelativeVerticalPosition.BOTTOM : RelativeVerticalPosition.TOP,
           overlap: OverlapType.OVERLAP,
