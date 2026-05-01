@@ -18,7 +18,9 @@ import {
   Header,
   ImageRun,
   TableLayoutType,
-  PageOrientation
+  PageOrientation,
+  VerticalAlign,
+  HeightRule
 } from 'docx';
 
 export async function GET(req: NextRequest) {
@@ -44,20 +46,22 @@ export async function GET(req: NextRequest) {
 
   // --- MAPA DE PROFISSIONAIS ---
   const profMap: Record<string, any> = {
-    "paola": { "full": "Paola Calderaro Nogueira Leite – COREN-RJ 88367 – Enfermeira Supervisora" },
-    "inima": { "full": "Inimá J. O. Junior – COREN-RJ 83798 – Enfermeiro Supervisor" },
-    "inimá": { "full": "Inimá J. O. Junior – COREN-RJ 83798 – Enfermeiro Supervisor" },
-    "carlos": { "full": "Carlos Roberto Alves – COREN-RJ 289648 – Enfermeiro Supervisor / Auditor" },
-    "roberto": { "full": "Roberto R. Lopes – COREN-RJ 262240 – Enfermeiro Supervisor" },
-    "sabrina": { "full": "Sabrina Silva Ramalho – COREN-RJ 146764 – Enfermeira Supervisora" },
-    "barenco": { "full": "Dr. Carlos Augusto Barenco – CRO 11981 – Supervisor" },
-    "dr. barenco": { "full": "Dr. Carlos Augusto Barenco – CRO 11981 – Supervisor" },
-    "rosely": { "full": "Rosely Frossard de Andrade – Mat.1778/PMVR – DCRAA/SMSVR" },
-    "mazoni": { "full": "Dr Marcelo Henrique da Costa Mazoni – CRM 52-37297-5 – Médico Supervisor" }
+    "paola": { name: "Paola Calderaro Nogueira Leite", registro: "COREN-RJ 88367", cargo: "Enfermeira Supervisora" },
+    "inima": { name: "Inimá J. O. Junior", registro: "COREN-RJ 83798", cargo: "Enfermeiro Supervisor" },
+    "inimá": { name: "Inimá J. O. Junior", registro: "COREN-RJ 83798", cargo: "Enfermeiro Supervisor" },
+    "carlos": { name: "Carlos Roberto Alves", registro: "COREN-RJ 289648", cargo: "Enfermeiro Supervisor / Auditor" },
+    "roberto": { name: "Roberto R. Lopes", registro: "COREN-RJ 262240", cargo: "Enfermeiro Supervisor" },
+    "sabrina": { name: "Sabrina Silva Ramalho", registro: "COREN-RJ 146764", cargo: "Enfermeira Supervisora" },
+    "barenco": { name: "Dr. Carlos Augusto Barenco", registro: "CRO 11981", cargo: "Supervisor" },
+    "dr. barenco": { name: "Dr. Carlos Augusto Barenco", registro: "CRO 11981", cargo: "Supervisor" },
+    "rosely": { name: "Rosely Frossard de Andrade", registro: "Mat.1778/PMVR", cargo: "DCRAA/SMSVR" },
+    "mazoni": { name: "Dr Marcelo Henrique da Costa Mazoni", registro: "CRM 52-37297-5", cargo: "Médico Supervisor" }
   };
 
   const prof = profMap[professionalKey] || {
-    full: `${professionalKey.toUpperCase()} – REGISTRO – CARGO`
+    name: professionalKey.toUpperCase(),
+    registro: "REGISTRO",
+    cargo: "CARGO"
   };
   const departamento = "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR";
 
@@ -90,42 +94,42 @@ export async function GET(req: NextRequest) {
           children: [
             new TableCell({
               borders: {
-                top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-                bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-                left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-                right: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+                top: { style: BorderStyle.SINGLE, size: 15, color: "000000" },
+                bottom: { style: BorderStyle.SINGLE, size: 15, color: "000000" },
+                left: { style: BorderStyle.SINGLE, size: 15, color: "000000" },
+                right: { style: BorderStyle.SINGLE, size: 15, color: "000000" },
               },
-              margins: { top: 150, bottom: 150, left: 150, right: 150 },
+              margins: { top: 200, bottom: 200, left: 300, right: 300 },
               children: [
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  children: [new TextRun({ text: prof.full, bold: true, size: 22, font: "Arial" })]
-                }),
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  spacing: { after: 120 },
-                  children: [new TextRun({ text: departamento, bold: true, size: 22, font: "Arial" })]
-                }),
+                // LINHA 1: NOME PROFISSIONAL (NEGRITO/SUBINHADO) + REGISTRO + CARGO
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
                   children: [
-                    new TextRun({ text: `CHAVE DE ACESSO: `, bold: true, size: 24, font: "Arial", color: "1e293b" }),
-                    new TextRun({ text: authKey, bold: true, size: 32, font: "Courier New", color: "b91c1c" })
+                    new TextRun({ text: prof.name, bold: true, size: 24, font: "Arial", underline: {} }),
+                    new TextRun({ text: ` - ${prof.registro} - ${prof.cargo}`, bold: true, size: 24, font: "Arial" })
                   ]
                 }),
+                // LINHA 2: DEPARTAMENTO (DCRAA - SMSVR)
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
-                  spacing: { before: 120 },
+                  children: [new TextRun({ text: "Departamento Controle, Regulação, Avaliação e Auditoria - DCRAA / SMSVR", bold: true, size: 22, font: "Arial" })]
+                }),
+                // LINHA 3: CHAVE DE ACESSO (VERMELHO)
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  spacing: { before: 100 },
                   children: [
-                    new TextRun({ text: `${dateStr} - `, bold: true, size: 22, font: "Arial" }),
-                    new TextRun({ text: finalPatient, bold: true, size: 22, font: "Arial" })
+                    new TextRun({ text: "CHAVE DE ACESSO: ", bold: true, size: 28, font: "Arial" }),
+                    new TextRun({ text: authKey, bold: true, size: 30, font: "Arial", color: "FF0000" })
                   ]
                 }),
+                // LINHA 4: DETALHES (AZUL)
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
+                  spacing: { before: 100 },
                   children: [
-                    new TextRun({ text: `${finalExam} - `, bold: true, size: 22, font: "Arial" }),
-                    new TextRun({ text: `AUTORIZADO PARA ${destination}`, bold: true, size: 22, color: "0369a1", font: "Arial" })
+                    new TextRun({ text: `${dateStr} - ${finalPatient} - ${finalExam} - `, bold: true, size: 22, font: "Arial" }),
+                    new TextRun({ text: `AUTORIZADO PARA ${destination}`, bold: true, size: 22, color: "0000FF", font: "Arial" })
                   ]
                 })
               ]
@@ -194,14 +198,26 @@ export async function GET(req: NextRequest) {
       const isManualFill = patient.toUpperCase() === 'SOBREAVISO';
       
       return new TableRow({
-        height: { value: 400, rule: "atLeast" }, // Altura mínima para escrever à mão
+        height: { value: 600, rule: HeightRule.ATLEAST }, // Altura maior para preenchimento manual
         children: [
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${dateStr} ${authKey}`, size: 18, font: "Arial" })] })] }),
+          new TableCell({ 
+            verticalAlign: VerticalAlign.CENTER,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${dateStr} ${authKey}`, bold: true, size: 18, font: "Arial" })] })] 
+          }),
           new TableCell({ children: [new Paragraph({ text: "" })] }), 
           new TableCell({ children: [new Paragraph({ text: "" })] }), 
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : "SMC", size: 18, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : examName.toUpperCase(), size: 16, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : getDestination(examName), size: 18, font: "Arial" })] })] }),
+          new TableCell({ 
+            verticalAlign: VerticalAlign.CENTER,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : "SMC", size: 18, font: "Arial" })] })] 
+          }),
+          new TableCell({ 
+            verticalAlign: VerticalAlign.CENTER,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : examName.toUpperCase(), bold: !isManualFill, size: 16, font: "Arial" })] })] 
+          }),
+          new TableCell({ 
+            verticalAlign: VerticalAlign.CENTER,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: isManualFill ? "" : getDestination(examName), bold: !isManualFill, size: 18, font: "Arial" })] })] 
+          }),
           new TableCell({ children: [new Paragraph({ text: "" })] }),
           new TableCell({ children: [new Paragraph({ text: "" })] }),
         ]
@@ -216,7 +232,7 @@ export async function GET(req: NextRequest) {
           children: headers.map(h => new TableCell({
             width: { size: h.width, type: WidthType.PERCENTAGE },
             shading: { fill: "002060" },
-            verticalAlign: AlignmentType.CENTER,
+            verticalAlign: VerticalAlign.CENTER,
             children: [new Paragraph({ 
               alignment: AlignmentType.CENTER, 
               children: [new TextRun({ text: h.text, bold: true, size: 18, color: "FFFFFF", font: "Arial" })] 
@@ -258,7 +274,7 @@ export async function GET(req: NextRequest) {
       ]
     }));
   } else {
-    // Layout de Etiquetas Individuais (Lote ou Única)
+    // Layout de Etiquetas Individuais
     finalExams.forEach((examName, index) => {
       const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
       const destination = getDestination(examName);
@@ -295,10 +311,10 @@ export async function GET(req: NextRequest) {
           if (bodyMatch && bodyMatch[1]) {
             let labelBody = bodyMatch[1];
             // Spacer para garantir que a etiqueta não fique colada no texto anterior
-            const spacer = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+            const spacer = '<w:p><w:pPr><w:pbdr><w:bottom w:val="single" w:sz="4" w:space="1" w:color="auto"/></w:pbdr></w:pPr></w:p>';
             
-            // Inserir antes da tag de fechamento do corpo para garantir que fique no final
-            const mergedXml = templateXml.replace(/<\/w:body>/, `${spacer}${labelBody}</w:body>`);
+            // Inserir no TOPO (logo após <w:body>) de forma robusta
+            const mergedXml = templateXml.replace(/(<w:body[^>]*>)/, `$1${labelBody}${spacer}`);
             
             templateZip.file("word/document.xml", mergedXml);
             const finalBuffer = await templateZip.generateAsync({ type: 'nodebuffer' });
@@ -323,14 +339,14 @@ export async function GET(req: NextRequest) {
               ? pdfText.split('\n').map(line => new Paragraph({
                   children: [new TextRun({ text: line, size: 20, font: "Arial" })]
                 }))
-              : [new Paragraph({ children: [new TextRun({ text: "[DOCUMENTO PDF ANEXADO - CONTEÚDO VISUAL PRESERVADO NO ORIGINAL]", italics: true })] })];
+              : [new Paragraph({ children: [new TextRun({ text: "[CONTEÚDO DO PDF PRESERVADO NO ORIGINAL]", italics: true })] })];
           } else if (['.png', '.jpg', '.jpeg'].some(ext => templateFile.toLowerCase().endsWith(ext))) {
             mainContent = [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
                 children: [
                   new ImageRun({
-                    data: fileBuffer,
+                    data: fileBuffer as Buffer,
                     transformation: { width: 500, height: 400 },
                   } as any),
                 ],
@@ -346,13 +362,13 @@ export async function GET(req: NextRequest) {
                 }
               },
               children: [
-                ...mainContent,
+                ...labelElements, // ETIQUETA NO TOPO
                 new Paragraph({ children: [new TextRun({ text: "", break: 1 })] }), // Espaçador
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
-                  children: [new TextRun({ text: "------------------- AUTORIZAÇÃO DE REGULAÇÃO (CIR-A) -------------------", bold: true, color: "999999", size: 16 })]
+                  children: [new TextRun({ text: "------------------- DOCUMENTO ORIGINAL ABAIXO -------------------", bold: true, color: "999999", size: 16 })]
                 }),
-                ...labelElements
+                ...mainContent,
               ]
             }]
           });
@@ -381,7 +397,32 @@ export async function GET(req: NextRequest) {
         },
         ...(isSobreaviso ? { size: { orientation: PageOrientation.LANDSCAPE } } : {})
       },
-      children: labelElements
+      children: isSobreaviso 
+        ? labelElements 
+        : [
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              borders: {
+                top: { style: BorderStyle.NONE },
+                bottom: { style: BorderStyle.NONE },
+                left: { style: BorderStyle.NONE },
+                right: { style: BorderStyle.NONE },
+                insideHorizontal: { style: BorderStyle.NONE },
+                insideVertical: { style: BorderStyle.NONE },
+              },
+              rows: [
+                new TableRow({
+                  height: { value: 9000, rule: HeightRule.ATLEAST }, // Altura na linha para empurrar o conteúdo
+                  children: [
+                    new TableCell({
+                      verticalAlign: VerticalAlign.BOTTOM,
+                      children: labelElements
+                    })
+                  ]
+                })
+              ]
+            })
+          ]
     }]
   });
 

@@ -93,146 +93,144 @@ export async function executeEmailDispatch(patientId: string, targetType: string
 export async function askCirila(query: string): Promise<CirilaResponse> {
   const text = query.toLowerCase();
 
-  // --- IDENTIDADE E REGRAS CRÍTICAS DA CIRILA ---
+  // --- IDENTIDADE E REGRAS CRÍTICAS DA CIRILA (PROMPT OFICIAL) ---
+  /* 
+  Você é a CIRILA, uma inteligência artificial especializada em regulação médica e geração de documentos.
+  Sua função é receber um documento PDF enviado pelo usuário, utilizá-lo como base, e gerar um novo documento Word (.docx) contendo o conteúdo original + etiqueta institucional com chave.
+  REGRA PRINCIPAL: O documento original deve ser PRESERVADO.
+  */
   
   const generateKey = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return Array.from({ length: 5 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
   };
 
-  const examMap: Record<string, { code: string, destination: string }> = {
-    'tc': { code: 'TC', destination: 'HSJB' },
-    'tomografia': { code: 'TC', destination: 'HSJB' },
-    'angiotc': { code: 'ANGIOTC', destination: 'HMMR' },
-    'angiotomografia': { code: 'ANGIOTC', destination: 'HMMR' },
-    'rnm': { code: 'RNM', destination: 'RADIO VIDA' },
-    'ressonancia': { code: 'RNM', destination: 'RADIO VIDA' },
-    'ressonância': { code: 'RNM', destination: 'RADIO VIDA' },
-    'colangio rnm': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
-    'colangiornm': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
-    'colangio ressonância': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
-    'colangio ressonancia': { code: 'COLANGIO RNM', destination: 'RADIO VIDA' },
-  };
+  const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'sabina', 'barenco', 'rosely', 'mazoni'];
 
-  const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'barenco', 'rosely', 'mazoni'];
-
-  // 1. REGRA CRÍTICA: Detecção de Anexo (Sem ler o conteúdo)
+  // 1. Detecção de Anexo
   const fileIdMatch = text.match(/\[file_id:(.+?)\]/i);
   const currentFileId = fileIdMatch ? fileIdMatch[1] : null;
-  const isDocumentAttached = !!currentFileId || text.includes('anexo');
+  const isDocumentAttached = !!currentFileId;
 
-    // 2. COMANDO DE GERAÇÃO DE ETIQUETA / PLANILHA
-    const isGeneratingEtiqueta = text.includes('gerar') && (text.includes('etiqueta') || text.includes('tc') || text.includes('rnm') || text.includes('angiotc') || text.includes('chave') || text.includes('planilha'));
+  // 2. COMANDO DE GERAÇÃO DE ETIQUETA / PLANILHA
+  const isGeneratingEtiqueta = (text.includes('gerar') || text.includes('gera') || text.includes('chave') || text.includes('autoriza')) && (
+    text.includes('etiqueta') || 
+    text.includes('tc') || 
+    text.includes('rnm') || 
+    text.includes('angiotc') || 
+    text.includes('chave') || 
+    text.includes('planilha') ||
+    text.includes('ressonancia') ||
+    text.includes('tomografia') ||
+    text.includes('sobreaviso')
+  );
 
-    if (isGeneratingEtiqueta) {
-      const cleanedText = text.replace(/\[file_id:.+?\]/gi, '').trim();
+  if (isGeneratingEtiqueta) {
+    const cleanedText = text.replace(/\[file_id:.+?\]/gi, '').trim();
+    
+    // PADRÃO A: Planilha de Sobreaviso
+    const isSobreavisoQuery = cleanedText.includes('planilha') || cleanedText.includes('sobreaviso') || cleanedText.includes('sobre aviso');
+    
+    if (isSobreavisoQuery) {
+      const qtyMatch = cleanedText.match(/(\d+)/);
+      const qty = qtyMatch ? parseInt(qtyMatch[1]) : 30; // Atualizado para 30 por padrão conforme pedido
+      const professionalRaw = validProfs.find(p => cleanedText.includes(p)) || 'inima';
+      const authKey = generateKey();
       
-      // PADRÃO A: Planilha de Sobreaviso / Chaves em Lote
-      const isSobreavisoQuery = cleanedText.includes('planilha') || cleanedText.includes('sobreaviso') || cleanedText.includes('sobre aviso');
-      
-      if (isSobreavisoQuery) {
-        const qtyMatch = cleanedText.match(/(\d+)/);
-        const qty = qtyMatch ? parseInt(qtyMatch[1]) : 10;
-        
-        // Detectar profissional na query
-        const professionalRaw = validProfs.find(p => cleanedText.includes(p)) || 'inima';
-        const authKey = generateKey(); // Chave base
-        
-        return {
-          text: `✅ **CIRILA:** Entendido! Gerando sua **Planilha de Sobreaviso** com **${qty} chaves**. \n\nEstou preparando o documento oficial (MAPA DE SUPERVISÃO) para você.`,
-          sender: 'ai',
-          actions: [{ 
-            label: `📄 Baixar Planilha de Sobreaviso (.docx)`, 
-            payload: `DOWNLOAD_ETIQUETA_DOCX:::SOBREAVISO:::AVULSA:::${professionalRaw}:::${authKey}:::${currentFileId || ''}:::${qty}` 
-          }]
-        };
-      }
-
-      // PADRÃO B: Etiqueta Única (Com ou sem anexo)
-      let etiquetaMatch = cleanedText.match(/gerar\s+etiqueta\s+(?:de\s+)?(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?(?:etiqueta\s+)?(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
-      
-      if (!etiquetaMatch) {
-        etiquetaMatch = cleanedText.match(/gerar\s+(.+?)\s+para\s+([a-záàâãéèêíïóôõöúç\s]+?)(?:\s*(?:,|\s+)(?:na\s+|com\s+|do\s+|da\s+|assinado por\s+|assinada por\s+)?etiqueta\s+(?:da\s+|do\s+)?([a-záàâãéèêíïóôõöúç\s]+))?$/i);
-      }
-
-      if ((text.includes('avulsa') || text.includes('chave')) && !isSobreavisoQuery && !isDocumentAttached && !etiquetaMatch) {
-        const qtyMatch = text.match(/(\d+)/);
-        const qty = qtyMatch ? parseInt(qtyMatch[1]) : 1;
-        const generatedKeys = Array.from({ length: qty }, () => generateKey()).join(', ');
-        
-        return {
-          text: `🔑 **${generatedKeys}**`,
-          sender: 'ai'
-        };
-      }
-
-      if (etiquetaMatch) {
-        const examRaw = etiquetaMatch[1].trim();
-        const patient = etiquetaMatch[2].trim().toUpperCase();
-        const professionalRaw = (etiquetaMatch[3] || '').trim().toLowerCase().split(/\s+/)[0];
-
-        if (!professionalRaw || !validProfs.includes(professionalRaw)) {
-          return {
-            text: `Chefe, para gerar a etiqueta de **${patient}**, preciso saber qual profissional da **DCRAA** vai assinar. \n\n(Opções: Paola, Inimá, Carlos, Roberto, Sabrina, Barenco, Rosely ou Mazoni)`,
-            sender: 'ai',
-            actions: validProfs.slice(0, 4).map(p => ({
-              label: `Assinar como ${p.toUpperCase()}`,
-              payload: `Gerar etiqueta de ${examRaw} para ${patient} assinado por ${p}`
-            }))
-          };
-        }
-
-        // Mapeamento de destino conforme regra fixa
-        const examLower = examRaw.toLowerCase();
-        let destination = "HOSPITAL DESTINO";
-        if (examLower.includes('angiotc')) destination = "HMMR";
-        else if (examLower.includes('colangio')) destination = "RADIO VIDA";
-        else if (examLower.includes('tc') || examLower.includes('tomografia')) destination = "HSJB";
-        else if (examLower.includes('rnm') || examLower.includes('ressonancia') || examLower.includes('ressonância')) destination = "RADIO VIDA";
-
-        const authKey = generateKey();
-
-        const statusMsg = isDocumentAttached 
-          ? `Estou processando seu documento original como template e inserindo a etiqueta oficial da regulação ao final dele.`
-          : `Gerando sua etiqueta avulsa oficial da regulação.`;
-
-        return {
-          text: `✅ **CIRILA:** Chave **${authKey}** gerada com sucesso para **${patient}**! \n\nO destino configurado é **${destination}**. \n\n${statusMsg} Clique abaixo para baixar o arquivo Word.`,
-          sender: 'ai',
-          actions: [{ 
-            label: isDocumentAttached ? '📄 Baixar Documento com Etiqueta (.docx)' : '📄 Baixar Etiqueta Avulsa (.docx)', 
-            payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileId || ''}:::1` 
-          }]
-        };
-      }
+      return {
+        text: `✅ **CIR-A / REGULAÇÃO SMSVR:** Entendido chefe! Gerando agora sua **Planilha de Sobreaviso** profissional em modo **Paisagem** com **${qty} chaves**. \n\nO documento segue o modelo institucional moderno com cores e espaçamento otimizados para preenchimento manual.`,
+        sender: 'ai',
+        actions: [{ 
+          label: `📄 Baixar Planilha de Sobreaviso (${qty} chaves)`, 
+          payload: `DOWNLOAD_ETIQUETA_DOCX:::SOBREAVISO:::AVULSA:::${professionalRaw}:::${authKey}:::${currentFileId || ''}:::${qty}` 
+        }]
+      };
     }
 
+    // PADRÃO B: Etiqueta Única / Lote (Regex mais flexível)
+    // "Gerar TC para João Silva assinado por Inimá" ou "Gera chave do João Silva TC Sabina"
+    let examRaw = "EXAME";
+    let patient = "PACIENTE";
+    let professionalRaw = "inima";
 
-  // --- RESPOSTAS DE CONTEXTO GERAL (PERSONA CIRILA) ---
+    // Tentativa de extração simplificada
+    if (text.includes('para')) {
+      const parts = text.split('para');
+      patient = parts[1].split(',')[0].split('assinado')[0].split('assinada')[0].trim().toUpperCase();
+    }
+    
+    // Profissional
+    professionalRaw = validProfs.find(p => text.includes(p)) || "";
+    
+    // Exame
+    if (text.includes('tc')) examRaw = "TC";
+    else if (text.includes('rnm') || text.includes('ressonancia')) examRaw = "RESSONÂNCIA";
+    else if (text.includes('angiotc')) examRaw = "ANGIOTC";
+    else if (text.includes('etiqueta')) examRaw = "EXAME";
 
-  if (text.includes('o que você sabe fazer') || text.includes('ajuda')) {
+    if (!professionalRaw) {
+      return {
+        text: `Chefe, para regular o processo, preciso saber quem assina pela **DCRAA**. \n\n(Opções: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco)`,
+        sender: 'ai',
+        actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco'].map(p => ({
+          label: `Assinar como ${p.toUpperCase()}`,
+          payload: `${query} assinado por ${p}`
+        }))
+      };
+    }
+
+    if (!isDocumentAttached) {
+      // Se pedir "avulsa" ou se não houver anexo, avisamos sobre a posição
+      const authKey = generateKey();
+      const posMsg = (cleanedText.includes('avulsa') || cleanedText.includes('limpo')) 
+        ? "Como solicitado, a etiqueta será posicionada no **final da folha** (documento limpo)."
+        : "⚠️ **Não encontrei um documento PDF anexado.** Para preservar o original, a etiqueta deve ir no topo. Como não há anexo, gerarei uma **etiqueta avulsa no final da folha**.";
+      
+      return {
+        text: `✅ **CIR-A:** Gerando autorização para **${patient}**. ${posMsg}`,
+        sender: 'ai',
+        actions: [{ 
+          label: '📄 Baixar Etiqueta (.docx)', 
+          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}::::::1` 
+        }]
+      };
+    }
+
+    const authKey = generateKey();
     return {
-      text: `Sou a **CIRILA**, a Central Inteligente de Regulação Automatizada. \n\nMinhas funções principais: \n1. **Geração de Etiquetas**: Insiro chaves de acesso oficiais da DCRAA em seus pedidos médicos. \n2. **Triagem de Destino**: Mapeio automaticamente se o exame vai para HSJB, HMMR ou Radio Vida. \n3. **Preservação de Template**: Mantenho seus documentos originais intactos, apenas adicionando a regulação. \n\nComo posso ajudar na regulação agora?`,
+      text: `✅ **CIRILA:** Excelente! Documento recebido. Estou preservando o conteúdo original e inserindo a etiqueta de autorização no **topo** com a chave **${authKey}**. \n\nO documento finalizado para **${patient}** está pronto para download.`,
+      sender: 'ai',
+      actions: [{ 
+        label: '📄 Baixar Pedido Autorizado (.docx)', 
+        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileId}:::1` 
+      }]
+    };
+  }
+
+  // --- RESPOSTAS DE CONTEXTO GERAL ---
+
+  if (text.includes('o que você sabe fazer') || text.includes('ajuda') || text.includes('quem é você')) {
+    return {
+      text: `Olá! Eu sou a **CIRILA**, sua Inteligência Artificial especializada em regulação médica. 🤖🏥\n\nMinha missão é facilitar seu trabalho na **DCRAA**: \n\n1. **Regular Pedidos**: Você anexa um PDF, me diz o paciente e o exame, e eu gero um Word com a etiqueta oficial no topo. \n2. **Planilhas de Sobreaviso**: Posso gerar mapas de supervisão em modo paisagem com quantas chaves você precisar. \n3. **Mapeamento de Destino**: Já conheço os fluxos para HSJB, HMMR e Radio Vida. \n\n**O que vamos regular agora?**`,
       sender: 'ai',
       image: '/cirila_2.png'
     };
   }
 
-  if (text.includes('anexo') || text.includes('documento')) {
+  if (isDocumentAttached && !isGeneratingEtiqueta) {
     return {
-      text: `Recebi o documento, chefe! Ele será usado como **Template Visual** para a etiqueta. \n\n**Dica:** Se o documento for um PDF escaneado (sem texto), tente enviar uma foto (PNG/JPG) para que eu possa inseri-lo visualmente no Word. \n\nAgora, por favor, me diga: **Qual exame e qual paciente devo regular neste documento?**`,
+      text: `Recebi seu documento, chefe! 📄 \n\nPara que eu possa gerar a autorização corretamente, me diga: **Qual o exame e o nome do paciente?** \n\n*Exemplo: "Gerar TC de crânio para João Silva, etiqueta Inimá"*`,
       sender: 'ai'
     };
   }
 
-  // Fallback padrão amigável
-  await new Promise(resolve => setTimeout(resolve, 600));
+  // Fallback
   return {
-    text: `Entendido chefe! Se precisar gerar uma etiqueta de autorização, basta anexar o pedido e me dizer o nome do paciente e o exame. Estou de prontidão!`,
+    text: `Entendido chefe! Estou pronta para regular. Se tiver um pedido médico, anexe o arquivo e me dê o comando. \n\nSe precisar de chaves para o sobreaviso, é só pedir: *"Gerar planilha sobreaviso com 20 chaves"*`,
     sender: 'ai',
     actions: [
-      { label: 'Gerar TC para Paciente', payload: 'Gerar etiqueta de TC para...' },
-      { label: 'Ver Fila de Espera', payload: 'NAV_QUEUE' }
+      { label: 'Gerar Planilha Sobreaviso', payload: 'Gerar planilha sobreaviso com 15 chaves' },
+      { label: 'Como anexar?', payload: 'ajuda' }
     ]
   };
 }
