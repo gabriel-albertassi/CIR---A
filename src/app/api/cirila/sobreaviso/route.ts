@@ -39,32 +39,28 @@ function makeKeyGenerator() {
 const BD = BorderStyle;
 
 const TABLE_BORDERS = {
-  top:              { style: BD.SINGLE, size: 6,  color: '1e3a5f' },
-  bottom:           { style: BD.SINGLE, size: 6,  color: '1e3a5f' },
-  left:             { style: BD.SINGLE, size: 6,  color: '1e3a5f' },
-  right:            { style: BD.SINGLE, size: 6,  color: '1e3a5f' },
-  insideHorizontal: { style: BD.SINGLE, size: 2,  color: 'b0bec5' },
-  insideVertical:   { style: BD.SINGLE, size: 2,  color: 'b0bec5' },
+  top:              { style: BD.SINGLE, size: 8,  color: '000000' },
+  bottom:           { style: BD.SINGLE, size: 8,  color: '000000' },
+  left:             { style: BD.SINGLE, size: 8,  color: '000000' },
+  right:            { style: BD.SINGLE, size: 8,  color: '000000' },
+  insideHorizontal: { style: BD.SINGLE, size: 4,  color: '000000' },
+  insideVertical:   { style: BD.SINGLE, size: 4,  color: '000000' },
 };
 
 // ─── Colunas ─────────────────────────────────────────────────────────────────
-// A4 landscape útil ≈ 15840 twip total; margens 0.4in × 2 = 1152 → disponível ≈ 14688 twip
-
 const COLS = [
-  { label: 'DATA / CHAVE',              dxa: 1600 },
-  { label: 'CLIENTE (PACIENTE)',         dxa: 2800 },
+  { label: 'DATA / CHAVE',              dxa: 1800 },
+  { label: 'PACIENTE',                  dxa: 2800 },
   { label: 'DIAGNÓSTICO',               dxa: 2000 },
-  { label: 'HOSPITAL ORIGEM',           dxa: 1900 },
+  { label: 'HOSPITAL ORIGEM',           dxa: 1800 },
   { label: 'PROCEDIMENTO',              dxa: 2400 },
-  { label: 'PRESTADOR: REDE / PRIVADO', dxa: 2000 },
-  { label: 'CNS',                       dxa: 1200 },
-  { label: 'AUDITOR',                   dxa: 788  },
+  { label: 'PRESTADOR: REDE / PRIVADO', dxa: 2200 },
+  { label: 'CNS',                       dxa: 1000 },
+  { label: 'AUDITOR',                   dxa: 688  },
 ];
-// total = 14688 twip
 
 // ─── Cabeçalho da tabela ─────────────────────────────────────────────────────
-
-const HEADER_HEIGHT = 600; // twip
+const HEADER_HEIGHT = 800; // twip
 
 function buildTableHeader(): TableRow {
   return new TableRow({
@@ -74,9 +70,9 @@ function buildTableHeader(): TableRow {
     children: COLS.map((col) =>
       new TableCell({
         width: { size: col.dxa, type: WidthType.DXA },
-        shading: { fill: '1e3a5f', color: '1e3a5f', type: 'solid' },
+        shading: { fill: '000000', color: '000000', type: 'solid' },
         verticalAlign: VerticalAlign.CENTER,
-        margins: { top: 60, bottom: 60, left: 80, right: 80 },
+        margins: { top: 100, bottom: 100, left: 100, right: 100 },
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
@@ -97,38 +93,29 @@ function buildTableHeader(): TableRow {
 }
 
 // ─── Linha de dados ───────────────────────────────────────────────────────────
-
 function buildDataRow(index: number, dateStr: string, nextKey: () => string, rowHeight: number): TableRow {
   const key  = nextKey();
-  const fill = index % 2 === 0 ? 'EEF2F7' : 'FFFFFF';
+  const fill = index % 2 === 0 ? 'F2F2F2' : 'FFFFFF';
 
   const emptyCell = (colIndex: number) =>
     new TableCell({
       width: { size: COLS[colIndex].dxa, type: WidthType.DXA },
       shading: { fill, color: fill, type: 'solid' },
       verticalAlign: VerticalAlign.CENTER,
-      margins: { top: 40, bottom: 40, left: 80, right: 80 },
       children: [new Paragraph({ children: [] })],
     });
 
   return new TableRow({
     height: { value: rowHeight, rule: HeightRule.EXACT },
     children: [
-      // DATA / CHAVE
       new TableCell({
         width: { size: COLS[0].dxa, type: WidthType.DXA },
         shading: { fill, color: fill, type: 'solid' },
         verticalAlign: VerticalAlign.CENTER,
-        margins: { top: 40, bottom: 40, left: 80, right: 80 },
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { after: 16 },
-            children: [new TextRun({ text: dateStr, size: 13, color: '546e7a', font: 'Arial' })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: key, bold: true, size: 18, color: '1565c0', font: 'Courier New' })],
+            children: [new TextRun({ text: `${dateStr} ${key}`, bold: true, size: 18, color: '000000', font: 'Arial' })],
           }),
         ],
       }),
@@ -144,7 +131,6 @@ function buildDataRow(index: number, dateStr: string, nextKey: () => string, row
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
-
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const count = Math.max(1, Math.min(300, parseInt(searchParams.get('count') || '15')));
@@ -153,29 +139,42 @@ export async function GET(req: NextRequest) {
   const dateStr     = now.toLocaleDateString('pt-BR');
   const dateFileStr = now.toISOString().slice(0, 10).replace(/-/g, '');
 
-  // ── Dimensões A4 landscape ────────────────────────────────────────────────
-  // Largura: 16838 twip | Altura: 11906 twip
-  // Margens: top/bottom = 0.4in (576 twip) | left/right = 0.4in (576 twip)
-  const PAGE_H     = 11906;
-  const MARGIN_TB  = convertInchesToTwip(0.4);   // ~576 twip cada
-  const USABLE_H   = PAGE_H - MARGIN_TB * 2;     // ≈ 10754 twip por página
-
-  // Linhas que cabem por página (descontando cabeçalho)
-  const rowsPerPage     = Math.floor((USABLE_H - HEADER_HEIGHT) / 500); // mínimo 500 twip/linha
-  const totalPages      = Math.ceil(count / rowsPerPage);
-  const rowHeight       = Math.floor((USABLE_H - HEADER_HEIGHT) / Math.min(count, rowsPerPage));
+  const PAGE_H     = 11906; // Twips para A4 Paisagem (altura da folha deitada)
+  const MARGIN_TB  = 400;   // Margens superior/inferior
+  const USABLE_H   = PAGE_H - MARGIN_TB * 2;
+  
+  // Título (600) + Cabeçalho (800) + margem de segurança (400) = 1800
+  // Para preencher a folha com pelo menos 12-14 linhas:
+  const displayCount = Math.max(count, 13);
+  const rowHeight    = Math.floor((USABLE_H - 1800) / displayCount);
 
   const nextKey    = makeKeyGenerator();
-  const totalDxa   = COLS.reduce((s, c) => s + c.dxa, 0);
+
+  const titleRow = new TableRow({
+    height: { value: 600, rule: HeightRule.EXACT },
+    children: [
+      new TableCell({
+        columnSpan: 8,
+        verticalAlign: VerticalAlign.CENTER,
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: "MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO - SMSVR", bold: true, size: 28, font: "Arial", color: "000000" })]
+          })
+        ]
+      })
+    ]
+  });
 
   const mainTable = new Table({
-    width: { size: totalDxa, type: WidthType.DXA },
+    width: { size: 100, type: WidthType.PERCENTAGE },
     layout: TableLayoutType.FIXED,
     columnWidths: COLS.map((c) => c.dxa),
     borders: TABLE_BORDERS,
     rows: [
+      titleRow,
       buildTableHeader(),
-      ...Array.from({ length: count }, (_, i) => buildDataRow(i, dateStr, nextKey, rowHeight)),
+      ...Array.from({ length: displayCount }, (_, i) => buildDataRow(i, dateStr, nextKey, rowHeight)),
     ],
   });
 

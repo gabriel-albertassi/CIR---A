@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
     const providedKey = searchParams.get('key');
     const pos = searchParams.get('pos') || 'top';
     const examsRaw = searchParams.get('exam')?.replace(/\+/g, ' ') || 'EXAME';
+    const hospitalOrigin = searchParams.get('hospitalOrigin')?.replace(/\+/g, ' ') || 'HOSPITAL ORIGEM';
     const qty = parseInt(searchParams.get('qty') || '1');
 
     const examsList = examsRaw.split(',').map(e => e.trim());
@@ -78,10 +79,11 @@ export async function GET(req: NextRequest) {
 
     // --- ETIQUETA INSTITUCIONAL (FORMATO EXATO DO MODELO) ---
     // Formato: bordas pretas, texto esquerda, 3 linhas fixas
-    const createLabelTable = (examName: string, authKey: string, destination: string, pName: string) => {
+    const createLabelTable = (examName: string, authKey: string, destination: string, pName: string, hOrigin: string) => {
       const isAvulsa = examName.toUpperCase().includes('AVULSA');
-      const finalExam    = isAvulsa ? 'EXAME A SER PREENCHIDO'    : examName.toUpperCase();
-      const finalPatient = isAvulsa ? 'PACIENTE A SER PREENCHIDO' : pName.toUpperCase();
+      const finalExam    = (isAvulsa ? 'EXAME A SER PREENCHIDO'    : examName.toUpperCase()).trim();
+      const finalPatient = (isAvulsa ? 'PACIENTE A SER PREENCHIDO' : pName.toUpperCase()).trim();
+      const finalHospital = (isAvulsa ? 'HOSPITAL A SER PREENCHIDO' : hOrigin.toUpperCase()).trim();
       const labelBorder  = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
 
       return new Table({
@@ -103,9 +105,9 @@ export async function GET(req: NextRequest) {
                     spacing: { after: 80 },
                     children: [
                       new TextRun({
-                        text: `${prof.name} – ${prof.registro} – ${prof.cargo}`,
-                        bold: true, size: 22, font: 'Arial',
-                        underline: { type: 'single' },
+                        text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
+                        bold: true, size: 22, font: 'Arial', color: '000000',
+                        underline: { type: 'single', color: '000000' },
                       }),
                     ],
                   }),
@@ -115,20 +117,18 @@ export async function GET(req: NextRequest) {
                     spacing: { after: 100 },
                     children: [
                       new TextRun({
-                        text: 'Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR',
-                        bold: true, size: 20, font: 'Arial',
+                        text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
+                        bold: true, size: 20, font: 'Arial', color: '000000',
                       }),
                     ],
                   }),
-                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] - [EXAME] AUTORIZADO PARA [DESTINO]
+                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] AUTORIZADO PARA [DESTINO]
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
                     children: [
-                      new TextRun({ text: `${dateStr} : `, bold: true, size: 22, font: 'Arial', color: '0000FF' }),
-                      new TextRun({ text: authKey,         bold: true, size: 26, font: 'Arial', color: 'FF0000' }),
                       new TextRun({
-                        text: ` - ${finalPatient} - ${finalExam} AUTORIZADO PARA ${destination}`,
-                        bold: true, size: 22, font: 'Arial', color: '0000FF',
+                        text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam} AUTORIZADO PARA ${destination.toUpperCase()}`,
+                        bold: true, size: 22, font: 'Arial', color: '000000',
                       }),
                     ],
                   }),
@@ -140,86 +140,84 @@ export async function GET(req: NextRequest) {
       });
     };
 
+
     // Sobreaviso: ativado apenas por patient=SOBREAVISO explícito (nunca por qty)
     const isSobreaviso = patient.toUpperCase() === 'SOBREAVISO';
     const labelElements: any[] = [];
 
     let pageHeader: any = null;
     if (isSobreaviso) {
-      pageHeader = new Header({
-        children: [
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            borders: {
-              top: { style: BorderStyle.NONE },
-              bottom: { style: BorderStyle.SINGLE, size: 2, color: "002060" },
-              left: { style: BorderStyle.NONE },
-              right: { style: BorderStyle.NONE },
-              insideHorizontal: { style: BorderStyle.NONE },
-              insideVertical: { style: BorderStyle.NONE },
-            },
-            rows: [
-              new TableRow({
-                children: [
-                  new TableCell({
-                    children: [new Paragraph({ children: [new TextRun({ text: "CIR-A / REGULAÇÃO SMSVR", bold: true, size: 24, font: "Arial", color: "002060" })] })]
-                  }),
-                  new TableCell({
-                    children: [new Paragraph({
-                      alignment: AlignmentType.RIGHT,
-                      children: [new TextRun({ text: `EMISSÃO: ${dateStr}`, bold: true, size: 20, font: "Arial", color: "002060" })]
-                    })]
-                  }),
-                ]
-              })
-            ]
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 200, after: 300 },
-            children: [new TextRun({ text: "MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO", bold: true, size: 28, font: "Arial", color: "002060" })]
-          })
-        ]
-      });
-
+      // Título integrado na tabela para preenchimento total da página
       const headers = [
-        { text: "DATA/CHAVE", width: 15 },
-        { text: "PACIENTE", width: 25 },
-        { text: "DIAGNÓSTICO", width: 15 },
-        { text: "ORIGEM", width: 10 },
-        { text: "EXAME", width: 15 },
-        { text: "DESTINO", width: 10 },
+        { text: "DATA/CHAVE", width: 14 },
+        { text: "PACIENTE", width: 18 },
+        { text: "DIAGNÓSTICO", width: 14 },
+        { text: "HOSP. ORIGEM", width: 10 },
+        { text: "PROCEDIMENTO", width: 16 },
+        { text: "PRESTADOR: REDE / PRIVADO", width: 18 },
+        { text: "CNS", width: 5 },
         { text: "AUD", width: 5 }
       ];
 
-      const tableRows = finalExams.map((examName, index) => {
-        const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
+      // Ajuste de quantidade para garantir preenchimento da página A4 Paisagem (aprox 12-14 linhas se altas)
+      const displayExams = finalExams.length < 12 ? [...finalExams, ...Array(12 - finalExams.length).fill("")] : finalExams;
+
+      const tableRows = displayExams.map((examName, index) => {
+        const authKey = (index < finalExams.length && (index === 0 && providedKey)) ? providedKey : generateKey();
         const isEven = index % 2 === 0;
+        const examText = examName ? examName.toUpperCase() : "";
 
         return new TableRow({
-          height: { value: 800, rule: HeightRule.ATLEAST },
+          height: { value: 900, rule: HeightRule.EXACT }, // Altura maior para preencher a folha
           children: [
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${dateStr} ${authKey}`, bold: true, size: 18, font: "Arial" })] })] }),
+            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: examName ? `${dateStr} ${authKey}` : "", bold: true, size: 20, font: "Arial", color: "000000" })] })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: examName.toUpperCase(), size: 18, font: "Arial" })] })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: getDestination(examName), size: 18, font: "Arial" })] })] }),
+            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: examText, bold: true, size: 18, font: "Arial", color: "000000" })] })] }),
+            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
+            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
           ]
         });
       });
 
+      // Título como primeira linha da tabela para "prender" o layout
+      const titleRow = new TableRow({
+        children: [
+          new TableCell({
+            columnSpan: 8,
+            margins: { top: 200, bottom: 200 },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO - SMSVR",
+                    bold: true,
+                    size: 32,
+                    font: "Arial",
+                    color: "000000"
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      });
+
       labelElements.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
+          titleRow,
           new TableRow({
             tableHeader: true,
             children: headers.map(h => new TableCell({
               width: { size: h.width, type: WidthType.PERCENTAGE },
-              shading: { fill: "002060" },
+              shading: { fill: "000000" },
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: h.text, bold: true, size: 18, color: "FFFFFF", font: "Arial" })] })]
+              margins: { top: 100, bottom: 100 },
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: h.text, bold: true, size: 16, color: "FFFFFF", font: "Arial" })] })]
             }))
           }),
           ...tableRows
@@ -231,7 +229,7 @@ export async function GET(req: NextRequest) {
       finalExams.forEach((examName, index) => {
         const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
         const destination = getDestination(examName);
-        labelElements.push(createLabelTable(examName, authKey, destination, patient));
+        labelElements.push(createLabelTable(examName, authKey, destination, patient, hospitalOrigin));
         if (index < finalExams.length - 1) {
           // Espaço entre etiquetas múltiplas
           labelElements.push(new Paragraph({ spacing: { before: 400, after: 400 }, children: [] }));
@@ -280,21 +278,34 @@ export async function GET(req: NextRequest) {
           });
         }
       } else if (isPdf) {
-        // Tenta extrair texto do PDF — se falhar, gera só a etiqueta
+        // Tenta extrair texto do PDF — se falhar, gera só a etiqueta em documento novo
         let pdfParagraphs: Paragraph[] = [];
         try {
-          const pdfData = await pdf(fileBuffer);
-          pdfParagraphs = pdfData.text
-            .split('\n')
-            .filter(l => l.trim())
-            .map(line => new Paragraph({
-              children: [new TextRun({ text: line, size: 20, font: 'Arial' })]
-            }));
-        } catch {
+          if (!fileBuffer || fileBuffer.length === 0) throw new Error("Buffer de PDF vazio");
+          
+          // Tenta ler o PDF. Se o pdf-parse falhar (ex: estrutura inválida), caímos no catch.
+          const pdfData = await pdf(fileBuffer).catch(e => {
+            console.error('[PDF_PARSE_INTERNAL_ERROR]', e);
+            return null;
+          });
+
+          if (pdfData && pdfData.text) {
+            pdfParagraphs = pdfData.text
+              .split('\n')
+              .filter(l => l.trim())
+              .map(line => new Paragraph({
+                children: [new TextRun({ text: line, size: 20, font: 'Arial' })]
+              }));
+          } else {
+            throw new Error("PDF sem conteúdo extraível");
+          }
+        } catch (pdfErr) {
+          console.warn('[PDF_RESILIENCE_MODE] Falha ao processar PDF original. Gerando apenas etiqueta.', pdfErr);
           pdfParagraphs = [
             new Paragraph({
-              children: [new TextRun({ text: '[Conteúdo do PDF original]', size: 18, font: 'Arial', italics: true, color: '888888' })]
-            })
+              children: [new TextRun({ text: '[Documento Original Anexado - Ver arquivo original]', size: 18, font: 'Arial', italics: true, color: '666666' })]
+            }),
+            new Paragraph({ children: [] })
           ];
         }
 
@@ -302,33 +313,44 @@ export async function GET(req: NextRequest) {
           sections: [{
             properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
             children: pos === 'bottom'
-              ? [...pdfParagraphs, new Paragraph({ spacing: { before: 600 }, children: [] }), ...labelElements]
-              : [...labelElements, new Paragraph({ spacing: { after: 600 }, children: [] }), ...pdfParagraphs]
-          }]
-        });
-        const finalBuffer = await Packer.toBuffer(doc);
-        return new NextResponse(finalBuffer as any, {
-          headers: {
-            'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
-            'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          },
-        });
-      }
-    }
-
-    // --- CASO PADRÃO: SEM ANEXO OU FALLBACK ---
-    const finalDoc = new Document({
-      sections: [{
-        headers: pageHeader ? { default: pageHeader } : undefined,
-        properties: {
-          page: {
-            margin: { top: isSobreaviso ? 1200 : 720, right: 720, bottom: 720, left: 720 },
-            size: isSobreaviso ? { orientation: PageOrientation.LANDSCAPE } : undefined
-          }
-        },
-        children: labelElements
+          ? [
+              ...pdfParagraphs,
+              // Múltiplos parágrafos vazios para empurrar para o final e permitir movimento
+              ...Array(15).fill(0).map(() => new Paragraph({ children: [] })),
+              ...labelElements
+            ]
+          : [...labelElements, new Paragraph({ spacing: { after: 600 }, children: [] }), ...pdfParagraphs]
       }]
     });
+    const finalBuffer = await Packer.toBuffer(doc);
+    return new NextResponse(finalBuffer as any, {
+      headers: {
+        'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      },
+    });
+  }
+}
+
+// --- CASO PADRÃO: SEM ANEXO OU FALLBACK ---
+const emptyParagraphs = pos === 'bottom' ? Array(25).fill(0).map(() => new Paragraph({ children: [] })) : [];
+
+const finalDoc = new Document({
+  sections: [{
+    properties: {
+      page: {
+        margin: { 
+          top: isSobreaviso ? 200 : 720, 
+          right: isSobreaviso ? 200 : 720, 
+          bottom: isSobreaviso ? 200 : 720, 
+          left: isSobreaviso ? 200 : 720 
+        },
+        size: isSobreaviso ? { orientation: PageOrientation.LANDSCAPE } : undefined
+      }
+    },
+    children: [...emptyParagraphs, ...labelElements]
+  }]
+});
 
     const buffer = await Packer.toBuffer(finalDoc);
     return new NextResponse(buffer as any, {
