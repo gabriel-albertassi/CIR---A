@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
                   // LINHA 1: Nome – Registro – Cargo (negrito + sublinhado)
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
-                    spacing: { after: 80 },
+                    spacing: { after: 160 },
                     children: [
                       new TextRun({
                         text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
                   // LINHA 2: Departamento
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
-                    spacing: { after: 100 },
+                    spacing: { after: 160 },
                     children: [
                       new TextRun({
                         text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',

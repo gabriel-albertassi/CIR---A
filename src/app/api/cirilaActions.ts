@@ -311,9 +311,19 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       }
     }
 
-    // Camada Final: Limpeza agressiva
+    // Camada Final: Limpeza agressiva (Hospitais, Profissionais e Conectores)
     patient = patient.replace(/\b(HSJB|HMMR|UPA|CAIS|HMVR|HINJA|ASSINADO|ASSINADA|COM|SEM|ETIQUETA|NO|CHAT|APENAS|TEXTO|SÓ|SO)\b/gi, '').trim();
-    if (!patient) patient = "PACIENTE";
+    
+    // Remove profissionais conhecidos e preposições de assinatura que possam ter vazado para o nome
+    validProfs.forEach(p => {
+      const profRegex = new RegExp(`\\s+(?:NA|DO|NO|POR|DA|DE|ASSINADO|ASSINADA|\\s)*\\b${p}\\b`, 'gi');
+      patient = patient.replace(profRegex, '').trim();
+    });
+
+    // Limpeza de preposições órfãs no final do nome resultantes da extração
+    patient = patient.replace(/\s+(NA|DO|NO|POR|ASSINADO|ASSINADA)$/gi, '').trim();
+    
+    if (!patient || patient === "PACIENTE") patient = "PACIENTE";
 
     // 3. Profissional
     professionalRaw = validProfs.find(p => cleanedText.includes(p)) || "";
