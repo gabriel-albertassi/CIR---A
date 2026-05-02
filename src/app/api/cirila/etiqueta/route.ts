@@ -65,15 +65,15 @@ export async function GET(req: NextRequest) {
       const e = exam.toUpperCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       if (e.includes('ANGIOTC') || e.includes('ANGIO')) return 'HMMR';
-      if (e.includes('COLANGIO'))                        return 'RADIO VIDA';
+      if (e.includes('COLANGIO')) return 'RADIO VIDA';
       if (e.includes('RNM') || e.includes('RMN') ||
-          e.includes('RESSONANCIA') || e.includes('RESSON')) return 'RADIO VIDA';
+        e.includes('RESSONANCIA') || e.includes('RESSON')) return 'RADIO VIDA';
       if (e.includes('TC') || e.includes('TOMOGRAFIA')) return 'HSJB';
       if (e.includes('ECO') || e.includes('ECOGRAFIA') ||
-          e.includes('ECOCARDIOGRAMA'))                  return 'HSJB';
+        e.includes('ECOCARDIOGRAMA')) return 'HSJB';
       if (e.includes('ENDOSCOPIA') || e.includes('COLONOSCOPIA')) return 'HSJB';
       if (e.includes('PET') || e.includes('CINTILOGRAFIA') ||
-          e.includes('MAMOGRAFIA') || e.includes('DENSITOMETRIA')) return 'RADIO VIDA';
+        e.includes('MAMOGRAFIA') || e.includes('DENSITOMETRIA')) return 'RADIO VIDA';
       return 'HOSPITAL DESTINO';
     };
 
@@ -81,17 +81,17 @@ export async function GET(req: NextRequest) {
     // Formato: bordas pretas, texto esquerda, 3 linhas fixas
     const createLabelTable = (examName: string, authKey: string, destination: string, pName: string, hOrigin: string) => {
       const isAvulsa = examName.toUpperCase().includes('AVULSA');
-      const finalExam    = (isAvulsa ? 'EXAME A SER PREENCHIDO'    : examName.toUpperCase()).trim();
+      const finalExam = (isAvulsa ? 'EXAME A SER PREENCHIDO' : examName.toUpperCase()).trim();
       const finalPatient = (isAvulsa ? 'PACIENTE A SER PREENCHIDO' : pName.toUpperCase()).trim();
       const finalHospital = (isAvulsa ? 'HOSPITAL A SER PREENCHIDO' : hOrigin.toUpperCase()).trim();
-      const labelBorder  = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
+      const labelBorder = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
 
       return new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         borders: {
           top: labelBorder, bottom: labelBorder, left: labelBorder, right: labelBorder,
           insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-          insideVertical:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+          insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
         },
         rows: [
           new TableRow({
@@ -282,7 +282,7 @@ export async function GET(req: NextRequest) {
         let pdfParagraphs: Paragraph[] = [];
         try {
           if (!fileBuffer || fileBuffer.length === 0) throw new Error("Buffer de PDF vazio");
-          
+
           // Tenta ler o PDF. Se o pdf-parse falhar (ex: estrutura inválida), caímos no catch.
           const pdfData = await pdf(fileBuffer).catch(e => {
             console.error('[PDF_PARSE_INTERNAL_ERROR]', e);
@@ -313,44 +313,44 @@ export async function GET(req: NextRequest) {
           sections: [{
             properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
             children: pos === 'bottom'
-          ? [
-              ...pdfParagraphs,
-              // Múltiplos parágrafos vazios para empurrar para o final e permitir movimento
-              ...Array(15).fill(0).map(() => new Paragraph({ children: [] })),
-              ...labelElements
-            ]
-          : [...labelElements, new Paragraph({ spacing: { after: 600 }, children: [] }), ...pdfParagraphs]
+              ? [
+                ...pdfParagraphs,
+                // Múltiplos parágrafos vazios para empurrar para o final e permitir movimento
+                ...Array(15).fill(0).map(() => new Paragraph({ children: [] })),
+                ...labelElements
+              ]
+              : [...labelElements, new Paragraph({ spacing: { after: 600 }, children: [] }), ...pdfParagraphs]
+          }]
+        });
+        const finalBuffer = await Packer.toBuffer(doc);
+        return new NextResponse(finalBuffer as any, {
+          headers: {
+            'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
+            'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          },
+        });
+      }
+    }
+
+    // --- CASO PADRÃO: SEM ANEXO OU FALLBACK ---
+    const emptyParagraphs = pos === 'bottom' ? Array(25).fill(0).map(() => new Paragraph({ children: [] })) : [];
+
+    const finalDoc = new Document({
+      sections: [{
+        properties: {
+          page: {
+            margin: {
+              top: isSobreaviso ? 200 : 720,
+              right: isSobreaviso ? 200 : 720,
+              bottom: isSobreaviso ? 200 : 720,
+              left: isSobreaviso ? 200 : 720
+            },
+            size: isSobreaviso ? { orientation: PageOrientation.LANDSCAPE } : undefined
+          }
+        },
+        children: [...emptyParagraphs, ...labelElements]
       }]
     });
-    const finalBuffer = await Packer.toBuffer(doc);
-    return new NextResponse(finalBuffer as any, {
-      headers: {
-        'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      },
-    });
-  }
-}
-
-// --- CASO PADRÃO: SEM ANEXO OU FALLBACK ---
-const emptyParagraphs = pos === 'bottom' ? Array(25).fill(0).map(() => new Paragraph({ children: [] })) : [];
-
-const finalDoc = new Document({
-  sections: [{
-    properties: {
-      page: {
-        margin: { 
-          top: isSobreaviso ? 200 : 720, 
-          right: isSobreaviso ? 200 : 720, 
-          bottom: isSobreaviso ? 200 : 720, 
-          left: isSobreaviso ? 200 : 720 
-        },
-        size: isSobreaviso ? { orientation: PageOrientation.LANDSCAPE } : undefined
-      }
-    },
-    children: [...emptyParagraphs, ...labelElements]
-  }]
-});
 
     const buffer = await Packer.toBuffer(finalDoc);
     return new NextResponse(buffer as any, {

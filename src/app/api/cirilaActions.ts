@@ -206,13 +206,16 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
   if (isGeneratingEtiqueta) {
 
-    // --- REGRA CRÍTICA: EXIGE ANEXO PARA ETIQUETAS DE REGULAÇÃO ---
+    /* 
+    // --- REGRA CRÍTICA: EXIGE ANEXO PARA ETIQUETAS DE REGULAÇÃO (DESATIVADO POR SOLICITAÇÃO) ---
     if (!isDocumentAttached && !cleanedText.includes('avulsa')) {
       return {
         text: `Olá! Eu sou a **CIRILA** e estou pronta para regular este pedido. 🤖\n\n⚠️ **Regra de Segurança:** Para garantir a integridade do processo, preciso que você **anexe o documento original (PDF ou Word)**.\n\nAssim que você anexar, poderei inserir a etiqueta oficial no final da folha preservando 100% do conteúdo original. Estou aguardando seu arquivo!`,
         sender: 'ai'
       };
     }
+    */
+
 
     // PADRÃO B: Etiqueta Única / Lote (Regex mais robusto)
     let examRaw = "EXAME";
