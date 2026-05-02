@@ -56,7 +56,8 @@ export async function GET(req: NextRequest) {
       "sabina": { name: "Sabrina Silva Ramalho", registro: "COREN-RJ 146764", cargo: "Enfermeira Supervisora" },
       "barenco": { name: "Dr. Carlos Augusto Barenco", registro: "CRO 11981", cargo: "Supervisor" },
       "rosely": { name: "Rosely Frossard de Andrade", registro: "Mat.1778/PMVR", cargo: "DCRAA/SMSVR" },
-      "mazoni": { name: "Dr Marcelo Henrique da Costa Mazoni", registro: "CRM 52-37297-5", cargo: "Médico Supervisor" }
+      "mazoni": { name: "Dr Marcelo Henrique da Costa Mazoni", registro: "CRM 52-37297-5", cargo: "Médico Supervisor" },
+      "gabriel": { name: "Gabriel Albertassi", registro: "DCRAA / SMSVR", cargo: "Coordenador de Regulação" }
     };
 
     const prof = profMap[professionalKey] || { name: professionalKey.toUpperCase(), registro: "REGISTRO", cargo: "CARGO" };
@@ -98,17 +99,17 @@ export async function GET(req: NextRequest) {
           new TableRow({
             children: [
               new TableCell({
-                margins: { top: 200, bottom: 200, left: 240, right: 240 },
+                margins: { top: 300, bottom: 300, left: 300, right: 300 }, // Increased margins
                 children: [
                   // LINHA 1: Nome – Registro – Cargo (negrito + sublinhado) - Pula se for AVULSA
                   ...(!isAvulsa ? [
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 1200 }, // Increased from 800
+                      spacing: { after: 1600 }, // Increased from 1200
                       children: [
                         new TextRun({
                           text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                          bold: true, size: 24, font: 'Arial', color: '000000', // Size 24
+                          bold: true, size: 24, font: 'Arial', color: '000000',
                           underline: { type: 'single', color: '000000' },
                         }),
                       ],
@@ -116,11 +117,11 @@ export async function GET(req: NextRequest) {
                     // LINHA 2: Departamento
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 1200 }, // Increased from 800
+                      spacing: { after: 1600 }, // Increased from 1200
                       children: [
                         new TextRun({
                           text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
-                          bold: true, size: 22, font: 'Arial', color: '000000', // Size 22
+                          bold: true, size: 22, font: 'Arial', color: '000000',
                         }),
                       ],
                     }),
@@ -128,11 +129,11 @@ export async function GET(req: NextRequest) {
                   // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] AUTORIZADO PARA [DESTINO]
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
-                    spacing: { before: isAvulsa ? 0 : 1200 }, // Increased from 800
+                    spacing: { before: isAvulsa ? 0 : 1600 }, // Increased from 1200
                     children: [
                       new TextRun({
                         text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam}`,
-                        bold: true, size: 24, font: 'Arial', color: '000000', // Size 24
+                        bold: true, size: 24, font: 'Arial', color: '000000',
                       }),
                     ],
                   }),

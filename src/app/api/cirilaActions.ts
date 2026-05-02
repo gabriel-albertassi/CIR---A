@@ -105,7 +105,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     return Array.from({ length: 5 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
   };
 
-  const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'sabina', 'barenco', 'rosely', 'mazoni'];
+  const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'sabina', 'barenco', 'rosely', 'mazoni', 'gabriel'];
 
   // 1. Detecção de Anexo
   const fileUrlMatch = text.match(/\[file_url:(.+?)\]/i);
@@ -171,7 +171,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     // 4.1. Extração de Dados (Comum para Chat e Documento)
     let examRaw = "EXAME";
     let patient = "PACIENTE";
-    let hospitalOrigin = "HOSPITAL ORIGEM";
+    let hospitalOrigin = ""; // Empty to detect missing
     let professionalRaw = "";
 
     // Quantidade
@@ -179,7 +179,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const qty = batchMatch ? Math.max(1, Math.min(100, parseInt(batchMatch[1].split(/\s+/).pop()!))) : (cleanedText.includes('chaves') ? 10 : 1);
 
     // Hospital
-    const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+cecilia|santa\s+cecília)\b/i);
+    const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+casa|santa\s+cecilia|santa\s+cecília)\b/i);
     if (hospMatch) {
       const h = hospMatch[0].toUpperCase();
       if (h.includes('SAO JOAO BATISTA') || h.includes('HSJB')) hospitalOrigin = 'HSJB';
@@ -187,59 +187,87 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       else hospitalOrigin = h;
     }
 
-    // Exame
+    // Exame (Suporte a múltiplos e listas complexas)
     const examKeywords: Record<string, string> = {
       'angiotc': 'ANGIOTC',
-      'angio': 'ANGIOTC',
-      'rnm': 'RESSONÂNCIA',
-      'rmn': 'RESSONÂNCIA',
-      'ressonancia': 'RESSONÂNCIA',
-      'ressonância': 'RESSONÂNCIA',
+      'rnm': 'RNM',
+      'rmn': 'RNM',
+      'ressonancia': 'RNM',
+      'ressonância': 'RNM',
+      'tc': 'TC',
       'tomografia': 'TC',
       'ecografia': 'ECOGRAFIA',
       'ecocardiograma': 'ECOCARDIOGRAMA',
-      'eco': 'ECOCARDIOGRAMA',
+      'eco': 'ECO',
       'endoscopia': 'ENDOSCOPIA',
       'colonoscopia': 'COLONOSCOPIA',
-      'holter': 'HOLTER',
-      'mapa': 'MAPA PRESSÓRICO',
-      'ergo': 'ERGOMETRIA',
-      'densitometria': 'DENSITOMETRIA',
-      'mamografia': 'MAMOGRAFIA',
-      'cintilografia': 'CINTILOGRAFIA',
-      'pet': 'PET-SCAN',
-      'biópsia': 'BIÓPSIA',
-      'biopsia': 'BIÓPSIA',
     };
     
+    const foundExams: string[] = [];
+    // Busca exames e tenta pegar o que vem depois (ex: TC de crânio)
     for (const [kw, label] of Object.entries(examKeywords)) {
-      if (cleanedText.includes(kw)) { examRaw = label; break; }
+      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)\\s+([^,e]+))?`, 'i');
+      const match = cleanedText.match(regex);
+      if (match) {
+        let fullExam = label;
+        if (match[1]) {
+          const spec = match[1].trim().split(/\s+(?:para|no|na|pelo|pela|do|da|com|sem|etiqueta|chave)\b/i)[0].trim();
+          if (spec.length > 0 && spec.length < 30) {
+            fullExam = `${label} DE ${spec.toUpperCase()}`;
+          }
+        }
+        if (!foundExams.includes(fullExam)) foundExams.push(fullExam);
+      }
     }
-    if (examRaw === 'EXAME' && (cleanedText.includes(' tc ') || cleanedText.startsWith('tc '))) examRaw = 'TC';
+    
+    if (foundExams.length > 0) {
+      examRaw = foundExams.join(', ');
+    }
 
     // Paciente
     const m1 = cleanedText.match(/para\s+([^,;.\n\-\(\)]+)/i);
     if (m1 && m1[1]) {
       let candidate = m1[1].trim();
+      // Remove hospital do nome do paciente se ele estiver grudado
       if (hospMatch) {
         const hospName = hospMatch[0].toLowerCase();
         candidate = candidate.toLowerCase().replace(new RegExp(`\\b${hospName}\\b`, 'g'), '').trim();
       }
-      candidate = candidate.replace(/\b(sem|com|etiqueta|no|chat|apenas|texto|so|só|chave|chaves|avulsa)\b/gi, '').trim();
-      if (candidate && candidate.length > 2 && !validProfs.some(p => candidate.toLowerCase() === p)) {
+      // Remove marcadores de profissional do nome do paciente
+      candidate = candidate.replace(/\b(sem|com|etiqueta|no|chat|apenas|texto|so|só|chave|chaves|avulsa|do|da|pelo|pela|na|paga|inimá|inima|paola|carlos|roberto|sabrina|barenco|rosely|mazoni)\b/gi, '').trim();
+      
+      if (candidate && candidate.length > 2) {
         patient = candidate.toUpperCase();
       }
     }
 
-    // Profissional
-    const profMarkers = '(?:assinado|assinada|por|etiqueta|regulação|regulador|assinatura|ass|at|pela)';
+    // Profissional (Marcadores expandidos: DO/DA/PAGA/NA ETIQUETA DO)
+    const profMarkers = '(?:assinado|assinada|por|etiqueta|regulação|regulador|assinatura|ass|at|pela|do|da|pelo|na|paga|na\\s+etiqueta\\s+do|na\\s+etiqueta\\s+da)';
     const explicitProfMatch = cleanedText.match(new RegExp(`${profMarkers}\\s+\\b(${validProfs.join('|')})\\b`, 'i'));
+    
     if (explicitProfMatch) {
       professionalRaw = explicitProfMatch[1].toLowerCase();
     } else {
-      const potentialProf = validProfs.find(p => new RegExp(`\\b${p}\\b\\s*$`, 'i').test(cleanedText));
+      // Fallback: busca qualquer um dos nomes de profissionais válidos no texto final
+      const potentialProf = validProfs.find(p => new RegExp(`\\b${p}\\b`, 'i').test(cleanedText));
       professionalRaw = potentialProf || "";
     }
+
+    // VALIDAR HOSPITAL DE ORIGEM - SE NÃO TIVER, PERGUNTAR
+    if (!hospitalOrigin && !isChatOnly) {
+      return {
+        text: `Entendido, chefe! Para gerar a autorização corretamente, **qual o Hospital de Origem?**`,
+        sender: 'ai',
+        actions: [
+          { label: 'HSJB', payload: `${cleanedText} no HSJB` },
+          { label: 'HMMR', payload: `${cleanedText} no HMMR` },
+          { label: 'UPA', payload: `${cleanedText} na UPA` },
+          { label: 'SANTA CASA', payload: `${cleanedText} na SANTA CASA` }
+        ]
+      };
+    }
+
+    const finalHospital = hospitalOrigin || "HOSPITAL ORIGEM";
 
     // --- REGRAS DE SAÍDA ---
     const authKey = generateKey();
@@ -251,17 +279,13 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       return 'HSJB';
     };
 
-    // Ajuste de Placeholders se for lote/avulsa
-    const isAvulsa = cleanedText.includes('avulsa') || (qty > 1 && patient === "PACIENTE");
-    const finalPatient = isAvulsa && patient === "PACIENTE" ? "PACIENTE A PREENCHER" : patient;
-    const finalHospital = isAvulsa && hospitalOrigin === "HOSPITAL ORIGEM" ? "HOSPITAL ORIGEM" : hospitalOrigin;
-    const finalExam = isAvulsa && examRaw === "EXAME" ? "EXAME AUTORIZADO PARA DESTINO" : `${examRaw} AUTORIZADO PARA ${destination(examRaw)}`;
+    const finalExam = examRaw === "EXAME" ? "EXAME AUTORIZADO PARA DESTINO" : `${examRaw} AUTORIZADO PARA ${destination(examRaw)}`;
 
     // CASO 1: CHAT ONLY (Chave / Avulsa sem etiqueta) -> NUNCA pede assinatura
     if (isChatOnly) {
       const keys = Array.from({ length: qty }, () => {
         const k = generateKey();
-        return `\`${dateStr} : ${k} - ${finalPatient} – ${finalHospital} - ${finalExam}\``;
+        return `\`${dateStr} : ${k} - ${patient} – ${finalHospital} - ${finalExam}\``;
       }).join('\n');
 
       return {
@@ -272,19 +296,17 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     // CASO 2: DOCUMENTO (Etiqueta) -> Pede assinatura se faltar
     if (!professionalRaw) {
-      // Se for apenas chave mas SEM a flag isChatOnly (ex: pediu etiqueta de chave), ainda pedimos assinatura
       return {
-        text: `Entendido, chefe! Vou gerar **${qty} etiqueta(s)** para o documento.\n\nQuem assina pela **DCRAA** hoje?`,
+        text: `Entendido, chefe! Vou preparar a autorização para **${patient}**.\n\nQuem assina pela **DCRAA** hoje?`,
         sender: 'ai',
         actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco'].map(p => ({
           label: p.toUpperCase(),
-          payload: `${cleanedText} assinado por ${p}`
+          payload: `${cleanedText} na etiqueta do ${p}`
         }))
       };
     }
 
-    const labelText = `${dateStr} : ${authKey} - ${patient} – ${hospitalOrigin} - ${finalExam}`;
-    const pos = 'bottom';
+    const labelText = `${dateStr} : ${authKey} - ${patient} – ${finalHospital} - ${finalExam}`;
 
     if (!isDocumentAttached) {
       return {
@@ -292,17 +314,17 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         sender: 'ai',
         actions: [{
           label: '📄 Baixar Etiqueta (.docx)',
-          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl || ''}:::${qty}:::${pos}:::${hospitalOrigin.replace(/\s/g, '+')}`
+          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl || ''}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}`
         }]
       };
     }
 
     return {
-      text: `✅ **CIRILA:** Perfeito! Documento recebido.\n\nEstou processando a autorização para **${patient}** (Hospital: ${hospitalOrigin}). \n\nEtiqueta gerada:\n\`${labelText}\` \n\nO arquivo Word com a etiqueta no **FINAL DA FOLHA** está pronto:`,
+      text: `✅ **CIRILA:** Perfeito! Documento recebido.\n\nEstou processando a autorização para **${patient}** (Hospital: ${finalHospital}). \n\nEtiqueta gerada:\n\`${labelText}\` \n\nO arquivo Word com a etiqueta no **FINAL DA FOLHA** está pronto:`,
       sender: 'ai',
       actions: [{
         label: '📄 Baixar Pedido Autorizado (.docx)',
-        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl}:::${qty}:::${pos}:::${hospitalOrigin.replace(/\s/g, '+')}`
+        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}`
       }]
     };
   }
