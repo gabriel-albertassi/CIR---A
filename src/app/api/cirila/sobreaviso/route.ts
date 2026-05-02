@@ -33,158 +33,116 @@ function makeKeyGenerator() {
   };
 }
 
-// ─── Bordas ──────────────────────────────────────────────────────────────────
+// ─── Constantes de layout ─────────────────────────────────────────────────────
+// A4 Paisagem: largura total 16838 twips — margens L+R = 400 twips → útil = 16438
+const PAGE_W = 16438;
 
-const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
-
-const TABLE_BORDERS = {
-  top:              THIN_BORDER,
-  bottom:           THIN_BORDER,
-  left:             THIN_BORDER,
-  right:            THIN_BORDER,
-  insideHorizontal: THIN_BORDER,
-  insideVertical:   THIN_BORDER,
-};
-
-// ─── Colunas (proporções conforme o modelo) ──────────────────────────────────
-// Largura útil A4 paisagem com margens left+right = 200+200 twips ≈ 14688 dxa
-
-const PAGE_WIDTH_DXA = 14688;
-
-const COLS_DEF = [
-  { label: 'DATA / CHAVE',             pct: 10 },
-  { label: 'CLIENTE (PACIENTE)',        pct: 30 },
-  { label: 'DIAGNÓSTICO',              pct: 16 },
-  { label: 'HOSPITAL ORIGEM',          pct: 14 },
-  { label: 'PROCEDIMENTO',             pct: 15 },
-  { label: 'PRESTADOR: REDE / PRIVADO', pct: 12 },
-  { label: 'CNS',                      pct:  6 },
-  { label: 'AUDITOR',                  pct: 10 },
+// Proporções das colunas (devem somar 100)
+const COL_PCTS = [10, 30, 16, 14, 15, 12, 6, 10]; // ← ajuste de 7% para 10% no AUDITOR (total=113, normalizado abaixo)
+const COL_LABELS = [
+  'DATA / CHAVE',
+  'CLIENTE (PACIENTE)',
+  'DIAGNÓSTICO',
+  'HOSPITAL ORIGEM',
+  'PROCEDIMENTO',
+  'PRESTADOR: REDE / PRIVADO',
+  'CNS',
+  'AUDITOR',
 ];
 
-const COLS = COLS_DEF.map((c) => ({ ...c, dxa: Math.round((c.pct / 100) * PAGE_WIDTH_DXA) }));
-// Ajuste da última coluna para garantir que a soma bata com PAGE_WIDTH_DXA
-const sumDxa = COLS.slice(0, -1).reduce((acc, c) => acc + c.dxa, 0);
-COLS[COLS.length - 1].dxa = PAGE_WIDTH_DXA - sumDxa;
+// Normalizar para que a soma seja PAGE_W exato
+const pctSum = COL_PCTS.reduce((a, b) => a + b, 0);
+const COL_WIDTHS = COL_PCTS.map((p, i) => {
+  if (i === COL_PCTS.length - 1) {
+    // Última coluna recebe o restante para evitar arredondamento
+    const usedSoFar = COL_PCTS.slice(0, -1).reduce((acc, pp) => acc + Math.round((pp / pctSum) * PAGE_W), 0);
+    return PAGE_W - usedSoFar;
+  }
+  return Math.round((p / pctSum) * PAGE_W);
+});
 
-// ─── Cabeçalho da tabela ──────────────────────────────────────────────────────
+// Bordas
+const BD = BorderStyle.SINGLE;
+const BORDERS = {
+  top:              { style: BD, size: 4, color: '000000' },
+  bottom:           { style: BD, size: 4, color: '000000' },
+  left:             { style: BD, size: 4, color: '000000' },
+  right:            { style: BD, size: 4, color: '000000' },
+  insideHorizontal: { style: BD, size: 4, color: '000000' },
+  insideVertical:   { style: BD, size: 4, color: '000000' },
+};
 
-function buildTableHeader(): TableRow {
-  return new TableRow({
-    tableHeader: true,
-    cantSplit: true,
-    height: { value: 700, rule: HeightRule.ATLEAST },
-    children: COLS.map((col) =>
-      new TableCell({
-        width: { size: col.dxa, type: WidthType.DXA },
-        shading: { fill: '000000', color: '000000', type: 'solid' },
-        verticalAlign: VerticalAlign.CENTER,
-        margins: { top: 80, bottom: 80, left: 80, right: 80 },
-        children: [
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({ text: col.label, bold: true, size: 18, color: 'FFFFFF', font: 'Arial' }),
-            ],
-          }),
-        ],
-      })
-    ),
-  });
-}
+// Altura FIXA das linhas de dados — nunca muda
+// ~960 twips = ~1,7 cm por linha → ≈ 9 linhas por página A4 paisagem
+const ROW_HEIGHT = 960;
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const count = Math.max(1, Math.min(300, parseInt(searchParams.get('count') || '30')));
+  try {
+    const { searchParams } = new URL(req.url);
+    const count = Math.max(1, Math.min(300, parseInt(searchParams.get('count') || '30')));
 
-  const now         = new Date();
-  const dateStr     = now.toLocaleDateString('pt-BR');
-  const dateFileStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const now         = new Date();
+    const dateStr     = now.toLocaleDateString('pt-BR');
+    const dateFileStr = now.toISOString().slice(0, 10).replace(/-/g, '');
 
-  // ─── Configuração de paginação com altura FIXA ────────────────────────────
-  // A4 paisagem: 11906 twips de altura total
-  // Margens top (1000) + bottom (800) = 1800
-  // Cabeçalho doc (paragrafos) ≈ 600 twips
-  // Cabeçalho tabela = 700 twips
-  // Espaço para linhas = 11906 - 1800 - 600 - 700 = 8806 twips
-  // 9 linhas: 8806 / 9 ≈ 978 → usamos 960 (valor "round" com margem de segurança)
-  const ROWS_PER_PAGE = 9;
-  const ROW_HEIGHT    = 960; // twips FIXO — nunca muda independente da quantidade
+    const nextKey = makeKeyGenerator();
 
-  const nextKey    = makeKeyGenerator();
-  const totalPages = Math.ceil(count / ROWS_PER_PAGE);
+    // ── Linha de cabeçalho ─────────────────────────────────────────────────────
+    const headerRow = new TableRow({
+      tableHeader: true,
+      cantSplit:   true,
+      height: { value: 700, rule: HeightRule.ATLEAST },
+      children: COL_LABELS.map((label, i) =>
+        new TableCell({
+          width: { size: COL_WIDTHS[i], type: WidthType.DXA },
+          shading: { fill: '000000', color: '000000', type: 'solid' },
+          verticalAlign: VerticalAlign.CENTER,
+          margins: { top: 80, bottom: 80, left: 100, right: 100 },
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: label, bold: true, size: 18, color: 'FFFFFF', font: 'Arial' }),
+              ],
+            }),
+          ],
+        })
+      ),
+    });
 
-  // Pré-gera todas as chaves para garantir unicidade global entre páginas
-  const allRows = Array.from({ length: count }, (_, i) => ({
-    key:         nextKey(),
-    globalIndex: i,
-  }));
-
-  // ─── Cabeçalho do documento (repetido em cada página/seção) ──────────────
-  const buildDocHeader = () => [
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 40 },
-      children: [
-        new TextRun({ text: 'CIR-A / REGULAÇÃO SMSVR', bold: true, size: 20, font: 'Arial', color: '000000' }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 60 },
-      children: [
-        new TextRun({ text: 'MAPA DE SUPERVISÃO - SOBREAVISO', bold: true, size: 26, font: 'Arial', color: '000000' }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      spacing: { after: 120 },
-      children: [
-        new TextRun({ text: `DATA: ${dateStr}`, size: 18, font: 'Arial', color: '000000' }),
-      ],
-    }),
-  ];
-
-  // ─── Configuração de página (reutilizada em todas as seções) ─────────────
-  const pageProps = {
-    size: { orientation: PageOrientation.LANDSCAPE },
-    margin: { top: 1000, bottom: 800, left: 200, right: 200 },
-  };
-
-  // ─── Montar seções — UMA seção por página (quebra automática) ────────────
-  const sections = Array.from({ length: totalPages }, (_, pageIndex) => {
-    const pageRows = allRows.slice(pageIndex * ROWS_PER_PAGE, (pageIndex + 1) * ROWS_PER_PAGE);
-
-    const dataRows = pageRows.map((row) => {
-      const fill = row.globalIndex % 2 === 0 ? 'FFFFFF' : 'EBF5FF';
+    // ── Linhas de dados ────────────────────────────────────────────────────────
+    const dataRows = Array.from({ length: count }, (_, i) => {
+      const key  = nextKey();
+      const fill = i % 2 === 0 ? 'FFFFFF' : 'EBF5FF';
 
       const emptyCell = (colIndex: number) =>
         new TableCell({
-          width: { size: COLS[colIndex].dxa, type: WidthType.DXA },
+          width: { size: COL_WIDTHS[colIndex], type: WidthType.DXA },
           shading: { fill, color: fill, type: 'solid' },
           verticalAlign: VerticalAlign.CENTER,
-          children: [new Paragraph({ children: [] })],
+          children: [new Paragraph({ children: [new TextRun({ text: '' })] })],
         });
 
       return new TableRow({
-        height: { value: ROW_HEIGHT, rule: HeightRule.EXACT }, // EXACT = imutável
+        cantSplit: true,
+        height: { value: ROW_HEIGHT, rule: HeightRule.ATLEAST },
         children: [
-          // Coluna DATA / CHAVE: data acima, chave em azul abaixo
+          // DATA / CHAVE — data cinza em cima, chave azul em baixo
           new TableCell({
-            width: { size: COLS[0].dxa, type: WidthType.DXA },
+            width: { size: COL_WIDTHS[0], type: WidthType.DXA },
             shading: { fill, color: fill, type: 'solid' },
             verticalAlign: VerticalAlign.CENTER,
-            margins: { top: 60, bottom: 60, left: 60, right: 60 },
+            margins: { top: 60, bottom: 60, left: 80, right: 80 },
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: dateStr, size: 16, color: '333333', font: 'Arial' })],
+                children: [new TextRun({ text: dateStr, size: 16, color: '555555', font: 'Arial' })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: row.key, bold: true, size: 18, color: '1A56DB', font: 'Arial' })],
+                children: [new TextRun({ text: key, bold: true, size: 18, color: '1A56DB', font: 'Arial' })],
               }),
             ],
           }),
@@ -199,27 +157,69 @@ export async function GET(req: NextRequest) {
       });
     });
 
+    // ── Tabela principal ───────────────────────────────────────────────────────
     const table = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
+      width: { size: PAGE_W, type: WidthType.DXA },
       layout: TableLayoutType.FIXED,
-      columnWidths: COLS.map((c) => c.dxa),
-      borders: TABLE_BORDERS,
-      rows: [buildTableHeader(), ...dataRows],
+      columnWidths: COL_WIDTHS,
+      borders: BORDERS,
+      rows: [headerRow, ...dataRows],
     });
 
-    return {
-      properties: { page: pageProps },
-      children: [...buildDocHeader(), table],
-    };
-  });
+    // ── Cabeçalho do documento ────────────────────────────────────────────────
+    const docTitle = [
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 0, after: 40 },
+        children: [
+          new TextRun({ text: 'CIR-A / REGULAÇÃO SMSVR', bold: true, size: 20, font: 'Arial', color: '000000' }),
+        ],
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 0, after: 60 },
+        children: [
+          new TextRun({ text: 'MAPA DE SUPERVISÃO - SOBREAVISO', bold: true, size: 26, font: 'Arial', color: '000000' }),
+        ],
+      }),
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        spacing: { before: 0, after: 120 },
+        children: [
+          new TextRun({ text: `DATA: ${dateStr}`, size: 18, font: 'Arial', color: '000000' }),
+        ],
+      }),
+    ];
 
-  const doc = new Document({ sections });
-  const buffer = await Packer.toBuffer(doc);
+    // ── Documento final (seção única) ─────────────────────────────────────────
+    const doc = new Document({
+      sections: [
+        {
+          properties: {
+            page: {
+              size: { orientation: PageOrientation.LANDSCAPE },
+              margin: { top: 1000, bottom: 800, left: 200, right: 200 },
+            },
+          },
+          children: [...docTitle, table],
+        },
+      ],
+    });
 
-  return new NextResponse(buffer as unknown as BodyInit, {
-    headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'Content-Disposition': `attachment; filename="Mapa_Sobreaviso_${dateFileStr}.docx"`,
-    },
-  });
+    const buffer = await Packer.toBuffer(doc);
+
+    return new NextResponse(buffer as unknown as BodyInit, {
+      headers: {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Content-Disposition': `attachment; filename="Mapa_Sobreaviso_${dateFileStr}.docx"`,
+      },
+    });
+
+  } catch (err: any) {
+    console.error('[SOBREAVISO_ERROR]', err);
+    return new NextResponse(
+      JSON.stringify({ error: err.message || 'Erro interno ao gerar o documento' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 }
