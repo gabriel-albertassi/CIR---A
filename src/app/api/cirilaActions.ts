@@ -272,7 +272,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const finalHospital = hospitalOrigin || "HOSPITAL ORIGEM";
 
     // --- REGRAS DE SAÍDA ---
-    const authKey = generateKey();
     const dateStr = new Date().toLocaleDateString('pt-BR');
     const destination = (kw: string) => {
       const e = kw.toUpperCase();
@@ -282,16 +281,16 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     };
 
     const finalExam = examRaw === "EXAME" ? "EXAME AUTORIZADO PARA DESTINO" : `${examRaw} AUTORIZADO PARA ${destination(examRaw)}`;
+    
+    // Gerar a lista de chaves (sempre respeitando a quantidade)
+    const generatedKeys = Array.from({ length: qty }, () => generateKey());
+    const firstKey = generatedKeys[0];
+    const textKeysBlock = generatedKeys.map(k => `\`${dateStr} : ${k} - ${patient} – ${finalHospital} - ${finalExam}\``).join('\n');
 
     // CASO 1: CHAT ONLY (Chave / Avulsa sem etiqueta) -> NUNCA pede assinatura
     if (isChatOnly) {
-      const keys = Array.from({ length: qty }, () => {
-        const k = generateKey();
-        return `\`${dateStr} : ${k} - ${patient} – ${finalHospital} - ${finalExam}\``;
-      }).join('\n');
-
       return {
-        text: `✅ **CIRILA — CHAVES GERADAS NO CHAT**\n\nAqui estão suas chaves institucionalizadas:\n\n${keys}\n\n*Processo concluído com sucesso.*`,
+        text: `✅ **CIRILA — CHAVES GERADAS NO CHAT**\n\nAqui estão suas chaves institucionalizadas:\n\n${textKeysBlock}\n\n*Processo concluído com sucesso.*`,
         sender: 'ai'
       };
     }
@@ -308,25 +307,23 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    const labelText = `${dateStr} : ${authKey} - ${patient} – ${finalHospital} - ${finalExam}`;
-
     if (!isDocumentAttached) {
       return {
-        text: `✅ **CIRILA:** Autorização gerada para **${patient}**. \n\nComo você não enviou anexo, aqui está a etiqueta para copiar:\n\n\`${labelText}\`\n\nTambém gerei um documento Word vazio apenas com ela no final, caso precise:`,
+        text: `✅ **CIRILA:** Autorização gerada para **${patient}**. \n\nAqui estão as chaves para cópia rápida (Chat):\n\n${textKeysBlock}\n\nTambém gerei um documento Word vazio apenas com elas, caso precise:`,
         sender: 'ai',
         actions: [{
-          label: '📄 Baixar Etiqueta (.docx)',
-          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl || ''}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}`
+          label: `📄 Baixar ${qty > 1 ? qty + ' Etiquetas' : 'Etiqueta'} (.docx)`,
+          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${firstKey}:::${currentFileUrl || ''}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}`
         }]
       };
     }
 
     return {
-      text: `✅ **CIRILA:** Perfeito! Documento recebido.\n\nEstou processando a autorização para **${patient}** (Hospital: ${finalHospital}). \n\nEtiqueta gerada:\n\`${labelText}\` \n\nO arquivo Word com a etiqueta no **FINAL DA FOLHA** está pronto:`,
+      text: `✅ **CIRILA:** Perfeito! Documento recebido.\n\nEstou processando a autorização para **${patient}** (Hospital: ${finalHospital}). \n\n**Chave(s) gerada(s) para cópia:**\n${textKeysBlock} \n\nO arquivo Word com a etiqueta no **FINAL DA FOLHA** está pronto:`,
       sender: 'ai',
       actions: [{
         label: '📄 Baixar Pedido Autorizado (.docx)',
-        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}`
+        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${firstKey}:::${currentFileUrl}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}`
       }]
     };
   }
