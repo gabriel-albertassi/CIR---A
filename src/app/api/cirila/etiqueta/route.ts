@@ -469,7 +469,6 @@ export async function GET(req: NextRequest) {
             size: isSobreaviso ? { orientation: PageOrientation.LANDSCAPE } : undefined
           },
         },
-        },
         children: [...emptyParagraphs, ...labelElements]
       }]
     });
