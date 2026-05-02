@@ -114,7 +114,16 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   const cleanedText = text.replace(/\[file_url:.+?\]/i, '').trim();
 
   // 2. Detecção de Preferência de Saída (Chat Only / Sem Etiqueta)
-  const isChatOnly = cleanedText.includes('sem etiqueta') || cleanedText.includes('no chat') || cleanedText.includes('apenas texto') || cleanedText.includes('só texto') || cleanedText.includes('so texto');
+  // REGRA: "Chave" ou "Avulsa" sem "Etiqueta" implica Chat Only e SEM ASSINATURA
+  const isChatOnly = 
+    cleanedText.includes('sem etiqueta') || 
+    cleanedText.includes('no chat') || 
+    cleanedText.includes('apenas texto') || 
+    cleanedText.includes('só texto') || 
+    cleanedText.includes('so texto') ||
+    (cleanedText.includes('chave') && !cleanedText.includes('etiqueta')) ||
+    (cleanedText.includes('avulsa') && !cleanedText.includes('etiqueta')) ||
+    (cleanedText.includes('chaves') && !cleanedText.includes('etiqueta'));
 
   // 3. DETECÇÃO DE SOBREAVISO — SEMPRE TEM PRIORIDADE MÁXIMA
   const isSobreavisoQuery =
@@ -143,59 +152,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     };
   }
 
-  // 3-A. ETIQUETAS AVULSAS — SOMENTE quando não há anexo E o texto pede explicitamente avulsa/branca/limpa
-  const isAvulsaQuery =
-    !isDocumentAttached && (
-      cleanedText.includes('avulsa') ||
-      (cleanedText.includes('etiqueta') && (
-        cleanedText.includes('branca') ||
-        cleanedText.includes('limpa') ||
-        cleanedText.includes('vazia')
-      ))
-    );
-
-  if (isAvulsaQuery) {
-    const qtyMatch = cleanedText.match(/(\d+)/);
-    const qty = qtyMatch ? Math.max(1, Math.min(50, parseInt(qtyMatch[1]))) : 1;
-    const professionalRaw = validProfs.find(p => cleanedText.includes(p)) || '';
-    const authKey = generateKey();
-
-    // Se for chat only (sem etiqueta), não precisa de profissional
-    if (isChatOnly) {
-      const dateStr = new Date().toLocaleDateString('pt-BR');
-      const keys = Array.from({ length: qty }, (_, i) => {
-        const key = i === 0 ? authKey : generateKey();
-        return `\`${dateStr} : ${key} - PACIENTE A PREENCHER – HOSPITAL ORIGEM - EXAME AUTORIZADO PARA DESTINO\``;
-      }).join('\n');
-
-      return {
-        text: `✅ **CIRILA — CHAVES AVULSAS GERADAS** (Sem Assinatura)\n\nAqui estão suas chaves prontas para uso:\n\n${keys}\n\n*Processo concluído com sucesso.*`,
-        sender: 'ai'
-      };
-    }
-
-    if (!professionalRaw) {
-      return {
-        text: `Entendido, chefe! Vou gerar **${qty} etiqueta(s) avulsa(s)**.\n\nQuem assina pela DCRAA hoje?`,
-        sender: 'ai',
-        actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco'].map(p => ({
-          label: p.toUpperCase(),
-          payload: `gerar ${qty} etiqueta avulsa assinado por ${p}`
-        }))
-      };
-    }
-
-    return {
-      text: `✅ **CIRILA:** Gerando **${qty} etiqueta(s) avulsa(s)** para preenchimento manual, assinadas por **${professionalRaw.toUpperCase()}**.\n\nFormato: \`[DATA] : [CHAVE] - PACIENTE A PREENCHER - EXAME AUTORIZADO PARA DESTINO\``,
-      sender: 'ai',
-      actions: [{
-        label: `📄 Baixar ${qty} Etiqueta(s) Avulsa(s)`,
-        payload: `DOWNLOAD_ETIQUETA_DOCX:::AVULSA:::AVULSA:::${professionalRaw}:::${authKey}::::::${qty}:::bottom`
-      }]
-    };
-  }
-
-    // 3-B. ETIQUETA REGULAR (com ou sem PDF)
+  // 4. GERAÇÃO DE CHAVES OU ETIQUETAS
   const isGeneratingEtiqueta = (text.includes('gerar') || text.includes('gera') || text.includes('chave') || text.includes('autoriza')) && (
     text.includes('etiqueta') ||
     text.includes('tc') ||
@@ -206,50 +163,22 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     text.includes('ressonancia') ||
     text.includes('tomografia') ||
     text.includes('eco') ||
-    text.includes('ecografia')
+    text.includes('ecografia') ||
+    text.includes('avulsa')
   );
 
-  // 4. GERAÇÃO DE CHAVES EM LOTE (SEM DOCUMENTO) - REGRA: APENAS LISTA NO CHAT
-  // Captura "10 chaves", "20 chaves", "10 20 chaves" etc.
-  const isKeyOnlyQuery = cleanedText.match(/(\d+(?:\s+\d+)?)\s+chaves/i);
-  if (isKeyOnlyQuery && !isSobreavisoQuery && !cleanedText.includes('planilha')) {
-    const qtyRaw = isKeyOnlyQuery[1].trim().split(/\s+/);
-    // Pega o maior número ou o último para casos como "10 20 chaves"
-    const qty = Math.max(1, Math.min(100, parseInt(qtyRaw[qtyRaw.length - 1])));
-    
-    const dateStr = new Date().toLocaleDateString('pt-BR');
-    const keys = Array.from({ length: qty }, () => {
-      const key = generateKey();
-      return `\`${dateStr} : ${key} - PACIENTE A PREENCHER – HOSPITAL ORIGEM - EXAME AUTORIZADO PARA DESTINO\``;
-    }).join('\n');
-
-    return {
-      text: `✅ **CIRILA — CHAVES AVULSAS GERADAS** (Sem Assinatura)\n\nAqui estão suas chaves prontas para uso:\n\n${keys}\n\n*Processo concluído com sucesso.*`,
-      sender: 'ai'
-    };
-  }
-
-  if (isGeneratingEtiqueta) {
-
-    /* 
-    // --- REGRA CRÍTICA: EXIGE ANEXO PARA ETIQUETAS DE REGULAÇÃO (DESATIVADO POR SOLICITAÇÃO) ---
-    if (!isDocumentAttached && !cleanedText.includes('avulsa')) {
-      return {
-        text: `Olá! Eu sou a **CIRILA** e estou pronta para regular este pedido. 🤖\n\n⚠️ **Regra de Segurança:** Para garantir a integridade do processo, preciso que você **anexe o documento original (PDF ou Word)**.\n\nAssim que você anexar, poderei inserir a etiqueta oficial no final da folha preservando 100% do conteúdo original. Estou aguardando seu arquivo!`,
-        sender: 'ai'
-      };
-    }
-    */
-
-
-    // PADRÃO B: Etiqueta Única / Lote (Regex mais robusto)
+  if (isGeneratingEtiqueta && !isSobreavisoQuery) {
+    // 4.1. Extração de Dados (Comum para Chat e Documento)
     let examRaw = "EXAME";
     let patient = "PACIENTE";
     let hospitalOrigin = "HOSPITAL ORIGEM";
     let professionalRaw = "";
 
-    // 1. Captura Hospital (geralmente sigla no final ou após o nome)
-    // Necessário declarar antes do exame para evitar erro de escopo
+    // Quantidade
+    const batchMatch = cleanedText.match(/(\d+(?:\s+\d+)?)/);
+    const qty = batchMatch ? Math.max(1, Math.min(100, parseInt(batchMatch[1].split(/\s+/).pop()!))) : (cleanedText.includes('chaves') ? 10 : 1);
+
+    // Hospital
     const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+cecilia|santa\s+cecília)\b/i);
     if (hospMatch) {
       const h = hospMatch[0].toUpperCase();
@@ -258,18 +187,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       else hospitalOrigin = h;
     }
 
-
-    // 2. Capturar Exame (Mais robusto)
-    const examMatch = cleanedText.match(/(?:gerar|gera|solicitar)\s+(.+?)(?:\s+para|\s+paciente|\s+assinado|\s+assinada|,|;|\n|$)/i);
-    if (examMatch && examMatch[1]) {
-      let candidate = examMatch[1].trim().toUpperCase();
-      // Se o candidato for apenas um hospital ou profissional, limpa
-      if (!hospMatch || !candidate.includes(hospMatch[0].toUpperCase())) {
-        examRaw = candidate;
-      }
-    }
-
-    // Fallback para keywords se a captura falhar ou for muito genérica
+    // Exame
     const examKeywords: Record<string, string> = {
       'angiotc': 'ANGIOTC',
       'angio': 'ANGIOTC',
@@ -294,104 +212,36 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       'biopsia': 'BIÓPSIA',
     };
     
-    if (examRaw === "EXAME") {
-      for (const [kw, label] of Object.entries(examKeywords)) {
-        if (cleanedText.includes(kw)) { examRaw = label; break; }
-      }
+    for (const [kw, label] of Object.entries(examKeywords)) {
+      if (cleanedText.includes(kw)) { examRaw = label; break; }
     }
     if (examRaw === 'EXAME' && (cleanedText.includes(' tc ') || cleanedText.startsWith('tc '))) examRaw = 'TC';
 
-    // Limpeza do Exame
-    examRaw = examRaw.replace(/\b(ETIQUETA|CHAVE|PARA|PACIENTE|ASSINADO|ASSINADA|SEM|COM|NO|CHAT|APENAS|TEXTO|SÓ|SO)\b/gi, '').trim();
-    if (!examRaw) examRaw = "EXAME";
-
-    // 3. Extrair Paciente
-    let foundPatient = false;
-    
-    // Camada 1: "para [nome]" - Pega tudo entre "para" e o hospital ou fim da linha
+    // Paciente
     const m1 = cleanedText.match(/para\s+([^,;.\n\-\(\)]+)/i);
     if (m1 && m1[1]) {
       let candidate = m1[1].trim();
-      // Remove hospital se ele foi capturado junto no match de candidate
       if (hospMatch) {
         const hospName = hospMatch[0].toLowerCase();
         candidate = candidate.toLowerCase().replace(new RegExp(`\\b${hospName}\\b`, 'g'), '').trim();
       }
-      // Remove flags como "sem etiqueta"
-      candidate = candidate.replace(/\b(sem|com|etiqueta|no|chat|apenas|texto|so|só)\b/gi, '').trim();
-
-      if (candidate && candidate.length > 2 && 
-          !validProfs.some(p => candidate.toLowerCase() === p) && 
-          !Object.keys(examKeywords).some(k => candidate.toLowerCase().includes(k))) {
+      candidate = candidate.replace(/\b(sem|com|etiqueta|no|chat|apenas|texto|so|só|chave|chaves|avulsa)\b/gi, '').trim();
+      if (candidate && candidate.length > 2 && !validProfs.some(p => candidate.toLowerCase() === p)) {
         patient = candidate.toUpperCase();
-        foundPatient = true;
       }
     }
 
-    if (!foundPatient) {
-      const m2 = cleanedText.match(/paciente\s+([\w\s]{3,40?}?)(?:\s+assinado|\s+assinada|,|;|\n|$)/i);
-      if (m2 && m2[1]) {
-        patient = m2[1].trim().toUpperCase();
-        foundPatient = true;
-      }
-    }
-
-    // Camada Final: Limpeza agressiva (Hospitais, Profissionais e Conectores)
-    patient = patient.replace(/\b(HSJB|HMMR|UPA|CAIS|HMVR|HINJA|ASSINADO|ASSINADA|COM|SEM|ETIQUETA|NO|CHAT|APENAS|TEXTO|SÓ|SO)\b/gi, '').trim();
-    
-    // 4. Determinar Profissional (Extração Inteligente)
-    // Common names that could be part of a patient's name require an explicit marker
-    const commonProfs = ['carlos', 'roberto'];
-    const uniqueProfs = validProfs.filter(p => !commonProfs.includes(p));
-
+    // Profissional
     const profMarkers = '(?:assinado|assinada|por|etiqueta|regulação|regulador|assinatura|ass|at|pela)';
     const explicitProfMatch = cleanedText.match(new RegExp(`${profMarkers}\\s+\\b(${validProfs.join('|')})\\b`, 'i'));
-    
     if (explicitProfMatch) {
       professionalRaw = explicitProfMatch[1].toLowerCase();
     } else {
-      // Se não houver marcador explícito, procuramos um profissional "único" no final da query
-      // que NÃO faça parte do nome do paciente já identificado
-      const potentialProf = validProfs.find(p => {
-        const isAtEnd = new RegExp(`\\b${p}\\b\\s*$`, 'i').test(cleanedText);
-        if (!isAtEnd) return false;
-        
-        // Se for nome comum (Carlos/Roberto) e não tiver marcador (já falhou), ignoramos para segurança
-        if (commonProfs.includes(p.toLowerCase())) return false;
-        
-        // Verifica se o nome está no final e separado do paciente
-        return true;
-      });
+      const potentialProf = validProfs.find(p => new RegExp(`\\b${p}\\b\\s*$`, 'i').test(cleanedText));
       professionalRaw = potentialProf || "";
     }
 
-    // Agora limpamos o profissional do nome do paciente se ele tiver sido identificado
-    if (professionalRaw) {
-      const isCommon = commonProfs.includes(professionalRaw.toLowerCase());
-      // Se for nome comum, exige um marcador (assinado por, etc.) para remover do nome do paciente
-      const profRegex = new RegExp(`\\s*(?:${profMarkers}\\s+)${isCommon ? '+' : '*'}\\b${professionalRaw}\\b`, 'gi');
-      patient = patient.replace(profRegex, '').trim();
-    }
-
-    // Limpeza de preposições órfãs no final do nome resultantes da extração
-    patient = patient.replace(/\s+(NA|DO|NO|POR|ASSINADO|ASSINADA|PARA|DE|DA|DO)$/gi, '').trim();
-    
-    if (!patient || patient === "PACIENTE") patient = "PACIENTE";
-
-    const isAvulsa = examRaw.toUpperCase().includes('AVULSA');
-
-    if (!professionalRaw && !(isAvulsa && isChatOnly)) {
-      return {
-        text: `Chefe, para regular o processo, preciso saber quem assina pela **DCRAA**.\n\n(Opções: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco)`,
-        sender: 'ai',
-        actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco'].map(p => ({
-          label: `Assinar como ${p.toUpperCase()}`,
-          payload: `${query} assinado por ${p}`
-        }))
-      };
-    }
-
-
+    // --- REGRAS DE SAÍDA ---
     const authKey = generateKey();
     const dateStr = new Date().toLocaleDateString('pt-BR');
     const destination = (kw: string) => {
@@ -401,19 +251,40 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       return 'HSJB';
     };
 
-    const labelText = `${dateStr} : ${authKey} - ${patient} – ${hospitalOrigin} - ${examRaw} AUTORIZADO PARA ${destination(examRaw)}`;
+    // Ajuste de Placeholders se for lote/avulsa
+    const isAvulsa = cleanedText.includes('avulsa') || (qty > 1 && patient === "PACIENTE");
+    const finalPatient = isAvulsa && patient === "PACIENTE" ? "PACIENTE A PREENCHER" : patient;
+    const finalHospital = isAvulsa && hospitalOrigin === "HOSPITAL ORIGEM" ? "HOSPITAL ORIGEM" : hospitalOrigin;
+    const finalExam = isAvulsa && examRaw === "EXAME" ? "EXAME AUTORIZADO PARA DESTINO" : `${examRaw} AUTORIZADO PARA ${destination(examRaw)}`;
 
-    // NOVO: Se o usuário pedir "sem etiqueta", "no chat" ou "apenas texto"
-
+    // CASO 1: CHAT ONLY (Chave / Avulsa sem etiqueta) -> NUNCA pede assinatura
     if (isChatOnly) {
+      const keys = Array.from({ length: qty }, () => {
+        const k = generateKey();
+        return `\`${dateStr} : ${k} - ${finalPatient} – ${finalHospital} - ${finalExam}\``;
+      }).join('\n');
+
       return {
-        text: `✅ **CIRILA — AUTORIZAÇÃO GERADA**${isAvulsa ? ' (Sem Assinatura)' : ''}\n\nAqui está sua etiqueta institucional pronta para uso:\n\n\`${labelText}\`\n\n**Chave Única:** ${authKey}\n${!isAvulsa ? `**Assinado por:** ${professionalRaw.toUpperCase()}\n` : ''}\n*Processo concluído com sucesso.*`,
+        text: `✅ **CIRILA — CHAVES GERADAS NO CHAT**\n\nAqui estão suas chaves institucionalizadas:\n\n${keys}\n\n*Processo concluído com sucesso.*`,
         sender: 'ai'
       };
     }
 
+    // CASO 2: DOCUMENTO (Etiqueta) -> Pede assinatura se faltar
+    if (!professionalRaw) {
+      // Se for apenas chave mas SEM a flag isChatOnly (ex: pediu etiqueta de chave), ainda pedimos assinatura
+      return {
+        text: `Entendido, chefe! Vou gerar **${qty} etiqueta(s)** para o documento.\n\nQuem assina pela **DCRAA** hoje?`,
+        sender: 'ai',
+        actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco'].map(p => ({
+          label: p.toUpperCase(),
+          payload: `${cleanedText} assinado por ${p}`
+        }))
+      };
+    }
 
-    const pos = 'bottom'; // REGRA: Sempre no FINAL da folha
+    const labelText = `${dateStr} : ${authKey} - ${patient} – ${hospitalOrigin} - ${finalExam}`;
+    const pos = 'bottom';
 
     if (!isDocumentAttached) {
       return {
@@ -421,7 +292,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         sender: 'ai',
         actions: [{
           label: '📄 Baixar Etiqueta (.docx)',
-          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl || ''}:::1:::${pos}:::${hospitalOrigin.replace(/\s/g, '+')}`
+          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl || ''}:::${qty}:::${pos}:::${hospitalOrigin.replace(/\s/g, '+')}`
         }]
       };
     }
@@ -431,10 +302,11 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       sender: 'ai',
       actions: [{
         label: '📄 Baixar Pedido Autorizado (.docx)',
-        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl}:::1:::${pos}:::${hospitalOrigin.replace(/\s/g, '+')}`
+        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${authKey}:::${currentFileUrl}:::${qty}:::${pos}:::${hospitalOrigin.replace(/\s/g, '+')}`
       }]
     };
   }
+
 
 
   // --- RESPOSTAS DE CONTEXTO GERAL ---

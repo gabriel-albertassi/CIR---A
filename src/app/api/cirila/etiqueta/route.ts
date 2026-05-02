@@ -98,17 +98,17 @@ export async function GET(req: NextRequest) {
           new TableRow({
             children: [
               new TableCell({
-                margins: { top: 160, bottom: 160, left: 200, right: 200 },
+                margins: { top: 200, bottom: 200, left: 240, right: 240 },
                 children: [
                   // LINHA 1: Nome – Registro – Cargo (negrito + sublinhado) - Pula se for AVULSA
                   ...(!isAvulsa ? [
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 160 },
+                      spacing: { after: 1200 }, // Increased from 800
                       children: [
                         new TextRun({
                           text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                          bold: true, size: 22, font: 'Arial', color: '000000',
+                          bold: true, size: 24, font: 'Arial', color: '000000', // Size 24
                           underline: { type: 'single', color: '000000' },
                         }),
                       ],
@@ -116,11 +116,11 @@ export async function GET(req: NextRequest) {
                     // LINHA 2: Departamento
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 160 },
+                      spacing: { after: 1200 }, // Increased from 800
                       children: [
                         new TextRun({
                           text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
-                          bold: true, size: 20, font: 'Arial', color: '000000',
+                          bold: true, size: 22, font: 'Arial', color: '000000', // Size 22
                         }),
                       ],
                     }),
@@ -128,10 +128,11 @@ export async function GET(req: NextRequest) {
                   // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] AUTORIZADO PARA [DESTINO]
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
+                    spacing: { before: isAvulsa ? 0 : 1200 }, // Increased from 800
                     children: [
                       new TextRun({
                         text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam}`,
-                        bold: true, size: 22, font: 'Arial', color: '000000',
+                        bold: true, size: 24, font: 'Arial', color: '000000', // Size 24
                       }),
                     ],
                   }),
@@ -144,219 +145,18 @@ export async function GET(req: NextRequest) {
     };
 
 
-    const isSobreaviso = patient.toUpperCase() === 'SOBREAVISO';
     const labelElements: any[] = [];
 
-    let pageHeader: any = null;
-
-    if (isSobreaviso) {
-      pageHeader = new Header({
-        children: [
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({
-                text: "CIR-A / REGULAÇÃO SMSVR",
-                bold: true,
-                size: 28,
-                font: "Arial"
-              })
-            ]
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 200 },
-            children: [
-              new TextRun({
-                text: `MAPA DE SUPERVISÃO - SOBREAVISO`,
-                bold: true,
-                size: 32,
-                font: "Arial"
-              })
-            ]
-          }),
-          new Paragraph({
-            alignment: AlignmentType.RIGHT,
-            children: [
-              new TextRun({
-                text: `DATA: ${dateStr}`,
-                size: 22,
-                font: "Arial"
-              })
-            ]
-          }),
-        ]
-      });
-
-      const headers = [
-        { text: "DATA / CHAVE", width: 12 },
-        { text: "PACIENTE", width: 22 },
-        { text: "DIAGNOSTICO", width: 14 },
-        { text: "HOSPITAL ORIGEM", width: 12 },
-        { text: "PROCEDIMENTO", width: 12 },
-        { text: "PRESTADOR - REDE/PRIVADO", width: 16 },
-        { text: "CNS", width: 6 },
-        { text: "AUDITOR", width: 6 }
-      ];
-
-      const titleRow = new TableRow({
-        height: { value: 600, rule: HeightRule.ATLEAST },
-        children: [
-          new TableCell({
-            columnSpan: 8,
-            verticalAlign: VerticalAlign.CENTER,
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: "MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO - SMSVR",
-                    bold: true,
-                    size: 28,
-                    font: "Arial"
-                  })
-                ]
-              })
-            ]
-          })
-        ]
-      });
-
-      const tableRows = finalExams.map((examName, index) => {
-        const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
-        const isEven = index % 2 === 0;
-
-        return new TableRow({
-          height: { value: 1200, rule: HeightRule.ATLEAST },
-          children: headers.map((h, i) => {
-            let text = "";
-
-            if (i === 0) text = `${dateStr} ${authKey}`;
-            if (i === 3) text = "SMC";
-            if (i === 4) text = examName.toUpperCase();
-            if (i === 5) text = getDestination(examName);
-
-            return new TableCell({
-              width: { size: h.width, type: WidthType.PERCENTAGE },
-              verticalAlign: VerticalAlign.CENTER,
-              shading: isEven ? { fill: "F2F2F2" } : undefined,
-              children: [
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  children: [
-                    new TextRun({
-                      text,
-                      bold: true,
-                      size: 22,
-                      font: "Arial"
-                    })
-                  ]
-                })
-              ]
-            });
-          })
-        });
-      });
-
-      const table = new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        layout: TableLayoutType.FIXED,
-        rows: [
-          titleRow,
-          new TableRow({
-            tableHeader: true,
-            children: headers.map(h =>
-              new TableCell({
-                width: { size: h.width, type: WidthType.PERCENTAGE },
-                shading: { fill: "000000" },
-                verticalAlign: VerticalAlign.CENTER,
-                children: [
-                  new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    children: [
-                      new TextRun({
-                        text: h.text,
-                        bold: true,
-                        color: "FFFFFF",
-                        size: 18,
-                        font: "Arial"
-                      })
-                    ]
-                  })
-                ]
-              })
-            )
-          }),
-          ...tableRows
-        ]
-      });
-
-      const assinatura = new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        borders: { top: { style: BorderStyle.NONE } },
-        rows: [
-          new TableRow({
-            children: [
-              new TableCell({
-                children: [
-                  new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    children: [
-                      new TextRun({ text: "________________________________________" })
-                    ]
-                  }),
-                  new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    children: [
-                      new TextRun({
-                        text: "MÉDICO REGULADOR",
-                        bold: true,
-                        size: 22
-                      })
-                    ]
-                  })
-                ]
-              }),
-              new TableCell({
-                children: [
-                  new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    children: [
-                      new TextRun({ text: "________________________________________" })
-                    ]
-                  }),
-                  new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    children: [
-                      new TextRun({
-                        text: "SUPERVISOR DE REGULAÇÃO",
-                        bold: true,
-                        size: 22
-                      })
-                    ]
-                  })
-                ]
-              })
-            ]
-          })
-        ]
-      });
-
-      labelElements.push(table);
-      labelElements.push(new Paragraph({ text: "", spacing: { before: 600 } }));
-      labelElements.push(assinatura);
-    } else {
-      // Etiquetas Individuais
-      finalExams.forEach((examName, index) => {
-        const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
-        const destination = getDestination(examName);
-        labelElements.push(createLabelTable(examName, authKey, destination, patient, hospitalOrigin));
-        if (index < finalExams.length - 1) {
-          // Espaço entre etiquetas múltiplas
-          labelElements.push(new Paragraph({ spacing: { before: 400, after: 400 }, children: [] }));
-        }
-      });
-    }
+    // Etiquetas Individuais
+    finalExams.forEach((examName, index) => {
+      const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
+      const destination = getDestination(examName);
+      labelElements.push(createLabelTable(examName, authKey, destination, patient, hospitalOrigin));
+      if (index < finalExams.length - 1) {
+        // Espaço entre etiquetas múltiplas
+        labelElements.push(new Paragraph({ spacing: { before: 800, after: 800 }, children: [] }));
+      }
+    });
 
     // --- PROCESSAMENTO COM ANEXO ---
     if (templateUrl) {
@@ -465,8 +265,7 @@ export async function GET(req: NextRequest) {
               right: 200,
               bottom: 800,
               left: 200
-            },
-            size: isSobreaviso ? { orientation: PageOrientation.LANDSCAPE } : undefined
+            }
           },
         },
         children: [...emptyParagraphs, ...labelElements]
@@ -476,7 +275,7 @@ export async function GET(req: NextRequest) {
     const buffer = await Packer.toBuffer(finalDoc);
     return new NextResponse(buffer as any, {
       headers: {
-        'Content-Disposition': `attachment; filename="${isSobreaviso ? 'Planilha_Sobreaviso' : 'Etiqueta'}_${patient.replace(/\s/g, '_')}.docx"`,
+        'Content-Disposition': `attachment; filename="Etiqueta_${patient.replace(/\s/g, '_')}.docx"`,
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       },
     });
