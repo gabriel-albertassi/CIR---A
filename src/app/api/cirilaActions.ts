@@ -220,7 +220,18 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     let hospitalOrigin = "HOSPITAL ORIGEM";
     let professionalRaw = "";
 
-    // 1. Capturar Exame (Mais robusto)
+    // 1. Captura Hospital (geralmente sigla no final ou após o nome)
+    // Necessário declarar antes do exame para evitar erro de escopo
+    const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+cecilia|santa\s+cecília)\b/i);
+    if (hospMatch) {
+      const h = hospMatch[0].toUpperCase();
+      if (h.includes('SAO JOAO BATISTA') || h.includes('HSJB')) hospitalOrigin = 'HSJB';
+      else if (h.includes('MUNICIPAL') || h.includes('MUNICIPAR') || h.includes('HMMR')) hospitalOrigin = 'HMMR';
+      else hospitalOrigin = h;
+    }
+
+
+    // 2. Capturar Exame (Mais robusto)
     const examMatch = cleanedText.match(/(?:gerar|gera|solicitar)\s+(.+?)(?:\s+para|\s+paciente|\s+assinado|\s+assinada|,|;|\n|$)/i);
     if (examMatch && examMatch[1]) {
       let candidate = examMatch[1].trim().toUpperCase();
@@ -266,17 +277,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     examRaw = examRaw.replace(/\b(ETIQUETA|CHAVE|PARA|PACIENTE|ASSINADO|ASSINADA|SEM|COM|NO|CHAT|APENAS|TEXTO|SÓ|SO)\b/gi, '').trim();
     if (!examRaw) examRaw = "EXAME";
 
-    // 2. Extrair Paciente e Hospital Origem
-    // "gerar tc de abdome para Adilson silveira hsjb"
-    
-    // Captura Hospital (geralmente sigla no final ou após o nome)
-    const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+cecilia|santa\s+cecília)\b/i);
-    if (hospMatch) {
-      hospitalOrigin = hospMatch[0].toUpperCase();
-      if (hospitalOrigin === 'HOSPITAL SAO JOAO BATISTA') hospitalOrigin = 'HSJB';
-      if (hospitalOrigin === 'HOSPITAL MUNICIPAL' || hospitalOrigin === 'MUNICIPAR') hospitalOrigin = 'HMMR';
-    }
-
+    // 3. Extrair Paciente
     let foundPatient = false;
     
     // Camada 1: "para [nome]" - Pega tudo entre "para" e o hospital ou fim da linha
@@ -314,6 +315,18 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     // 3. Profissional
     professionalRaw = validProfs.find(p => cleanedText.includes(p)) || "";
 
+    if (!professionalRaw) {
+      return {
+        text: `Chefe, para regular o processo, preciso saber quem assina pela **DCRAA**.\n\n(Opções: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco)`,
+        sender: 'ai',
+        actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco'].map(p => ({
+          label: `Assinar como ${p.toUpperCase()}`,
+          payload: `${query} assinado por ${p}`
+        }))
+      };
+    }
+
+
     const authKey = generateKey();
     const dateStr = new Date().toLocaleDateString('pt-BR');
     const destination = (kw: string) => {
@@ -330,21 +343,11 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     if (isChatOnly) {
       return {
-        text: `✅ **CIRILA — AUTORIZAÇÃO GERADA**\n\nAqui está sua etiqueta institucional pronta para uso:\n\n\`${labelText}\`\n\n**Chave Única:** ${authKey}\n**Assinado por:** ${professionalRaw ? professionalRaw.toUpperCase() : 'MÉDICO REGULADOR'}\n\n*Processo concluído com sucesso.*`,
+        text: `✅ **CIRILA — AUTORIZAÇÃO GERADA**\n\nAqui está sua etiqueta institucional pronta para uso:\n\n\`${labelText}\`\n\n**Chave Única:** ${authKey}\n**Assinado por:** ${professionalRaw.toUpperCase()}\n\n*Processo concluído com sucesso.*`,
         sender: 'ai'
       };
     }
 
-    if (!professionalRaw) {
-      return {
-        text: `Chefe, para regular o processo, preciso saber quem assina pela **DCRAA**.\n\n(Opções: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco)`,
-        sender: 'ai',
-        actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco'].map(p => ({
-          label: `Assinar como ${p.toUpperCase()}`,
-          payload: `${query} assinado por ${p}`
-        }))
-      };
-    }
 
     const pos = 'bottom'; // REGRA: Sempre no FINAL da folha
 
