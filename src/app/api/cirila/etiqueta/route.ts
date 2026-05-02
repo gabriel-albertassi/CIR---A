@@ -18,6 +18,7 @@ import {
   PageOrientation,
   VerticalAlign,
   HeightRule,
+  TableLayoutType,
 } from 'docx';
 
 const generateKey = () => {
@@ -141,92 +142,132 @@ export async function GET(req: NextRequest) {
     };
 
 
-    // Sobreaviso: ativado apenas por patient=SOBREAVISO explícito (nunca por qty)
-    const isSobreaviso = patient.toUpperCase() === 'SOBREAVISO';
+    const isSobreaviso = patient.toUpperCase() === 'SOBREAVISO' || qty > 1;
     const labelElements: any[] = [];
 
     let pageHeader: any = null;
+
     if (isSobreaviso) {
-      // Título Institucional
-      labelElements.push(new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 300 },
+      pageHeader = new Header({
         children: [
-          new TextRun({
-            text: "CIRILA | REGULAÇÃO MUNICIPAL - SMSVR",
-            bold: true,
-            size: 24,
-            font: "Arial"
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                text: "CIR-A / REGULAÇÃO SMSVR",
+                bold: true,
+                size: 28,
+                font: "Arial"
+              })
+            ]
           }),
-          new TextRun({
-            text: "\nMAPA DE SUPERVISÃO - SOBREAVISO NOTURNO",
-            bold: true,
-            size: 28,
-            font: "Arial",
-            break: 1
-          })
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [
+              new TextRun({
+                text: `MAPA DE SUPERVISÃO - SOBREAVISO`,
+                bold: true,
+                size: 32,
+                font: "Arial"
+              })
+            ]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.RIGHT,
+            children: [
+              new TextRun({
+                text: `DATA: ${dateStr}`,
+                size: 22,
+                font: "Arial"
+              })
+            ]
+          }),
         ]
-      }));
+      });
 
       const headers = [
-        { text: "DATA/CHAVE", width: 14 },
-        { text: "PACIENTE", width: 18 },
-        { text: "DIAGNÓSTICO", width: 14 },
-        { text: "HOSP. ORIGEM", width: 10 },
-        { text: "PROCEDIMENTO", width: 16 },
-        { text: "PRESTADOR: REDE / PRIVADO", width: 18 },
-        { text: "CNS", width: 5 },
-        { text: "AUD", width: 5 }
+        { text: "DATA / CHAVE", width: 10 },
+        { text: "CLIENTE (PACIENTE)", width: 22 },
+        { text: "DIAGNÓSTICO", width: 16 },
+        { text: "HOSPITAL ORIGEM", width: 14 },
+        { text: "PROCEDIMENTO", width: 14 },
+        { text: "PRESTADOR / REDE", width: 12 },
+        { text: "CNS", width: 6 },
+        { text: "AUDITOR", width: 6 }
       ];
 
       const tableRows = finalExams.map((examName, index) => {
-        const authKey = (index < finalExams.length && (index === 0 && providedKey)) ? providedKey : generateKey();
+        const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
         const isEven = index % 2 === 0;
-        const examText = examName ? examName.toUpperCase() : "";
 
         return new TableRow({
-          children: [
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${dateStr} ${authKey}`, bold: true, size: 18, font: "Arial" })] })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: examText, bold: true, size: 16, font: "Arial" })] })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
-          ]
+          height: { value: 1200, rule: HeightRule.ATLEAST },
+          children: headers.map((h, i) => {
+            let text = "";
+
+            if (i === 0) text = `${dateStr} ${authKey}`;
+            if (i === 3) text = "SMC";
+            if (i === 4) text = examName.toUpperCase();
+            if (i === 5) text = getDestination(examName);
+
+            return new TableCell({
+              width: { size: h.width, type: WidthType.PERCENTAGE },
+              verticalAlign: VerticalAlign.CENTER,
+              shading: isEven ? { fill: "F2F2F2" } : undefined,
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text,
+                      bold: true,
+                      size: 22,
+                      font: "Arial"
+                    })
+                  ]
+                })
+              ]
+            });
+          })
         });
       });
 
-      labelElements.push(new Table({
+      const table = new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
+        layout: TableLayoutType.FIXED,
         rows: [
           new TableRow({
             tableHeader: true,
-            children: headers.map(h => new TableCell({
-              width: { size: h.width, type: WidthType.PERCENTAGE },
-              shading: { fill: "000000" },
-              verticalAlign: VerticalAlign.CENTER,
-              margins: { top: 100, bottom: 100 },
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: h.text, bold: true, size: 16, color: "FFFFFF", font: "Arial" })] })]
-            }))
+            children: headers.map(h =>
+              new TableCell({
+                width: { size: h.width, type: WidthType.PERCENTAGE },
+                shading: { fill: "000000" },
+                verticalAlign: VerticalAlign.CENTER,
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [
+                      new TextRun({
+                        text: h.text,
+                        bold: true,
+                        color: "FFFFFF",
+                        size: 22,
+                        font: "Arial"
+                      })
+                    ]
+                  })
+                ]
+              })
+            )
           }),
           ...tableRows
         ]
-      }));
+      });
 
-      // Seção de Assinaturas no Rodapé
-      labelElements.push(new Paragraph({ spacing: { before: 1200 }, children: [] }));
-      labelElements.push(new Table({
+      const assinatura = new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
-        borders: {
-          top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-          bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-          left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-          right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-          insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-        },
+        borders: { top: { style: BorderStyle.NONE } },
         rows: [
           new TableRow({
             children: [
@@ -235,8 +276,17 @@ export async function GET(req: NextRequest) {
                   new Paragraph({
                     alignment: AlignmentType.CENTER,
                     children: [
-                      new TextRun({ text: "__________________________________", bold: true }),
-                      new TextRun({ text: "\nMÉDICO REGULADOR", bold: true, size: 18, font: "Arial", break: 1 }),
+                      new TextRun({ text: "________________________________________" })
+                    ]
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [
+                      new TextRun({
+                        text: "MÉDICO REGULADOR",
+                        bold: true,
+                        size: 22
+                      })
                     ]
                   })
                 ]
@@ -246,8 +296,17 @@ export async function GET(req: NextRequest) {
                   new Paragraph({
                     alignment: AlignmentType.CENTER,
                     children: [
-                      new TextRun({ text: "__________________________________", bold: true }),
-                      new TextRun({ text: "\nSUPERVISOR / DCRAA", bold: true, size: 18, font: "Arial", break: 1 }),
+                      new TextRun({ text: "________________________________________" })
+                    ]
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [
+                      new TextRun({
+                        text: "SUPERVISOR DE REGULAÇÃO",
+                        bold: true,
+                        size: 22
+                      })
                     ]
                   })
                 ]
@@ -255,8 +314,11 @@ export async function GET(req: NextRequest) {
             ]
           })
         ]
-      }));
+      });
 
+      labelElements.push(table);
+      labelElements.push(new Paragraph({ text: "", spacing: { before: 600 } }));
+      labelElements.push(assinatura);
     } else {
       // Etiquetas Individuais
       finalExams.forEach((examName, index) => {
@@ -373,14 +435,15 @@ export async function GET(req: NextRequest) {
         properties: {
           page: {
             margin: {
-              top: isSobreaviso ? 200 : 720,
+              top: isSobreaviso ? 1000 : 720,
               right: isSobreaviso ? 200 : 720,
-              bottom: isSobreaviso ? 200 : 720,
+              bottom: isSobreaviso ? 800 : 720,
               left: isSobreaviso ? 200 : 720
             },
             size: isSobreaviso ? { orientation: PageOrientation.LANDSCAPE } : undefined
-          }
+          },
         },
+        headers: pageHeader ? { default: pageHeader } : undefined,
         children: [...emptyParagraphs, ...labelElements]
       }]
     });
