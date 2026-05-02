@@ -147,7 +147,27 @@ export async function GET(req: NextRequest) {
 
     let pageHeader: any = null;
     if (isSobreaviso) {
-      // Título integrado na tabela para preenchimento total da página
+      // Título Institucional
+      labelElements.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 300 },
+        children: [
+          new TextRun({
+            text: "CIRILA | REGULAÇÃO MUNICIPAL - SMSVR",
+            bold: true,
+            size: 24,
+            font: "Arial"
+          }),
+          new TextRun({
+            text: "\nMAPA DE SUPERVISÃO - SOBREAVISO NOTURNO",
+            bold: true,
+            size: 28,
+            font: "Arial",
+            break: 1
+          })
+        ]
+      }));
+
       const headers = [
         { text: "DATA/CHAVE", width: 14 },
         { text: "PACIENTE", width: 18 },
@@ -159,22 +179,18 @@ export async function GET(req: NextRequest) {
         { text: "AUD", width: 5 }
       ];
 
-      // Ajuste de quantidade para garantir preenchimento da página A4 Paisagem (aprox 12-14 linhas se altas)
-      const displayExams = finalExams.length < 12 ? [...finalExams, ...Array(12 - finalExams.length).fill("")] : finalExams;
-
-      const tableRows = displayExams.map((examName, index) => {
+      const tableRows = finalExams.map((examName, index) => {
         const authKey = (index < finalExams.length && (index === 0 && providedKey)) ? providedKey : generateKey();
         const isEven = index % 2 === 0;
         const examText = examName ? examName.toUpperCase() : "";
 
         return new TableRow({
-          height: { value: 900, rule: HeightRule.EXACT }, // Altura maior para preencher a folha
           children: [
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: examName ? `${dateStr} ${authKey}` : "", bold: true, size: 20, font: "Arial", color: "000000" })] })] }),
+            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${dateStr} ${authKey}`, bold: true, size: 18, font: "Arial" })] })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
-            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: examText, bold: true, size: 18, font: "Arial", color: "000000" })] })] }),
+            new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: examText, bold: true, size: 16, font: "Arial" })] })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
             new TableCell({ shading: { fill: isEven ? "F2F2F2" : "FFFFFF" }, children: [new Paragraph({ text: "" })] }),
@@ -182,34 +198,9 @@ export async function GET(req: NextRequest) {
         });
       });
 
-      // Título como primeira linha da tabela para "prender" o layout
-      const titleRow = new TableRow({
-        children: [
-          new TableCell({
-            columnSpan: 8,
-            margins: { top: 200, bottom: 200 },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: "MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO - SMSVR",
-                    bold: true,
-                    size: 32,
-                    font: "Arial",
-                    color: "000000"
-                  })
-                ]
-              })
-            ]
-          })
-        ]
-      });
-
       labelElements.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
-          titleRow,
           new TableRow({
             tableHeader: true,
             children: headers.map(h => new TableCell({
@@ -221,6 +212,48 @@ export async function GET(req: NextRequest) {
             }))
           }),
           ...tableRows
+        ]
+      }));
+
+      // Seção de Assinaturas no Rodapé
+      labelElements.push(new Paragraph({ spacing: { before: 1200 }, children: [] }));
+      labelElements.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+          top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+          bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+          left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+          right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+          insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [
+                      new TextRun({ text: "__________________________________", bold: true }),
+                      new TextRun({ text: "\nMÉDICO REGULADOR", bold: true, size: 18, font: "Arial", break: 1 }),
+                    ]
+                  })
+                ]
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [
+                      new TextRun({ text: "__________________________________", bold: true }),
+                      new TextRun({ text: "\nSUPERVISOR / DCRAA", bold: true, size: 18, font: "Arial", break: 1 }),
+                    ]
+                  })
+                ]
+              })
+            ]
+          })
         ]
       }));
 

@@ -314,19 +314,44 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     // Camada Final: Limpeza agressiva (Hospitais, Profissionais e Conectores)
     patient = patient.replace(/\b(HSJB|HMMR|UPA|CAIS|HMVR|HINJA|ASSINADO|ASSINADA|COM|SEM|ETIQUETA|NO|CHAT|APENAS|TEXTO|SÓ|SO)\b/gi, '').trim();
     
-    // Remove profissionais conhecidos e preposições de assinatura que possam ter vazado para o nome
-    validProfs.forEach(p => {
-      const profRegex = new RegExp(`\\s+(?:NA|DO|NO|POR|DA|DE|ASSINADO|ASSINADA|\\s)*\\b${p}\\b`, 'gi');
+    // 4. Determinar Profissional (Extração Inteligente)
+    // Common names that could be part of a patient's name require an explicit marker
+    const commonProfs = ['carlos', 'roberto'];
+    const uniqueProfs = validProfs.filter(p => !commonProfs.includes(p));
+
+    const profMarkers = '(?:assinado|assinada|por|etiqueta|regulação|regulador|assinatura|ass|at|pela)';
+    const explicitProfMatch = cleanedText.match(new RegExp(`${profMarkers}\\s+\\b(${validProfs.join('|')})\\b`, 'i'));
+    
+    if (explicitProfMatch) {
+      professionalRaw = explicitProfMatch[1].toLowerCase();
+    } else {
+      // Se não houver marcador explícito, procuramos um profissional "único" no final da query
+      // que NÃO faça parte do nome do paciente já identificado
+      const potentialProf = validProfs.find(p => {
+        const isAtEnd = new RegExp(`\\b${p}\\b\\s*$`, 'i').test(cleanedText);
+        if (!isAtEnd) return false;
+        
+        // Se for nome comum (Carlos/Roberto) e não tiver marcador (já falhou), ignoramos para segurança
+        if (commonProfs.includes(p.toLowerCase())) return false;
+        
+        // Verifica se o nome está no final e separado do paciente
+        return true;
+      });
+      professionalRaw = potentialProf || "";
+    }
+
+    // Agora limpamos o profissional do nome do paciente se ele tiver sido identificado
+    if (professionalRaw) {
+      const isCommon = commonProfs.includes(professionalRaw.toLowerCase());
+      // Se for nome comum, exige um marcador (assinado por, etc.) para remover do nome do paciente
+      const profRegex = new RegExp(`\\s*(?:${profMarkers}\\s+)${isCommon ? '+' : '*'}\\b${professionalRaw}\\b`, 'gi');
       patient = patient.replace(profRegex, '').trim();
-    });
+    }
 
     // Limpeza de preposições órfãs no final do nome resultantes da extração
-    patient = patient.replace(/\s+(NA|DO|NO|POR|ASSINADO|ASSINADA)$/gi, '').trim();
+    patient = patient.replace(/\s+(NA|DO|NO|POR|ASSINADO|ASSINADA|PARA|DE|DA|DO)$/gi, '').trim();
     
     if (!patient || patient === "PACIENTE") patient = "PACIENTE";
-
-    // 3. Profissional
-    professionalRaw = validProfs.find(p => cleanedText.includes(p)) || "";
 
     if (!professionalRaw) {
       return {
