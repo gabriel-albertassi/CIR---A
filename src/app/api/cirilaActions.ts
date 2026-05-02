@@ -179,11 +179,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const qty = batchMatch ? Math.max(1, Math.min(100, parseInt(batchMatch[1].split(/\s+/).pop()!))) : (cleanedText.includes('chaves') ? 10 : 1);
 
     // Hospital
-    const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+casa|santa\s+cecilia|santa\s+cecília)\b/i);
+    const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hnsg|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+casa|santa\s+cecilia|santa\s+cecília|nelson\s+gonçalves|nelson|gonçalves)\b/i);
     if (hospMatch) {
       const h = hospMatch[0].toUpperCase();
       if (h.includes('SAO JOAO BATISTA') || h.includes('HSJB')) hospitalOrigin = 'HSJB';
       else if (h.includes('MUNICIPAL') || h.includes('MUNICIPAR') || h.includes('HMMR')) hospitalOrigin = 'HMMR';
+      else if (h.includes('NELSON') || h.includes('GONÇALVES') || h.includes('HNSG')) hospitalOrigin = 'HNSG';
       else hospitalOrigin = h;
     }
 
@@ -256,11 +257,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     // VALIDAR HOSPITAL DE ORIGEM - SE NÃO TIVER, PERGUNTAR
     if (!hospitalOrigin && !isChatOnly) {
       return {
-        text: `Entendido, chefe! Para gerar a autorização corretamente, **qual o Hospital de Origem?**`,
+        text: `Entendido, chefe! Para gerar a autorização corretamente, **qual o Hospital de Origem?** (Clique em um botão abaixo para prosseguir)`,
         sender: 'ai',
         actions: [
           { label: 'HSJB', payload: `${cleanedText} no HSJB` },
           { label: 'HMMR', payload: `${cleanedText} no HMMR` },
+          { label: 'HNSG', payload: `${cleanedText} no HNSG` },
           { label: 'UPA', payload: `${cleanedText} na UPA` },
           { label: 'SANTA CASA', payload: `${cleanedText} na SANTA CASA` }
         ]
@@ -299,7 +301,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       return {
         text: `Entendido, chefe! Vou preparar a autorização para **${patient}**.\n\nQuem assina pela **DCRAA** hoje?`,
         sender: 'ai',
-        actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco'].map(p => ({
+        actions: ['paola', 'inima', 'carlos', 'roberto', 'sabrina', 'barenco', 'gabriel'].map(p => ({
           label: p.toUpperCase(),
           payload: `${cleanedText} na etiqueta do ${p}`
         }))

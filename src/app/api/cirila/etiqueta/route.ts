@@ -99,13 +99,13 @@ export async function GET(req: NextRequest) {
           new TableRow({
             children: [
               new TableCell({
-                margins: { top: 300, bottom: 300, left: 300, right: 300 }, // Increased margins
+                margins: { top: 120, bottom: 120, left: 300, right: 300 }, // Margens reduzidas
                 children: [
                   // LINHA 1: Nome – Registro – Cargo (negrito + sublinhado) - Pula se for AVULSA
                   ...(!isAvulsa ? [
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 1600 }, // Increased from 1200
+                      spacing: { after: 120 }, // Reduzido para compacidade máxima
                       children: [
                         new TextRun({
                           text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
                     // LINHA 2: Departamento
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 1600 }, // Increased from 1200
+                      spacing: { after: 120 }, // Reduzido para compacidade máxima
                       children: [
                         new TextRun({
                           text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
                   // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] AUTORIZADO PARA [DESTINO]
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
-                    spacing: { before: isAvulsa ? 0 : 1600 }, // Increased from 1200
+                    spacing: { before: 0 },
                     children: [
                       new TextRun({
                         text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam}`,

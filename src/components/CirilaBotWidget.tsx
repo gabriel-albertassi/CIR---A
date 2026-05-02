@@ -15,6 +15,8 @@ export default function CirilaBotWidget() {
   const [loading, setLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(true); 
   const [expression, setExpression] = useState<'neutral' | 'smiling' | 'thinking' | 'alert'>('neutral');
+  const [lastIncompleteQuery, setLastIncompleteQuery] = useState<string | null>(null);
+  const [lastIncompleteFileUrl, setLastIncompleteFileUrl] = useState<string | null>(null);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   const [notification, setNotification] = useState<string | null>(null);
@@ -77,14 +79,30 @@ export default function CirilaBotWidget() {
     setExpression('thinking');
 
     try {
-      const fileUrl = (window as any).lastCirilaFileUrl;
-      const finalQuery = fileUrl ? `${textToSend} [file_url:${fileUrl}]` : textToSend;
+      // Prioridade: anexo que acabou de ser feito (window) ou anexo persistido de uma query incompleta
+      const fileUrl = (window as any).lastCirilaFileUrl || lastIncompleteFileUrl;
+      
+      // Se houver uma query incompleta (ex: aguardando hospital), combina com a resposta atual
+      let processedQuery = textToSend;
+      if (lastIncompleteQuery && !textToSend.toLowerCase().includes(lastIncompleteQuery.toLowerCase())) {
+        processedQuery = `${lastIncompleteQuery} ${textToSend}`;
+      }
+
+      const finalQuery = fileUrl ? `${processedQuery} [file_url:${fileUrl}]` : processedQuery;
       
       const reply = await askCirila(finalQuery);
       
-      // Limpa o arquivo após o envio para não repetir em mensagens subsequentes
-      if (fileUrl) {
-        (window as any).lastCirilaFileUrl = null;
+      // Se a resposta for uma pergunta sobre hospital ou assinatura, persiste o contexto
+      const isAwaitingInfo = reply.text.includes('qual o Hospital de Origem') || reply.text.includes('Quem assina pela DCRAA');
+      
+      if (isAwaitingInfo) {
+        setLastIncompleteQuery(processedQuery);
+        if (fileUrl) setLastIncompleteFileUrl(fileUrl);
+      } else {
+        // Se concluiu ou mudou de assunto, limpa o contexto
+        setLastIncompleteQuery(null);
+        setLastIncompleteFileUrl(null);
+        if ((window as any).lastCirilaFileUrl) (window as any).lastCirilaFileUrl = null;
       }
 
       setMessages(prev => [...prev, reply]);
