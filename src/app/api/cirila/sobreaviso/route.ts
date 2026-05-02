@@ -57,7 +57,7 @@ const COLS_DEF = [
   { label: 'DIAGNÓSTICO',              pct: 16 },
   { label: 'HOSPITAL ORIGEM',          pct: 14 },
   { label: 'PROCEDIMENTO',             pct: 15 },
-  { label: 'PRESTADOR: REDE /\nPRIVADO', pct: 12 },
+  { label: 'PRESTADOR: REDE / PRIVADO', pct: 12 },
   { label: 'CNS',                      pct:  6 },
   { label: 'AUDITOR',                  pct: 10 },
 ];
@@ -83,11 +83,9 @@ function buildTableHeader(): TableRow {
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: col.label.split('\n').reduce((acc: TextRun[], line, i) => {
-              if (i > 0) acc.push(new TextRun({ break: 1 }));
-              acc.push(new TextRun({ text: line, bold: true, size: 18, color: 'FFFFFF', font: 'Arial' }));
-              return acc;
-            }, []),
+            children: [
+              new TextRun({ text: col.label, bold: true, size: 18, color: 'FFFFFF', font: 'Arial' }),
+            ],
           }),
         ],
       })
