@@ -404,7 +404,6 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const labelText = `${dateStr} : ${authKey} - ${patient} – ${hospitalOrigin} - ${examRaw} AUTORIZADO PARA ${destination(examRaw)}`;
 
     // NOVO: Se o usuário pedir "sem etiqueta", "no chat" ou "apenas texto"
-    const isChatOnly = cleanedText.includes('sem etiqueta') || cleanedText.includes('no chat') || cleanedText.includes('apenas texto') || cleanedText.includes('só texto');
 
     if (isChatOnly) {
       return {
