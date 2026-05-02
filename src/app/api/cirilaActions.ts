@@ -111,10 +111,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   const fileUrlMatch = text.match(/\[file_url:(.+?)\]/i);
   const currentFileUrl = fileUrlMatch ? fileUrlMatch[1] : null;
   const isDocumentAttached = !!currentFileUrl;
+  const cleanedText = text.replace(/\[file_url:.+?\]/i, '').trim();
 
-  // 2. DETECÇÃO DE SOBREAVISO — SEMPRE TEM PRIORIDADE MÁXIMA
-  const cleanedText = text.replace(/\[file_url:(.+?)\]/gi, '').trim();
+  // 2. Detecção de Preferência de Saída (Chat Only / Sem Etiqueta)
+  const isChatOnly = cleanedText.includes('sem etiqueta') || cleanedText.includes('no chat') || cleanedText.includes('apenas texto') || cleanedText.includes('só texto') || cleanedText.includes('so texto');
 
+  // 3. DETECÇÃO DE SOBREAVISO — SEMPRE TEM PRIORIDADE MÁXIMA
   const isSobreavisoQuery =
     cleanedText.includes('sobreaviso') ||
     cleanedText.includes('sobre aviso') ||
@@ -158,6 +160,20 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const professionalRaw = validProfs.find(p => cleanedText.includes(p)) || '';
     const authKey = generateKey();
 
+    // Se for chat only (sem etiqueta), não precisa de profissional
+    if (isChatOnly) {
+      const dateStr = new Date().toLocaleDateString('pt-BR');
+      const keys = Array.from({ length: qty }, (_, i) => {
+        const key = i === 0 ? authKey : generateKey();
+        return `\`${dateStr} : ${key} - PACIENTE A PREENCHER – HOSPITAL ORIGEM - EXAME AUTORIZADO PARA DESTINO\``;
+      }).join('\n');
+
+      return {
+        text: `✅ **CIRILA — CHAVES AVULSAS GERADAS** (Sem Assinatura)\n\nAqui estão suas chaves prontas para uso:\n\n${keys}\n\n*Processo concluído com sucesso.*`,
+        sender: 'ai'
+      };
+    }
+
     if (!professionalRaw) {
       return {
         text: `Entendido, chefe! Vou gerar **${qty} etiqueta(s) avulsa(s)**.\n\nQuem assina pela DCRAA hoje?`,
@@ -193,13 +209,22 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     text.includes('ecografia')
   );
 
-  // 4. GERAÇÃO DE CHAVES AVULSAS (SEM DOCUMENTO) - REGRA: APENAS LISTA NO CHAT
-  const isKeyOnlyQuery = cleanedText.match(/gerar\s+(\d+)\s+chaves/i);
-  if (isKeyOnlyQuery && !isGeneratingEtiqueta && !isSobreavisoQuery) {
-    const qty = Math.min(100, parseInt(isKeyOnlyQuery[1]));
-    const keys = Array.from({ length: qty }, (_, i) => `${String(i + 1).padStart(2, '0')}. **${generateKey()}**`).join('\n');
+  // 4. GERAÇÃO DE CHAVES EM LOTE (SEM DOCUMENTO) - REGRA: APENAS LISTA NO CHAT
+  // Captura "10 chaves", "20 chaves", "10 20 chaves" etc.
+  const isKeyOnlyQuery = cleanedText.match(/(\d+(?:\s+\d+)?)\s+chaves/i);
+  if (isKeyOnlyQuery && !isSobreavisoQuery && !cleanedText.includes('planilha')) {
+    const qtyRaw = isKeyOnlyQuery[1].trim().split(/\s+/);
+    // Pega o maior número ou o último para casos como "10 20 chaves"
+    const qty = Math.max(1, Math.min(100, parseInt(qtyRaw[qtyRaw.length - 1])));
+    
+    const dateStr = new Date().toLocaleDateString('pt-BR');
+    const keys = Array.from({ length: qty }, () => {
+      const key = generateKey();
+      return `\`${dateStr} : ${key} - PACIENTE A PREENCHER – HOSPITAL ORIGEM - EXAME AUTORIZADO PARA DESTINO\``;
+    }).join('\n');
+
     return {
-      text: `✅ **CHAVES GERADAS COM SUCESSO:**\n\n${keys}\n\n*Copie as chaves acima para uso imediato.*`,
+      text: `✅ **CIRILA — CHAVES AVULSAS GERADAS** (Sem Assinatura)\n\nAqui estão suas chaves prontas para uso:\n\n${keys}\n\n*Processo concluído com sucesso.*`,
       sender: 'ai'
     };
   }
@@ -353,7 +378,9 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     
     if (!patient || patient === "PACIENTE") patient = "PACIENTE";
 
-    if (!professionalRaw) {
+    const isAvulsa = examRaw.toUpperCase().includes('AVULSA');
+
+    if (!professionalRaw && !(isAvulsa && isChatOnly)) {
       return {
         text: `Chefe, para regular o processo, preciso saber quem assina pela **DCRAA**.\n\n(Opções: Paola, Inimá, Carlos, Roberto, Sabrina ou Barenco)`,
         sender: 'ai',
@@ -381,7 +408,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     if (isChatOnly) {
       return {
-        text: `✅ **CIRILA — AUTORIZAÇÃO GERADA**\n\nAqui está sua etiqueta institucional pronta para uso:\n\n\`${labelText}\`\n\n**Chave Única:** ${authKey}\n**Assinado por:** ${professionalRaw.toUpperCase()}\n\n*Processo concluído com sucesso.*`,
+        text: `✅ **CIRILA — AUTORIZAÇÃO GERADA**${isAvulsa ? ' (Sem Assinatura)' : ''}\n\nAqui está sua etiqueta institucional pronta para uso:\n\n\`${labelText}\`\n\n**Chave Única:** ${authKey}\n${!isAvulsa ? `**Assinado por:** ${professionalRaw.toUpperCase()}\n` : ''}\n*Processo concluído com sucesso.*`,
         sender: 'ai'
       };
     }

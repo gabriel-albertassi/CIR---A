@@ -75,16 +75,16 @@ export async function GET(req: NextRequest) {
       if (e.includes('ENDOSCOPIA') || e.includes('COLONOSCOPIA')) return 'HSJB';
       if (e.includes('PET') || e.includes('CINTILOGRAFIA') ||
         e.includes('MAMOGRAFIA') || e.includes('DENSITOMETRIA')) return 'RADIO VIDA';
-      return 'HOSPITAL DESTINO';
+      return 'HSJB'; // Default institucional
     };
 
     // --- ETIQUETA INSTITUCIONAL (FORMATO EXATO DO MODELO) ---
     // Formato: bordas pretas, texto esquerda, 3 linhas fixas
     const createLabelTable = (examName: string, authKey: string, destination: string, pName: string, hOrigin: string) => {
       const isAvulsa = examName.toUpperCase().includes('AVULSA');
-      const finalExam = (isAvulsa ? 'EXAME A SER PREENCHIDO' : examName.toUpperCase()).trim();
-      const finalPatient = (isAvulsa ? 'PACIENTE A SER PREENCHIDO' : pName.toUpperCase()).trim();
-      const finalHospital = (isAvulsa ? 'HOSPITAL A SER PREENCHIDO' : hOrigin.toUpperCase()).trim();
+      const finalExam = (isAvulsa ? 'EXAME AUTORIZADO PARA DESTINO' : `${examName.toUpperCase()} AUTORIZADO PARA ${destination.toUpperCase()}`).trim();
+      const finalPatient = (isAvulsa ? 'PACIENTE A PREENCHER' : pName.toUpperCase()).trim();
+      const finalHospital = (isAvulsa ? 'HOSPITAL ORIGEM' : hOrigin.toUpperCase()).trim();
       const labelBorder = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
 
       return new Table({
@@ -100,35 +100,37 @@ export async function GET(req: NextRequest) {
               new TableCell({
                 margins: { top: 160, bottom: 160, left: 200, right: 200 },
                 children: [
-                  // LINHA 1: Nome – Registro – Cargo (negrito + sublinhado)
-                  new Paragraph({
-                    alignment: AlignmentType.LEFT,
-                    spacing: { after: 160 },
-                    children: [
-                      new TextRun({
-                        text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                        bold: true, size: 22, font: 'Arial', color: '000000',
-                        underline: { type: 'single', color: '000000' },
-                      }),
-                    ],
-                  }),
-                  // LINHA 2: Departamento
-                  new Paragraph({
-                    alignment: AlignmentType.LEFT,
-                    spacing: { after: 160 },
-                    children: [
-                      new TextRun({
-                        text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
-                        bold: true, size: 20, font: 'Arial', color: '000000',
-                      }),
-                    ],
-                  }),
+                  // LINHA 1: Nome – Registro – Cargo (negrito + sublinhado) - Pula se for AVULSA
+                  ...(!isAvulsa ? [
+                    new Paragraph({
+                      alignment: AlignmentType.LEFT,
+                      spacing: { after: 160 },
+                      children: [
+                        new TextRun({
+                          text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
+                          bold: true, size: 22, font: 'Arial', color: '000000',
+                          underline: { type: 'single', color: '000000' },
+                        }),
+                      ],
+                    }),
+                    // LINHA 2: Departamento
+                    new Paragraph({
+                      alignment: AlignmentType.LEFT,
+                      spacing: { after: 160 },
+                      children: [
+                        new TextRun({
+                          text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
+                          bold: true, size: 20, font: 'Arial', color: '000000',
+                        }),
+                      ],
+                    }),
+                  ] : []),
                   // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] AUTORIZADO PARA [DESTINO]
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
                     children: [
                       new TextRun({
-                        text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam} AUTORIZADO PARA ${destination.toUpperCase()}`,
+                        text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam}`,
                         bold: true, size: 22, font: 'Arial', color: '000000',
                       }),
                     ],
@@ -142,7 +144,7 @@ export async function GET(req: NextRequest) {
     };
 
 
-    const isSobreaviso = patient.toUpperCase() === 'SOBREAVISO' || qty > 1;
+    const isSobreaviso = patient.toUpperCase() === 'SOBREAVISO';
     const labelElements: any[] = [];
 
     let pageHeader: any = null;
@@ -187,15 +189,38 @@ export async function GET(req: NextRequest) {
       });
 
       const headers = [
-        { text: "DATA / CHAVE", width: 10 },
-        { text: "CLIENTE (PACIENTE)", width: 22 },
-        { text: "DIAGNÓSTICO", width: 16 },
-        { text: "HOSPITAL ORIGEM", width: 14 },
-        { text: "PROCEDIMENTO", width: 14 },
-        { text: "PRESTADOR / REDE", width: 12 },
+        { text: "DATA / CHAVE", width: 12 },
+        { text: "PACIENTE", width: 22 },
+        { text: "DIAGNOSTICO", width: 14 },
+        { text: "HOSPITAL ORIGEM", width: 12 },
+        { text: "PROCEDIMENTO", width: 12 },
+        { text: "PRESTADOR - REDE/PRIVADO", width: 16 },
         { text: "CNS", width: 6 },
         { text: "AUDITOR", width: 6 }
       ];
+
+      const titleRow = new TableRow({
+        height: { value: 600, rule: HeightRule.ATLEAST },
+        children: [
+          new TableCell({
+            columnSpan: 8,
+            verticalAlign: VerticalAlign.CENTER,
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "MAPA DE SUPERVISÃO - SOBREAVISO NOTURNO - SMSVR",
+                    bold: true,
+                    size: 28,
+                    font: "Arial"
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      });
 
       const tableRows = finalExams.map((examName, index) => {
         const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
@@ -237,6 +262,7 @@ export async function GET(req: NextRequest) {
         width: { size: 100, type: WidthType.PERCENTAGE },
         layout: TableLayoutType.FIXED,
         rows: [
+          titleRow,
           new TableRow({
             tableHeader: true,
             children: headers.map(h =>
@@ -252,7 +278,7 @@ export async function GET(req: NextRequest) {
                         text: h.text,
                         bold: true,
                         color: "FFFFFF",
-                        size: 22,
+                        size: 18,
                         font: "Arial"
                       })
                     ]
@@ -406,7 +432,7 @@ export async function GET(req: NextRequest) {
 
         const doc = new Document({
           sections: [{
-            properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
+            properties: { page: { margin: { top: 1000, right: 200, bottom: 800, left: 200 } } },
             children: pos === 'bottom'
               ? [
                 ...pdfParagraphs,
@@ -435,15 +461,15 @@ export async function GET(req: NextRequest) {
         properties: {
           page: {
             margin: {
-              top: isSobreaviso ? 1000 : 720,
-              right: isSobreaviso ? 200 : 720,
-              bottom: isSobreaviso ? 800 : 720,
-              left: isSobreaviso ? 200 : 720
+              top: 1000,
+              right: 200,
+              bottom: 800,
+              left: 200
             },
             size: isSobreaviso ? { orientation: PageOrientation.LANDSCAPE } : undefined
           },
         },
-        headers: pageHeader ? { default: pageHeader } : undefined,
+        },
         children: [...emptyParagraphs, ...labelElements]
       }]
     });

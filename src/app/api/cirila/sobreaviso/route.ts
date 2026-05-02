@@ -51,10 +51,10 @@ const TABLE_BORDERS = {
 const COLS = [
   { label: 'DATA / CHAVE',              dxa: 1800 },
   { label: 'PACIENTE',                  dxa: 2800 },
-  { label: 'DIAGNÓSTICO',               dxa: 2000 },
+  { label: 'DIAGNOSTICO',               dxa: 2000 },
   { label: 'HOSPITAL ORIGEM',           dxa: 1800 },
   { label: 'PROCEDIMENTO',              dxa: 2400 },
-  { label: 'PRESTADOR: REDE / PRIVADO', dxa: 2200 },
+  { label: 'PRESTADOR - REDE/PRIVADO', dxa: 2200 },
   { label: 'CNS',                       dxa: 1000 },
   { label: 'AUDITOR',                   dxa: 688  },
 ];
@@ -115,7 +115,7 @@ function buildDataRow(index: number, dateStr: string, nextKey: () => string, row
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: `${dateStr} ${key}`, bold: true, size: 18, color: '000000', font: 'Arial' })],
+            children: [new TextRun({ text: `${dateStr} ${key}`, bold: true, size: 22, color: '000000', font: 'Arial' })],
           }),
         ],
       }),
@@ -185,10 +185,10 @@ export async function GET(req: NextRequest) {
           page: {
             size: { orientation: PageOrientation.LANDSCAPE },
             margin: {
-              top:    MARGIN_TB,
-              bottom: MARGIN_TB,
-              left:   convertInchesToTwip(0.4),
-              right:  convertInchesToTwip(0.4),
+              top:    1000,
+              bottom: 800,
+              left:   200,
+              right:  200,
             },
           },
         },
