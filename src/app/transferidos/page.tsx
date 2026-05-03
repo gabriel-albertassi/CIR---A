@@ -15,11 +15,11 @@ export default async function TransferidosPage() {
 
   const patients = await prisma.patient.findMany({
     where: {
-      status: { in: ['TRANSFERRED', 'ALTA', 'FALECIMENTO'] }
+      status: { in: ['TRANSFERRED', 'ALTA', 'FALECIMENTO', 'CANCELLED'] }
     },
     include: {
       logs: {
-        where: { action: { in: ['TRANSFER', 'FINAL_STATUS'] } },
+        where: { action: { in: ['TRANSFER', 'FINAL_STATUS', 'CANCEL'] } },
         orderBy: { timestamp: 'desc' },
         take: 1
       }
@@ -36,10 +36,10 @@ export default async function TransferidosPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#f1f5f9', marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
-            Pacientes Transferidos
+            Histórico de Saídas
           </h1>
           <p style={{ color: '#94a3b8', fontSize: '1rem', fontWeight: 500 }}>
-            Histórico completo de pacientes já transferidos e seus destinos.
+            Histórico completo de pacientes transferidos, altas, óbitos ou cancelamentos.
           </p>
         </div>
         <div className="no-print" style={{ paddingTop: '0.5rem' }}>
@@ -59,7 +59,7 @@ export default async function TransferidosPage() {
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Hospital de Origem</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600, borderLeft: '1px dashed var(--border)' }}>Hospital de Destino</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data da Transferência</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data da Alta/Óbito</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data do Desfecho</th>
                 <th className="no-print" style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Status Final</th>
               </tr>
             </thead>
@@ -68,7 +68,7 @@ export default async function TransferidosPage() {
               {patients.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                    Nenhum paciente transferido ainda.
+                    Nenhum registro encontrado.
                   </td>
                 </tr>
               ) : null}
@@ -79,10 +79,11 @@ export default async function TransferidosPage() {
                 let destination = 'Não registrado';
                 if (p.status === 'ALTA') destination = 'Alta Médica';
                 else if (p.status === 'FALECIMENTO') destination = 'Falecimento';
+                else if (p.status === 'CANCELLED') destination = 'Cancelado';
                 else if (eventLog && eventLog.action === 'TRANSFER') destination = eventLog.details || '';
 
                 const transferDateToUse = p.transfer_date ? new Date(p.transfer_date) : 
-                                          (eventLog && eventLog.action === 'TRANSFER' ? new Date(eventLog.timestamp) : new Date(p.created_at));
+                                          (eventLog && eventLog.action === 'TRANSFER' ? new Date(eventLog.timestamp) : null);
                 
                 const outcomeDateToUse = p.outcome_date ? new Date(p.outcome_date) : 
                                          (p.status === 'ALTA' || p.status === 'FALECIMENTO' ? 
@@ -115,9 +116,15 @@ export default async function TransferidosPage() {
                     </td>
 
                     <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
-                      {transferDateToUse.toLocaleDateString('pt-BR')} 
-                      <br/>
-                      <small>{transferDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                      {transferDateToUse ? (
+                        <>
+                          {transferDateToUse.toLocaleDateString('pt-BR')} 
+                          <br/>
+                          <small>{transferDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                        </>
+                      ) : (
+                        <span style={{ color: '#94a3b8' }}>—</span>
+                      )}
                     </td>
 
                     <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>

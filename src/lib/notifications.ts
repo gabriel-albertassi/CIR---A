@@ -1,8 +1,32 @@
 'use server'
 
 import { prisma } from '@/lib/db'
+import { fetchUnseenCentralEmails } from './emailListener'
 
-export type NotificationType = 'INFO' | 'SUCCESS' | 'WARNING' | 'ALERT'
+export type NotificationType = 'INFO' | 'SUCCESS' | 'WARNING' | 'ALERT' | 'EMAIL'
+
+// Cache simples em memória para evitar sincronizações excessivas (cooldown de 60s)
+let lastSyncTime = 0;
+const SYNC_COOLDOWN = 60 * 1000;
+
+/**
+ * Sincroniza e-mails da Central com o banco de dados de notificações
+ */
+export async function syncCentralEmails() {
+  const now = Date.now();
+  if (now - lastSyncTime < SYNC_COOLDOWN) {
+    return { success: true, skipped: true };
+  }
+
+  try {
+    const result = await fetchUnseenCentralEmails();
+    lastSyncTime = Date.now();
+    return result;
+  } catch (error) {
+    console.error('[Notifications] Falha na sincronização de e-mails:', error);
+    return { success: false, error };
+  }
+}
 
 /**
  * Cria uma nova notificação no sistema
@@ -78,3 +102,4 @@ export async function markAllAsRead() {
     return null;
   }
 }
+

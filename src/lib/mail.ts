@@ -54,6 +54,7 @@ export async function sendHospitalNotification({
     const info = await transporter.sendMail({
       from: `"CIRA Regulação" <${process.env.SMTP_USER}>`,
       to: to.join(', '),
+      bcc: 'central.internacao@epdvr.com.br',
       subject: `[REGULAÇÃO CIRA] ${subject}`,
       attachments: attachments,
       html: `
@@ -74,22 +75,26 @@ export async function sendHospitalNotification({
               <p style="margin: 0; font-size: 14px;"><strong>Quadro Clínico:</strong> ${diagnosis}</p>
             </div>
             
-            <div style="display: flex; flex-direction: row; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
-              ${attachments && attachments.length > 0 ? `
-              <a href="${attachments[0].path}" target="_blank" download="${attachments[0].filename}"
-                 style="background: #f1f5f9; color: #0f172a; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; border: 1px solid #e2e8f0; display: inline-block;">
-                 📥 Baixar Prontuário (Malote)
-              </a>
-              ` : ''}
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 30px;">
+              <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                ${attachments && attachments.length > 0 ? attachments.map(att => `
+                  <a href="${att.path}" target="_blank" download="${att.filename}"
+                     style="background: #ffffff; color: #0f172a; text-decoration: none; padding: 12px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; border: 1.5px solid #e2e8f0; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+                     <span style="font-size: 18px;">📄</span> ${att.filename.length > 25 ? att.filename.substring(0, 22) + '...' : att.filename}
+                  </a>
+                `).join('') : ''}
+              </div>
 
-              <a href="${confirmUrl}" target="_blank"
-                 style="background: #eff6ff; color: #2563eb; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; border: 1px solid #bfdbfe; display: inline-block;">
-                 ✅ Confirmar Recebimento
-              </a>
+              <div style="text-align: center; margin-top: 10px;">
+                <a href="${confirmUrl}" target="_blank"
+                   style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); text-transform: uppercase; letter-spacing: 0.5px;">
+                   ✅ Confirmar Recebimento
+                </a>
+              </div>
             </div>
             
-            <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; line-height: 1.5;">
-              DICA: Caso o download não inicie, clique com o botão direito no botão "Baixar Prontuário" e selecione "Salvar link como...".
+            <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 25px; line-height: 1.5;">
+              DICA: Caso o download não inicie, clique com o botão direito nos anexos e selecione "Salvar link como...".
             </p>
           </div>
           

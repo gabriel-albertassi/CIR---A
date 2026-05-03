@@ -20,13 +20,13 @@ export const SEVERITY_LEVELS = [
 ];
 
 export const HOSPITAL_CONTACTS: Record<string, { phone: string, email: string }> = {
-  "Hospital São João Batista (HSJB)": { phone: "5524999755006", email: "nir.hsjb@smsvr.com" },
-  "Hospital Munir Raffur (HMMR)": { phone: "5524993068957", email: "nir.hmmr@smsvr.com" }, // NIR RETIRO
-  "Hospital Doutor Nelson Gonçalves (HNSG)": { phone: "5524999372561", email: "nir.hnsg@smsvr.com" }, // CAIS DO ATERRADO
-  "UPA 24H": { phone: "5524992283668", email: "nir.upa24h@smsvr.com" },
-  "Hospital H.FOA": { phone: "5524999999994", email: "nir.foa@smsvr.com" },
-  "Hospital Santa Cecília (HSC)": { phone: "5524999999995", email: "nir.hsc@smsvr.com" },
-  "Hospital Viver Mais": { phone: "5524999999996", email: "nir.vivermais@smsvr.com" },
+  "Hospital São João Batista (HSJB)": { phone: "5524999755006", email: "nir2.hsjb@hsjb.org.br" },
+  "Hospital Munir Raffur (HMMR)": { phone: "5524993068957", email: "transferenciasnirhmmr@gmail.com" },
+  "Hospital Doutor Nelson Gonçalves (HNSG)": { phone: "5524999372561", email: "niraterrado@gmail.com" },
+  "UPA 24H": { phone: "5524992283668", email: "" }, // E-mail nir.upa24h@smsvr.com removido pois apresenta erro
+  "Hospital H.FOA": { phone: "5524999999994", email: "centraldevagas@hfoa.org.br" },
+  "Hospital Santa Cecília (HSC)": { phone: "5524999999995", email: "regulacaosus@hospitalsantacecilia.org.br" },
+  "Hospital Viver Mais": { phone: "5524999999996", email: "internacao@vivermaishospital.com.br" },
 };
 
-export const REGULACAO_WHATSAPP = "5524999615198";
+export const REGULACAO_WHATSAPP = "552435128145";

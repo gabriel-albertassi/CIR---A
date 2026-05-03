@@ -2,6 +2,7 @@ import { prisma } from '../../lib/db'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/sb-server'
 import DeletePatientButton from '@/components/DeletePatientButton'
+import ReturnAction from './ReturnAction'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,14 +59,14 @@ export default async function PacientesTodosPage() {
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Status Atual</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data do Cadastro</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Saída / Evento</th>
-                {isAdmin && <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'center' }}>Ações</th>}
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'center' }}>Ações</th>
               </tr>
             </thead>
 
             <tbody>
               {patients.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                     Nenhum paciente encontrado.
                   </td>
                 </tr>
@@ -97,7 +98,9 @@ export default async function PacientesTodosPage() {
                       {p.status === 'WAITING' && <span className="badge-status WAITING">Aguardando</span>}
                       {p.status === 'OFFERED' && <span className="badge-status OFFERED">Em Solicitação</span>}
                       {p.status === 'TRANSFERRED' && <span className="badge-status TRANSFERRED">Transferido</span>}
-                      {p.status === 'CANCELLED' && <span className="badge-status CANCELLED">Saída Registrada</span>}
+                      {p.status === 'ALTA' && <span className="badge-status ALTA" style={{ background: '#dcfce7', color: '#16a34a' }}>Alta Médica</span>}
+                      {p.status === 'FALECIMENTO' && <span className="badge-status FALECIMENTO" style={{ background: '#f1f5f9', color: '#475569' }}>Óbito</span>}
+                      {p.status === 'CANCELLED' && <span className="badge-status CANCELLED">Cancelado</span>}
                     </td>
 
                     <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
@@ -107,7 +110,7 @@ export default async function PacientesTodosPage() {
 
                     {/* Coluna de Saída/Log */}
                     <td style={{ padding: '1.25rem 1.5rem', maxWidth: '300px' }}>
-                      {lastLog && lastLog.action === 'CANCEL' ? (
+                      {p.status === 'CANCELLED' ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <div style={{
                             display: 'inline-flex',
@@ -122,43 +125,36 @@ export default async function PacientesTodosPage() {
                             borderRadius: '6px',
                             marginBottom: '4px'
                           }}>
-                            📋 Saída Confirmada
+                            📋 Saída Cancelada
                           </div>
                           <div style={{ fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.5 }}>
-                            {lastLog.details}
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-                            {new Date(lastLog.timestamp).toLocaleDateString('pt-BR')} às{' '}
-                            {new Date(lastLog.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            {lastLog?.details || 'Motivo não registrado'}
                           </div>
                         </div>
-                      ) : lastLog && lastLog.action === 'TRANSFER' ? (
+                      ) : p.status === 'TRANSFERRED' || p.status === 'ALTA' || p.status === 'FALECIMENTO' ? (
                         <div style={{ fontSize: '0.85rem', color: '#6ee7b7', fontWeight: 600 }}>
-                          ✅ Transferido para: {lastLog.details || '—'}
-                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-                            {new Date(lastLog.timestamp).toLocaleDateString('pt-BR')} às{' '}
-                            {new Date(lastLog.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                          </div>
+                          {p.status === 'TRANSFERRED' ? '✅ Transferido' : p.status === 'ALTA' ? '🏠 Alta' : '✝️ Óbito'}
                         </div>
                       ) : (
-                        <span style={{ color: '#475569', fontSize: '0.82rem' }}>—</span>
+                        <span style={{ color: '#475569', fontSize: '0.82rem' }}>Em Regulação Ativa</span>
                       )}
                     </td>
 
-                    {isAdmin && (
-                      <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center' }}>
-                        <DeletePatientButton patientId={p.id} patientName={p.name} />
-                      </td>
-                    )}
+                    <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                        <ReturnAction patientId={p.id} currentStatus={p.status} />
+                        {isAdmin && (
+                          <DeletePatientButton patientId={p.id} patientName={p.name} />
+                        )}
+                      </div>
+                    </td>
 
                   </tr>
                 )
               })}
             </tbody>
-
           </table>
         </div>
-      </div>
     </div>
   )
 }

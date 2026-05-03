@@ -43,3 +43,35 @@ export async function updateFinalStatus(patientId: string, newStatus: string) {
     return { error: error.message };
   }
 }
+
+export async function returnToQueue(patientId: string) {
+  try {
+    const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+    if (!patient) return { error: 'Paciente não encontrado' };
+
+    await prisma.patient.update({
+      where: { id: patientId },
+      data: { 
+        status: 'WAITING',
+        transfer_date: null,
+        outcome_date: null
+      }
+    });
+
+    await prisma.log.create({
+      data: {
+        patient_id: patientId,
+        action: 'STATUS_UPDATE',
+        details: 'Paciente retornou para a fila de regulação (estorno de transferência).'
+      }
+    });
+
+    revalidatePath('/transferidos');
+    revalidatePath('/patients');
+    revalidatePath('/pacientes');
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

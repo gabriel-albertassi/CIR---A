@@ -39,7 +39,12 @@ export async function sendEvolutionCharge(patientId: string, originHospital: str
   }
 }
 
-export async function sendMassBedRequest(patientId: string, profile: 'PUBLIC_ONLY' | 'PUBLIC_AND_PRIVATE' | 'PRIVATE_ONLY', severity: string) {
+export async function sendMassBedRequest(
+  patientId: string, 
+  profile: 'PUBLIC_ONLY' | 'PUBLIC_AND_PRIVATE' | 'PRIVATE_ONLY', 
+  severity: string,
+  targetHospitals?: string[]
+) {
   try {
     const patient = await prisma.patient.findUnique({ where: { id: patientId } });
     if (!patient) return { error: 'Paciente não encontrado.' };
@@ -47,43 +52,55 @@ export async function sendMassBedRequest(patientId: string, profile: 'PUBLIC_ONL
     const toEmails: string[] = [];
     const bccEmails: string[] = [];
 
-    // Separate contacts based on hospital type with SAFETY CHECK
-    Object.entries(HOSPITAL_CONTACTS).forEach(([hospitalName, contact]) => {
-      const isPrivate = PRIVATE_HOSPITALS.includes(hospitalName);
-      
-      // TRAVA: Só envia para privado se o paciente tiver perfil privado
-      if (isPrivate && !patient.is_private) return;
-
-      if (!isPrivate) {
-        if (profile !== 'PRIVATE_ONLY') {
+    // Se houver unidades específicas selecionadas, enviamos apenas para elas
+    if (targetHospitals && targetHospitals.length > 0) {
+      targetHospitals.forEach(hospitalName => {
+        const contact = HOSPITAL_CONTACTS[hospitalName];
+        if (contact && contact.email) {
           toEmails.push(contact.email);
         }
-      } else {
-        if (profile === 'PUBLIC_AND_PRIVATE' || profile === 'PRIVATE_ONLY') {
-          bccEmails.push(contact.email);
+      });
+    } else {
+      // Fallback para lógica de perfil (blast total)
+      Object.entries(HOSPITAL_CONTACTS).forEach(([hospitalName, contact]) => {
+        if (!contact.email) return; // Pula se não houver e-mail
+        
+        const isPrivate = PRIVATE_HOSPITALS.includes(hospitalName);
+        
+        // TRAVA: Só envia para privado se o paciente tiver perfil privado
+        if (isPrivate && !patient.is_private) return;
+
+        if (!isPrivate) {
+          if (profile !== 'PRIVATE_ONLY') {
+            toEmails.push(contact.email);
+          }
+        } else {
+          if (profile === 'PUBLIC_AND_PRIVATE' || profile === 'PRIVATE_ONLY') {
+            bccEmails.push(contact.email);
+          }
         }
-      }
-    });
+      });
+    }
 
     // Preparar Anexos (Malote + Evolução)
     const attachments = [];
     if (patient.attachment_url) {
       attachments.push({
-        filename: patient.attachment_name || 'malote-paciente.pdf',
+        filename: patient.attachment_name || 'MALOTE_PACIENTE.pdf',
         path: patient.attachment_url
       });
     }
-    if ((patient as any).evolution_url) {
+    if (patient.evolution_url) {
       attachments.push({
-        filename: (patient as any).evolution_name || 'evolucao-medica.pdf',
-        path: (patient as any).evolution_url
+        filename: patient.evolution_name || 'EVOLUCAO_MEDICA.pdf',
+        path: patient.evolution_url
       });
     }
 
     // DISPARO REAL PELO SERVIDOR SMTP
     await sendHospitalNotification({
       to: toEmails,
-      subject: `[CIRA] Disparo em Massa: ${patient.name}`,
+      subject: `[CIRA] Solicitação de Vaga: ${patient.name}`,
       patientName: patient.name,
       patientId: patient.id,
       severity: patient.severity,

@@ -14,6 +14,7 @@ export type CirilaResponse = {
     size?: number;
     type: string;
   };
+  payload?: any;
 };
 
 /**
@@ -90,6 +91,57 @@ export async function executeEmailDispatch(patientId: string, targetType: string
   }
 }
 
+export async function getCirilaStats(examType?: 'TC' | 'RNM') {
+  try {
+    const now = new Date();
+    const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstDayYear = new Date(now.getFullYear(), 0, 1);
+
+    const filter: any = {};
+    if (examType === 'TC') filter.exam_type = { contains: 'TC' };
+    if (examType === 'RNM') filter.exam_type = { contains: 'RNM' };
+
+    const [monthly, annual] = await Promise.all([
+      (prisma as any).cirilaAudit.findMany({
+        where: { 
+          timestamp: { gte: firstDayMonth },
+          ...filter
+        }
+      }),
+      (prisma as any).cirilaAudit.findMany({
+        where: { 
+          timestamp: { gte: firstDayYear },
+          ...filter
+        }
+      })
+    ]);
+
+    const summarize = (data: any[]) => {
+      const tc = data.filter((d: any) => d.exam_type.includes('TC')).length;
+      const rnm = data.filter((d: any) => d.exam_type.includes('RNM') || d.exam_type.includes('RESSONANCIA')).length;
+      
+      return {
+        total: data.length,
+        tc,
+        rnm,
+        others: data.length - tc - rnm,
+        byHospital: data.reduce((acc: any, d: any) => {
+          acc[d.hospital_origin] = (acc[d.hospital_origin] || 0) + 1;
+          return acc;
+        }, {})
+      };
+    };
+
+    return {
+      monthly: summarize(monthly),
+      annual: summarize(annual)
+    };
+  } catch (err) {
+    console.error('[CIRILA_STATS] Erro:', err);
+    return null;
+  }
+}
+
 // --- PROTOCOLO ATIVO (Estado de sessão do servidor) ---
 // Protocolo 1 (padrão): TC → HSJB
 // Protocolo 2: TC → HMMR
@@ -134,6 +186,62 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     (cleanedText.includes('avulsa') && !cleanedText.includes('etiqueta')) ||
     (cleanedText.includes('chaves') && !cleanedText.includes('etiqueta'));
 
+  // --- COMANDOS DE RELATÓRIO ---
+  if (cleanedText.includes('relatório') || cleanedText.includes('relatorio')) {
+    let examFilter: 'TC' | 'RNM' | undefined = undefined;
+    if (/\btc\b/i.test(cleanedText)) examFilter = 'TC';
+    if (/\b(rnm|ressonancia|ressonância)\b/i.test(cleanedText)) examFilter = 'RNM';
+
+    const period: 'MENSAL' | 'ANUAL' = (cleanedText.includes('anual') || cleanedText.includes('ano')) ? 'ANUAL' : 'MENSAL';
+    
+    const stats = await getCirilaStats(examFilter);
+    if (!stats) return { text: "⚠️ Erro ao acessar dados de auditoria.", sender: 'ai' };
+
+    const data = period === 'ANUAL' ? stats.annual : stats.monthly;
+    const examLabel = examFilter ? ` de ${examFilter}` : '';
+
+    return {
+      text: `📊 **Relatório ${period}${examLabel}**\n\nProcessando dados específicos para sua solicitação...`,
+      sender: 'ai',
+      payload: {
+        type: 'CIRILA_DASHBOARD',
+        period: period,
+        examType: examFilter || 'GERAL',
+        data: data
+      }
+    } as any;
+  }
+
+  // --- COMANDOS DE LISTAGEM ---
+  const isHelpCommand = 
+    cleanedText.startsWith('!') || 
+    cleanedText.startsWith('@') || 
+    cleanedText === 'comandos' || 
+    cleanedText === 'ajuda' ||
+    cleanedText === 'help' ||
+    cleanedText.includes('quais são os comandos');
+
+  if (isHelpCommand) {
+    return {
+      text: `📋 **CATÁLOGO DE COMANDOS — CIRILA V.2**\n\nChefe, aqui estão os comandos que eu entendo:\n\n` +
+            `• **Gerar Etiquetas**: *"Gerar [EXAME] para [PACIENTE]"* \n  *(Ex: "Gerar TC de Crânio para João Silva")*\n\n` +
+            `• **Planilha de Sobreaviso**: *"Sobreaviso [QTD]"* \n  *(Ex: "Sobreaviso 20" — Gera mapa com 20 chaves)*\n\n` +
+            `• **Protocolos (TC)**: *"Protocolo 1"* (HSJB) ou *"Protocolo 2"* (Retiro)\n\n` +
+            `• **Relatórios**: *"Relatório Mensal"* ou *"Relatório Anual"* \n  *(Exibe dashboard de produtividade real)*\n\n` +
+            `• **Chaves no Chat**: Adicione *"no chat"* ao comando de etiqueta para gerar apenas o texto.\n\n` +
+            `• **Assinatura**: Você pode incluir o médico direto: *"Assinado por Inimá"* ou *"Inimá"*.\n\n` +
+            `• **Anexos**: Basta arrastar um PDF/Imagem e depois me dar o comando de gerar.\n\n` +
+            `*Dica: Você pode usar !comandos ou @comandos a qualquer momento.*`,
+      sender: 'ai',
+      actions: [
+        { label: '📊 Relatório Mensal', payload: 'relatório mensal' },
+        { label: 'Gerar Sobreaviso', payload: 'sobreaviso 15' },
+        { label: 'Protocolo 1 (HSJB)', payload: 'protocolo 1' },
+        { label: 'Protocolo 2 (Retiro)', payload: 'protocolo 2' },
+      ]
+    };
+  }
+  
   // 3. DETECÇÃO DE PROTOCOLO — Altera rota de destino das TCs
   const isProtocoloCommand =
     cleanedText.includes('protocolo 2') ||
@@ -447,6 +555,22 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     }
 
     if (!isDocumentAttached) {
+      // --- LOG DE AUDITORIA (Precisão 100%) ---
+      try {
+        await (prisma as any).cirilaAudit.create({
+          data: {
+            exam_type: finalExamOnly.includes('TC') ? 'TC' : (finalExamOnly.includes('RNM') || finalExamOnly.includes('RMN') ? 'RNM' : 'OUTROS'),
+            patient_name: patient,
+            hospital_origin: finalHospital,
+            destination: destination(examRaw),
+            professional: professionalRaw,
+            key: firstKey
+          }
+        });
+      } catch (e) {
+        console.error('[CIRILA_AUDIT] Erro ao gravar log:', e);
+      }
+
       return {
         text: `✅ **CIRILA:** Autorização gerada para **${patient}**. \n\nAqui estão as chaves para cópia rápida (Chat):\n\n${textKeysBlock}\n\nTambém gerei um documento Word vazio apenas com elas, caso precise:`,
         sender: 'ai',
@@ -455,6 +579,22 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
           payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${firstKey}:::${currentFileUrl || ''}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}:::${protocoloAtivo}`
         }]
       };
+    }
+
+    // --- LOG DE AUDITORIA (Precisão 100%) ---
+    try {
+      await (prisma as any).cirilaAudit.create({
+        data: {
+          exam_type: finalExamOnly.includes('TC') ? 'TC' : (finalExamOnly.includes('RNM') || finalExamOnly.includes('RMN') ? 'RNM' : 'OUTROS'),
+          patient_name: patient,
+          hospital_origin: finalHospital,
+          destination: destination(examRaw),
+          professional: professionalRaw,
+          key: firstKey
+        }
+      });
+    } catch (e) {
+      console.error('[CIRILA_AUDIT] Erro ao gravar log:', e);
     }
 
     return {
@@ -475,7 +615,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     return {
       text: `Olá! Eu sou a **CIRILA**, sua Inteligência Artificial especializada em regulação médica da SMSVR. 🤖🏥\n\nMinhas capacidades principais:\n\n1. **Geração de Etiquetas**: Insiro etiquetas oficiais (Caixa Alta, Negrito, Preto) no final dos seus documentos autorizados.\n2. **Planilhas de Sobreaviso**: Gerador de mapas de supervisão noturna em modo paisagem com colunas institucionais.\n3. **Gestão de Chaves**: Posso gerar listas de chaves únicas diretamente aqui no chat.\n4. **Triagem Inteligente**: Extraio automaticamente Paciente, Hospital de Origem e Exame dos seus comandos.\n\n**Como posso agilizar seu processo agora?**`,
       sender: 'ai',
-      image: '/cirila_2.png'
+      image: '/cirila_2.png',
+      actions: [
+        { label: '📋 Ver Comandos', payload: '!comandos' },
+        { label: '📄 Gerar Sobreaviso', payload: 'sobreaviso 15' },
+        { label: 'Como funciona?', payload: 'ajuda' }
+      ]
     };
   }
 
@@ -496,6 +641,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       { label: '📄 Sobreaviso — 20 chaves', payload: 'DOWNLOAD_DOCX_20' },
       { label: '📄 Sobreaviso — 30 chaves', payload: 'DOWNLOAD_DOCX_30' },
       { label: '📄 Sobreaviso — 50 chaves', payload: 'DOWNLOAD_DOCX_50' },
+      { label: '📋 Ver Comandos', payload: '!comandos' },
       { label: 'Como funciona?', payload: 'ajuda' },
     ]
   };

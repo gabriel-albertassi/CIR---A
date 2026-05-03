@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Check, Hospital, User, Info, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Bell, Check, Hospital, User, Info, AlertTriangle, CheckCircle, Mail } from 'lucide-react'
 import { markAsRead } from '@/lib/notifications'
 
 export default function NotificationBell() {
@@ -45,6 +45,7 @@ export default function NotificationBell() {
       case 'SUCCESS': return <CheckCircle className="text-green-400" size={18} />
       case 'ALERT': return <AlertTriangle className="text-red-400" size={18} />
       case 'WARNING': return <Info className="text-yellow-400" size={18} />
+      case 'EMAIL': return <Mail className="text-blue-400" size={18} />
       default: return <Bell size={18} />
     }
   }
@@ -86,7 +87,7 @@ export default function NotificationBell() {
               </div>
             ) : (
               notifications.map((n) => (
-                <div key={n.id} className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors group relative">
+                <div key={n.id} className={`p-4 border-b border-white/5 hover:bg-white/5 transition-colors group relative ${n.type === 'EMAIL' ? 'border-l-2 border-l-blue-500/50' : ''}`}>
                   <div className="flex gap-3">
                     <div className="mt-1 flex-shrink-0">
                       {getTypeIcon(n.type)}
@@ -105,6 +106,9 @@ export default function NotificationBell() {
                           <span className="flex items-center gap-1 text-slate-500 bg-slate-800/50 px-1.5 py-0.5 rounded">
                             <User size={10} /> {n.patient.name}
                           </span>
+                        )}
+                        {n.type === 'EMAIL' && (
+                          <span className="text-blue-400 font-medium">E-mail da Central</span>
                         )}
                       </div>
                     </div>
@@ -135,3 +139,4 @@ export default function NotificationBell() {
     </div>
   )
 }
+

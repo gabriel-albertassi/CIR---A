@@ -2,6 +2,7 @@
 
 import { prisma } from '../../lib/db'
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/sb-server'
 
 export async function requestBed(patientId: string, targetHospital: string) {
   const patient = await prisma.patient.findUnique({ where: { id: patientId } });
@@ -104,12 +105,9 @@ export async function cancelPatient(patientId: string, reason: string, exitType:
   revalidatePath('/')
 }
 
-import { createClient } from '@/lib/supabase/sb-server'
-
 export async function registerPatient(formData: FormData) {
   try {
-    const supabase = await createClient()
-    
+    console.log('--- INICIANDO CADASTRO DE PACIENTE ---')
     // Extração segura dos dados
     const name = formData.get('name') as string
     const origin_hospital = formData.get('origin_hospital') as string
@@ -119,7 +117,10 @@ export async function registerPatient(formData: FormData) {
     const attachment = formData.get('attachment') as File | null
     const is_private = formData.get('is_private') === 'on' || formData.get('is_private') === 'true'
 
+    console.log(`Dados extraídos: ${name}, ${origin_hospital}, ${severity}, Private: ${is_private}`)
+
     if (!name || !origin_hospital || !diagnosis || !severity) {
+      console.warn('Validação falhou: Campos obrigatórios ausentes.')
       throw new Error('Campos obrigatórios faltando: Nome, Hospital, Diagnóstico e Gravidade são necessários.')
     }
 
@@ -128,30 +129,39 @@ export async function registerPatient(formData: FormData) {
 
     // Processo de Upload do Malote (Melhorado com FormData)
     if (attachment && attachment.size > 0) {
-      const fileExt = attachment.name.split('.').pop()
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('malotes-pacientes')
-        .upload(fileName, attachment, {
-          cacheControl: '3600',
-          upsert: false
-        })
+      console.log(`Iniciando upload de anexo: ${attachment.name} (${attachment.size} bytes)`)
+      try {
+        const supabase = await createClient()
+        const fileExt = attachment.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('malotes-pacientes')
+          .upload(fileName, attachment, {
+            cacheControl: '3600',
+            upsert: false
+          })
 
-      if (uploadError) {
-        console.error('Erro no upload do Supabase:', uploadError)
-        throw new Error(`Falha no upload para o Supabase: ${uploadError.message}`)
+        if (uploadError) {
+          console.error('Erro no upload do Supabase:', uploadError)
+          throw new Error(`Falha no upload para o Supabase: ${uploadError.message}`)
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('malotes-pacientes')
+          .getPublicUrl(fileName)
+
+        attachment_url = publicUrl
+        attachment_name = attachment.name
+        console.log('Upload concluído com sucesso:', attachment_url)
+      } catch (uploadErr: any) {
+        console.error('Erro crítico no processo de upload:', uploadErr)
+        throw new Error(`Erro no anexo: ${uploadErr.message}`)
       }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('malotes-pacientes')
-        .getPublicUrl(fileName)
-
-      attachment_url = publicUrl
-      attachment_name = attachment.name
     }
 
     // Verificar duplicidade
+    console.log('Verificando duplicidade no banco de dados...')
     const existing = await prisma.patient.findFirst({
       where: {
         name,
@@ -160,10 +170,12 @@ export async function registerPatient(formData: FormData) {
     })
 
     if (existing) {
+      console.warn(`Paciente duplicado encontrado: ${name} (ID: ${existing.id})`)
       throw new Error('ATENÇÃO: Este paciente já se encontra ativo na fila de regulação!')
     }
 
     // Criação no Prisma
+    console.log('Gravando paciente no Prisma...')
     const patient = await prisma.patient.create({
       data: {
         name,
@@ -179,6 +191,7 @@ export async function registerPatient(formData: FormData) {
     })
 
     // Log de registro
+    console.log(`Registrando log de auditoria para o paciente ${patient.id}...`)
     await prisma.log.create({
       data: {
         patient_id: patient.id,
@@ -187,16 +200,18 @@ export async function registerPatient(formData: FormData) {
       }
     })
 
+    console.log('CADASTRO CONCLUÍDO COM SUCESSO.')
     revalidatePath('/patients')
     revalidatePath('/')
     
-    return { success: true, patient }
+    return { success: true, patientId: patient.id }
   } catch (error: any) {
-    console.error('ERRO EM registerPatient:', error)
-    // Retornamos um objeto de erro serializável para evitar o "unexpected response"
+    console.error('ERRO CRÍTICO EM registerPatient:', error)
+    
+    // Garantir que o erro seja serializável e amigável
     return { 
       success: false, 
-      error: error.message || 'Ocorreu um erro interno desconhecido ao processar o cadastro.' 
+      error: error.message || 'Erro interno ao processar o cadastro. Verifique a conexão com o banco de dados.' 
     }
   }
 }

@@ -2,9 +2,99 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { askCirila, executeEmailDispatch, CirilaResponse } from '../app/api/cirilaActions';
-import { Send, Paperclip, Bot, Bell, ChevronDown, ChevronUp, Sparkles, Loader2, FileText, CheckCircle2 } from 'lucide-react';
+import { Send, Paperclip, Bot, Bell, ChevronDown, ChevronUp, Sparkles, Loader2, FileText, CheckCircle2, BarChart3, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import CirilaAvatar from './CirilaAvatar';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+
+const COLORS = ['#00d8ff', '#0f172a', '#64748b', '#94a3b8'];
+
+function CirilaDashboard({ data, period, examType }: { data: any, period: string, examType?: string }) {
+  const chartData = [
+    { name: 'TC', value: data.tc },
+    { name: 'RNM', value: data.rnm },
+    { name: 'Outros', value: data.others }
+  ].filter(d => d.value > 0);
+
+  const hospitalData = Object.entries(data.byHospital || {}).map(([name, value]) => ({
+    name,
+    value
+  })).sort((a, b) => (b.value as number) - (a.value as number));
+
+  return (
+    <div style={{ 
+      background: 'white', 
+      borderRadius: '24px', 
+      padding: '1.5rem', 
+      border: '1px solid #e2e8f0', 
+      boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+      marginTop: '1rem',
+      width: '100%',
+      minWidth: '320px'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
+        <BarChart3 size={20} color="#00d8ff" />
+        <h4 style={{ margin: 0, fontSize: '1rem', color: '#0f172a' }}>
+          Relatório {period} {examType !== 'GERAL' ? ` de ${examType}` : 'Geral'}
+        </h4>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>TOTAL EXAMES</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{data.total}</div>
+        </div>
+        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>TENDÊNCIA</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontSize: '1.1rem', fontWeight: 700 }}>
+            <TrendingUp size={16} /> +12%
+          </div>
+        </div>
+      </div>
+
+      {examType === 'GERAL' && chartData.length > 0 && (
+        <div style={{ height: '200px', width: '100%', marginBottom: '1.5rem' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {hospitalData.length > 0 && (
+        <div>
+          <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, marginBottom: '1rem' }}>RANKING POR HOSPITAL</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {hospitalData.slice(0, 3).map((h: any, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#0f172a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>
+                  {idx + 1}
+                </div>
+                <div style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>{h.name}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#00d8ff' }}>{h.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CirilaBotWidget() {
   const router = useRouter();
@@ -122,6 +212,7 @@ export default function CirilaBotWidget() {
     if (payload === 'NAV_HOSPITALS') router.push('/admin/hospitals');
     if (payload === 'QUERY_QUEUE') handleSend('quantos pacientes na fila vermelha e normal?');
     if (payload === 'QUERY_ABOUT') handleSend('o que você sabe fazer?');
+    if (payload === '!comandos') handleSend('!comandos');
     
     if (payload.startsWith('SEND_MAIL_')) {
       const parts = payload.split('_');
@@ -315,6 +406,14 @@ export default function CirilaBotWidget() {
                     </div>
                     <CheckCircle2 size={16} color="#10b981" />
                   </div>
+                )}
+
+                {m.payload?.type === 'CIRILA_DASHBOARD' && (
+                  <CirilaDashboard 
+                    data={m.payload.data} 
+                    period={m.payload.period} 
+                    examType={m.payload.examType} 
+                  />
                 )}
               </div>
 

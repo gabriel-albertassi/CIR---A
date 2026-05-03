@@ -97,3 +97,16 @@ model Notification {
   is_read     Boolean  @default(false)
   created_at  DateTime @default(now())
 }
+model CirilaAudit {
+  id              String   @id @default(uuid())
+  exam_type       String   // TC, RNM, ECO, etc
+  patient_name    String
+  hospital_origin String
+  destination     String
+  professional    String
+  key             String   @unique
+  timestamp       DateTime @default(now())
+
+  @@index([exam_type])
+  @@index([timestamp])
+}

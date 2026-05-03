@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { requestBed, transferPatient, cancelPatient, registerRefusal, evolvePatient } from './actions'
-import { AlertTriangle, Clock, Activity, MessageSquare, TrendingUp, Search, MessageCircle, Mail, Send, Paperclip, Plus, ShieldCheck, ShieldAlert } from 'lucide-react'
+import { AlertTriangle, Clock, Activity, MessageSquare, TrendingUp, Search, MessageCircle, Mail, Send, Paperclip, Plus, ShieldCheck, ShieldAlert, X } from 'lucide-react'
 import Link from 'next/link'
 import { togglePatientPrivateProfile } from './actions'
 import PrintButton from '@/components/PrintButton'
@@ -88,7 +88,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
   );
 
   const [chargeModal, setChargeModal] = useState<{id: string, origin: string} | null>(null);
-  const [blastModal, setBlastModal] = useState<{id: string, severity: string, is_private?: boolean} | null>(null);
+  const [blastModal, setBlastModal] = useState<{id: string, severity: string, is_private?: boolean, initialUnits?: string[]} | null>(null);
   const [attachModal, setAttachModal] = useState<{id: string, name: string} | null>(null);
 
   // State for inline hospital selection when requesting a bed
@@ -115,6 +115,28 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
   const [exitNote, setExitNote] = useState<string>('');
 
   const TRANSFER_HOSPITALS = [...ALL_HOSPITALS, 'Hospital Regional'];
+
+  const [notifying, setNotifying] = useState<string | null>(null);
+
+  async function handleDirectNotify(patientId: string, hospital: string, severity: string, isPrivate?: boolean) {
+    if (!hospital) return;
+    if (!window.confirm(`Deseja disparar a notificação oficial para o NIR do ${hospital}?`)) return;
+
+    setNotifying(patientId);
+    try {
+      const { sendMassBedRequest } = await import('./communicationActions');
+      const res = await sendMassBedRequest(patientId, 'PUBLIC_ONLY', severity, [hospital]);
+      if (res.error) {
+        alert("Erro no disparo: " + res.error);
+      } else {
+        alert("Notificação enviada com sucesso para " + hospital);
+      }
+    } catch (e: any) {
+      alert("Erro: " + e.message);
+    } finally {
+      setNotifying(null);
+    }
+  }
 
   async function handleAction(action: 'request' | 'transfer' | 'cancel' | 'refusal' | 'evolve', id: string) {
     try {
@@ -346,7 +368,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '6px',
-                              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                              transition: 'all 0.2s',
                               boxShadow: p.is_private ? '0 4px 15px rgba(245, 158, 11, 0.1)' : 'none',
                               whiteSpace: 'nowrap',
                               textTransform: 'uppercase',
@@ -377,13 +399,11 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                     </td>
 
                     <td style={{ padding: '1rem 1.5rem' }}>
-                      {/* Tela normal: truncado. Impressão: completo */}
                       <span className="no-print">{truncateString(p.diagnosis, 35)}</span>
                       <span className="only-print" style={{ fontWeight: 600 }}>{p.diagnosis}</span>
                       <br />
                       <span style={{ fontSize: '12px', color: '#94a3b8' }}>Origem: {p.origin_hospital}</span>
                       
-                      {/* AÇÃO DE COBRAR NIR (SISTEMA) */}
                       {HOSPITAL_CONTACTS[p.origin_hospital] && (
                         <div className="no-print" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                           <button 
@@ -421,9 +441,8 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                     <td className="no-print" style={{ padding: '1rem 1.5rem' }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                         
-                        {/* BED REQUEST LOGIC */}
                         {requestingId === p.id ? (
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: '#f1f5f9', padding: '0.5rem', borderRadius: '8px', width: '100%' }}>
+                          <div className={styles.hospitalSelectWrapper}>
                             <select 
                               className="input" 
                               style={{ padding: '0.25rem', flex: 1 }} 
@@ -440,46 +459,42 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </select>
                             <button 
                               className="btn btn-primary" 
-                              style={{ padding: '0.25rem 0.75rem' }}
+                              style={{ padding: '0.25rem 0.75rem', fontWeight: 700 }}
                               onClick={() => handleAction('request', p.id)} 
                               disabled={loadingId === p.id || !targetHospital}
                             >
                               Confirmar
                             </button>
-                            <button 
-                              className="btn btn-outline" 
-                              style={{ padding: '0.25rem 0.5rem' }}
-                              onClick={() => { setRequestingId(null); setTargetHospital(''); }}
+                            <button
+                              className={styles.btnNotifyDirect}
+                              onClick={() => handleDirectNotify(p.id, targetHospital, p.severity, p.is_private)}
+                              disabled={!targetHospital || notifying === p.id}
+                              title="Disparar Notificação Direta para esta unidade"
                             >
-                              X
+                              {notifying === p.id ? <Clock size={14} className="animate-spin" /> : <Send size={14} strokeWidth={2.5} />}
+                              NOTIFICAR
+                            </button>
+                            <button 
+                              className={styles.btnCancelPremium}
+                              onClick={() => { setRequestingId(null); setTargetHospital(''); }}
+                              title="Cancelar"
+                            >
+                              <X size={18} strokeWidth={3} />
                             </button>
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', gap: '0.5rem', width: '100%', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr auto', gap: '8px', width: '100%' }}>
                             <button 
                               onClick={() => setAttachModal({ id: p.id, name: p.name })}
-                              style={{ 
-                                background: 'rgba(59, 130, 246, 0.15)', 
-                                color: '#60a5fa', 
-                                border: '1px solid rgba(59, 130, 246, 0.3)', 
-                                padding: '0.4rem 0.6rem', 
-                                borderRadius: '8px', 
-                                fontSize: '0.75rem', 
-                                fontWeight: 700, 
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                flex: 1
-                              }}
+                              className={`${styles.premiumActionButton} ${styles.btnAttach}`}
                               title="Anexar Evolução Médica (PDF/Laudos)"
                             >
                               <Paperclip size={14} /> Anexar
                             </button>
 
                             <button 
-                              className="btn btn-primary" 
-                              style={{ flex: 2, padding: '0.5rem' }}
+                              className={`${styles.premiumActionButton} ${styles.btnRequest}`}
+                              style={{ width: '100%' }}
                               onClick={() => setRequestingId(p.id)} 
                               disabled={loadingId === p.id}
                             >
@@ -487,23 +502,21 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </button>
                             
                             <button
-                              className="btn btn-outline"
-                              style={{ padding: '0.5rem', background: '#0f172a', color: 'white', border: 'none' }}
+                              className={`${styles.premiumActionButton} ${styles.btnBlast}`}
                               onClick={() => setBlastModal({ id: p.id, severity: p.severity, is_private: p.is_private })}
                               title="Disparo em Massa (E-mail)"
                             >
-                              <Send size={16} /> Disparo
+                              <Send size={16} />
                             </button>
                           </div>
                         )}
 
-                        {/* REFUSAL LOGIC */}
                         {refusingId === p.id ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#fef2f2', padding: '0.75rem', borderRadius: '8px', width: '100%', border: '1px solid #fecaca' }}>
+                          <div className={styles.hospitalSelectWrapper} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                               <select 
                                 className="input" 
-                                style={{ padding: '0.25rem', flex: 1, borderColor: '#fca5a5', color: '#1e293b', background: '#fff' }} 
+                                style={{ padding: '0.25rem', flex: 1, color: '#1e293b', background: '#fff' }} 
                                 value={refusalHospital} 
                                 onChange={(e) => { setRefusalHospital(e.target.value); if (e.target.value !== 'Paciente Recusou Transferencia') setRefusalNote(''); }}
                               >
@@ -518,22 +531,21 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               </select>
                               <button 
                                 className="btn btn-danger" 
-                                style={{ padding: '0.25rem 0.75rem', whiteSpace: 'nowrap' }}
+                                style={{ padding: '0.25rem 0.75rem', whiteSpace: 'nowrap', fontWeight: 700 }}
                                 onClick={() => handleAction('refusal', p.id)} 
                                 disabled={loadingId === p.id || !refusalHospital || (refusalHospital === 'Paciente Recusou Transferencia' && !refusalNote.trim())}
                               >
                                 Confirmar
                               </button>
                               <button 
-                                className="btn btn-outline" 
-                                style={{ padding: '0.25rem 0.5rem' }}
+                                className={styles.btnCancelPremium}
                                 onClick={() => { setRefusingId(null); setRefusalHospital(''); setRefusalNote(''); }}
+                                title="Cancelar"
                               >
-                                X
+                                <X size={18} strokeWidth={3} />
                               </button>
                             </div>
 
-                            {/* Campo de motivo — aparece apenas quando paciente recusou */}
                             {refusalHospital === 'Paciente Recusou Transferencia' && (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -562,19 +574,18 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           </div>
                         ) : (
                           <button 
-                            className="btn" 
+                            className={`${styles.premiumActionButton} ${styles.btnRefusal}`}
+                            style={{ width: '100%' }}
                             onClick={() => setRefusingId(p.id)} 
                             disabled={loadingId === p.id}
-                            style={{ backgroundColor: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}
                           >
                             Leito Recusado
                           </button>
                         )}
 
-                        {/* TRANSFER LOGIC */}
                         {p.status === 'OFFERED' && (
                           transferringId === p.id ? (
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: '#dcfce7', padding: '0.5rem', borderRadius: '8px', width: '100%' }}>
+                            <div className={styles.hospitalSelectWrapper}>
                               <select 
                                 className="input" 
                                 style={{ padding: '0.25rem', flex: 1, borderColor: '#86efac' }} 
@@ -594,30 +605,41 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               >
                                 Confirmar
                               </button>
-                              <button 
-                                className="btn btn-outline" 
-                                style={{ padding: '0.25rem 0.5rem' }}
-                                onClick={() => { setTransferringId(null); setTransferHospital(''); }}
+                              <button
+                                className={styles.btnNotifyDirect}
+                                onClick={() => handleDirectNotify(p.id, transferHospital, p.severity, p.is_private)}
+                                disabled={!transferHospital || notifying === p.id}
+                                title="Notificar Destino da Transferência"
                               >
-                                X
+                                {notifying === p.id ? <Clock size={14} className="animate-spin" /> : <Send size={14} strokeWidth={2.5} />}
+                                NOTIFICAR
+                              </button>
+                              <button 
+                                className={styles.btnCancelPremium}
+                                onClick={() => { setTransferringId(null); setTransferHospital(''); }}
+                                title="Cancelar"
+                              >
+                                <X size={18} strokeWidth={3} />
                               </button>
                             </div>
                           ) : (
-                            <button className="btn" style={{ backgroundColor: '#16a34a', color: 'white' }} onClick={() => setTransferringId(p.id)} disabled={loadingId === p.id}>
+                            <button 
+                              className={`${styles.premiumActionButton} ${styles.btnTransfer}`} 
+                              style={{ width: '100%' }}
+                              onClick={() => setTransferringId(p.id)} 
+                              disabled={loadingId === p.id}
+                            >
                               Transferir
                             </button>
                           )
                         )}
 
-                        {/* SAÍDA DO PACIENTE (Alta Médica / Óbito / Outro) */}
                         {cancellingId === p.id ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(220,38,38,0.08)', padding: '0.75rem', borderRadius: '8px', width: '100%', border: '1px solid rgba(220,38,38,0.25)' }}>
-                            {/* Label */}
-                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fca5a5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                          <div className={styles.hospitalSelectWrapper} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fca5a5', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
                               Tipo de saída da regulação
                             </div>
 
-                            {/* 3 botões de tipo */}
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                               <button
                                 className="btn"
@@ -642,7 +664,6 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               </button>
                             </div>
 
-                            {/* Campo motivo */}
                             {exitType && (
                               <textarea
                                 rows={2}
@@ -653,39 +674,37 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               />
                             )}
 
-                            {/* Ações */}
-                            <div style={{ display: 'flex', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                               <button
                                 className="btn"
-                                style={{ padding: '0.3rem 0.75rem', background: '#dc2626', color: 'white', fontWeight: 700, fontSize: '0.82rem', opacity: (!exitType || !exitNote.trim()) ? 0.4 : 1 }}
+                                style={{ padding: '0.3rem 0.75rem', background: '#dc2626', color: 'white', fontWeight: 700, fontSize: '0.82rem', opacity: (!exitType || !exitNote.trim()) ? 0.4 : 1, flex: 1 }}
                                 onClick={() => handleAction('cancel', p.id)}
                                 disabled={loadingId === p.id || !exitType || !exitNote.trim()}
                               >
                                 Confirmar Saída
                               </button>
-                              <button
-                                className="btn btn-outline"
-                                style={{ padding: '0.3rem 0.5rem', fontSize: '0.82rem' }}
+                              <button 
+                                className={styles.btnCancelPremium}
                                 onClick={() => { setCancellingId(null); setExitType(''); setExitNote(''); }}
+                                title="Cancelar"
                               >
-                                X
+                                <X size={18} strokeWidth={3} />
                               </button>
                             </div>
                           </div>
                         ) : (
                           <button
-                            className="btn"
+                            className={`${styles.premiumActionButton} ${styles.btnExit}`}
+                            style={{ width: '100%' }}
                             onClick={() => setCancellingId(p.id)}
                             disabled={loadingId === p.id}
-                            style={{ background: 'rgba(239,68,68,0.12)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.3)' }}
                           >
                             Saída / Cancelar
                           </button>
                         )}
 
-                        {/* EVOLVE LOGIC */}
                         {evolvingId === p.id ? (
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: '#fff7ed', padding: '0.5rem', borderRadius: '8px', width: '100%' }}>
+                          <div className={styles.hospitalSelectWrapper}>
                             <select 
                               className="input" 
                               style={{ padding: '0.25rem', width: '140px', borderColor: '#fdba74' }} 
@@ -714,19 +733,19 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               Confirmar
                             </button>
                             <button 
-                              className="btn btn-outline" 
-                              style={{ padding: '0.25rem 0.5rem' }}
+                              className={styles.btnCancelPremium}
                               onClick={() => { setEvolvingId(null); setNewSeverity(''); setNewDiagnosis(''); }}
+                              title="Cancelar"
                             >
-                              X
+                              <X size={18} strokeWidth={3} />
                             </button>
                           </div>
                         ) : (
                           <button 
-                            className="btn" 
+                            className={`${styles.premiumActionButton} ${styles.btnEvolve}`}
+                            style={{ flex: 1 }}
                             onClick={() => setEvolvingId(p.id)} 
                             disabled={loadingId === p.id}
-                            style={{ backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}
                             title="Atualizar Quadro Clínico"
                           >
                             <TrendingUp size={16} /> Evoluir
@@ -748,7 +767,6 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
 
                   </tr>
 
-                  {/* AI Suggestion Row */}
                   {aiSuggestion[p.id] && (
                     <tr>
                       <td colSpan={5} style={{ padding: '0.5rem 1.5rem 1rem 1.5rem', backgroundColor: '#faf5ff', borderBottom: '1px solid var(--border)' }}>
@@ -783,6 +801,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
         patientId={blastModal.id} 
         severity={blastModal.severity} 
         isPrivatePatient={blastModal.is_private}
+        initialSelectedUnits={blastModal.initialUnits}
         onClose={() => setBlastModal(null)} 
       />
     )}
