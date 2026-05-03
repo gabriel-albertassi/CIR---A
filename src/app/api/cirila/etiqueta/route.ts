@@ -20,6 +20,7 @@ import {
   VerticalAlign,
   HeightRule,
   TableLayoutType,
+  ImageRun,
 } from 'docx';
 
 const generateKey = () => {
