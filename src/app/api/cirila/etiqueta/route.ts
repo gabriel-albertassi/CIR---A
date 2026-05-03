@@ -211,7 +211,38 @@ export async function GET(req: NextRequest) {
         // 2. Etiqueta SEMPRE abaixo, na mesma página
         // 3. Margens 720 DXA em todos os lados
         
-        let attachmentBuffer = fileBuffer;
+        const MAX_WIDTH = 430;
+        const MAX_HEIGHT = 600;
+
+        const mainContent = [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 }, // espaço antes da etiqueta
+            children: [
+              new ImageRun({
+                data: fileBuffer,
+                transformation: {
+                  width: MAX_WIDTH,
+                  height: MAX_HEIGHT,
+                },
+                // 🔥 AJUSTE INTELIGENTE: posicionamento fixo para evitar quebra de página
+                floating: {
+                  horizontalPosition: {
+                    relative: "page",
+                    align: "center",
+                  },
+                  verticalPosition: {
+                    relative: "page",
+                    offset: 0,
+                  },
+                  wrap: {
+                    type: "none",
+                  },
+                },
+              } as any),
+            ],
+          }),
+        ];
 
         const doc = new Document({
           sections: [{
@@ -221,23 +252,10 @@ export async function GET(req: NextRequest) {
               } 
             },
             children: [
-              // 1. PDF/IMAGEM REDUZIDO E CENTRALIZADO (TOPO)
+              ...mainContent,
               new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new (require('docx').ImageRun)({
-                    data: attachmentBuffer,
-                    transformation: {
-                      width: 480, // Largura ideal: 450px-480px
-                      height: 630, // Altura ideal: 600px-650px
-                    },
-                  }),
-                ],
+                children: [new TextRun({ text: "", break: 1 })],
               }),
-              // 2. ESPAÇO CONTROLADO (Espaçamento de ~1-2 linhas)
-              new Paragraph({ spacing: { before: 240, after: 240 }, children: [] }),
-              
-              // 3. ETIQUETA DE AUTORIZAÇÃO (Sempre abaixo do PDF)
               ...labelElements
             ]
           }]
