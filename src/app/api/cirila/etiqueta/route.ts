@@ -226,7 +226,8 @@ export async function GET(req: NextRequest) {
             attachmentElements = [new Paragraph({ children: [new TextRun({ text: "[Conteúdo do PDF reduzido para visualização]", italics: true, size: 16 })] })];
           }
         } else if (isImage) {
-          // Inserção de Imagem Reduzida (Miniatura do Pedido)
+          // Inserção de Imagem Reduzida (Miniatura do Pedido - PDC)
+          // Ajustado para garantir que anexo + etiqueta caibam sempre na Página 1
           attachmentElements = [
             new Paragraph({
               alignment: AlignmentType.CENTER,
@@ -234,8 +235,8 @@ export async function GET(req: NextRequest) {
                 new (require('docx').ImageRun)({
                   data: fileBuffer,
                   transformation: {
-                    width: 450, // Tamanho ideal para visualização rápida
-                    height: 400, // Altura limitada para não quebrar página
+                    width: 400, // Tamanho reduzido para harmonia
+                    height: 400, // Proporção quadrada ou limitada
                   },
                 }),
               ],
