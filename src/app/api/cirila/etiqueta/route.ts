@@ -217,17 +217,16 @@ export async function GET(req: NextRequest) {
                 .split('\n')
                 .filter(l => l.trim())
                 .map(line => new Paragraph({
-                  // Fonte reduzida (8pt) e espaçamento mínimo para caber na página
-                  spacing: { before: 0, after: 0, line: 200 },
-                  children: [new TextRun({ text: line, size: 16, font: { name: 'Arial' }, color: '666666' })]
+                  // Fonte ultra reduzida (7pt) e espaçamento mínimo
+                  spacing: { before: 0, after: 0, line: 180 },
+                  children: [new TextRun({ text: line, size: 14, font: { name: 'Arial' }, color: '666666' })]
                 }));
             }
           } catch (e) {
-            attachmentElements = [new Paragraph({ children: [new TextRun({ text: "[Conteúdo do PDF reduzido para visualização]", italics: true, size: 16 })] })];
+            attachmentElements = [new Paragraph({ children: [new TextRun({ text: "[Conteúdo do PDF reduzido]", italics: true, size: 14 })] })];
           }
         } else if (isImage) {
-          // Inserção de Imagem Reduzida (Miniatura do Pedido - PDC)
-          // Ajustado para garantir que anexo + etiqueta caibam sempre na Página 1
+          // Inserção de Imagem PDC - Dimensão reduzida para garantir página única
           attachmentElements = [
             new Paragraph({
               alignment: AlignmentType.CENTER,
@@ -235,8 +234,8 @@ export async function GET(req: NextRequest) {
                 new (require('docx').ImageRun)({
                   data: fileBuffer,
                   transformation: {
-                    width: 400, // Tamanho reduzido para harmonia
-                    height: 400, // Proporção quadrada ou limitada
+                    width: 280, 
+                    height: 220, 
                   },
                 }),
               ],
@@ -248,16 +247,16 @@ export async function GET(req: NextRequest) {
           sections: [{
             properties: { 
               page: { 
-                margin: { top: 300, right: 300, bottom: 300, left: 300 }, // Margens ultra-compactas
+                margin: { top: 200, right: 200, bottom: 200, left: 200 }, 
               } 
             },
             children: pos === 'bottom'
               ? [
                 ...attachmentElements,
-                new Paragraph({ spacing: { before: 200, after: 200 }, children: [] }),
+                // Removido parágrafo de espaço para evitar quebra de página
                 ...labelElements
               ]
-              : [...labelElements, new Paragraph({ spacing: { after: 200 }, children: [] }), ...attachmentElements]
+              : [...labelElements, ...attachmentElements]
           }]
         });
         const finalBuffer = await Packer.toBuffer(doc);
