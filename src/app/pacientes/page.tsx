@@ -155,6 +155,7 @@ export default async function PacientesTodosPage() {
             </tbody>
           </table>
         </div>
-    </div>
+      </div>
   )
 }
+

@@ -74,7 +74,7 @@ export default function AttachEvolutionModal({ patientId, patientName, onClose }
         </div>
           <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Paciente</div>
           <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9' }}>{patientName}</div>
-        </div>
+
 
         {success ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
