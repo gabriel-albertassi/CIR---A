@@ -84,13 +84,14 @@ export async function GET(req: NextRequest) {
     // Formato: bordas pretas, texto esquerda, 3 linhas fixas
     const createLabelTable = (examName: string, authKey: string, destination: string, pName: string, hOrigin: string) => {
       const isAvulsa = examName.toUpperCase().includes('AVULSA');
-      const finalExam = (isAvulsa ? 'EXAME AUTORIZADO PARA DESTINO' : `${examName.toUpperCase()} AUTORIZADO PARA ${destination.toUpperCase()}`).trim();
+      const finalExam = isAvulsa ? 'EXAME' : examName.toUpperCase();
       const finalPatient = (isAvulsa ? 'PACIENTE A PREENCHER' : pName.toUpperCase()).trim();
       const finalHospital = (isAvulsa ? 'HOSPITAL ORIGEM' : hOrigin.toUpperCase()).trim();
       const labelBorder = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
 
       return new Table({
         width: { size: 9500, type: WidthType.DXA },
+        alignment: AlignmentType.CENTER,
         layout: TableLayoutType.FIXED,
         borders: {
           top: labelBorder, bottom: labelBorder, left: labelBorder, right: labelBorder,
@@ -107,23 +108,22 @@ export async function GET(req: NextRequest) {
                   ...(!isAvulsa ? [
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 120 }, // Reduzido para compacidade máxima
+                      spacing: { after: 200 }, 
                       children: [
                         new TextRun({
                           text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                          bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
-                          underline: { type: UnderlineType.SINGLE, color: '000000' },
+                          bold: true, size: 28, font: { name: 'Arial' }, color: '000000',
                         }),
                       ],
                     }),
                     // LINHA 2: Departamento
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 120 }, // Reduzido para compacidade máxima
+                      spacing: { after: 200 },
                       children: [
                         new TextRun({
                           text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
-                          bold: true, size: 22, font: { name: 'Arial' }, color: '000000',
+                          bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
                         }),
                       ],
                     }),
@@ -134,8 +134,8 @@ export async function GET(req: NextRequest) {
                     spacing: { before: 0 },
                     children: [
                       new TextRun({
-                        text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam}`,
-                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
+                        text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam} (${destination.toUpperCase()})`,
+                        bold: true, size: 28, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
                   }),
