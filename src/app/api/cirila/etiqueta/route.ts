@@ -268,23 +268,11 @@ export async function GET(req: NextRequest) {
     }
 
     // --- CASO PADRÃO: SEM ANEXO (TEMPLATE VAZIO PARA COLAGEM MANUAL) ---
-    // Usamos margens institucionais de 720 DXA e deixamos espaço no topo
+    // Página 100% limpa conforme solicitado, apenas com a etiqueta no rodapé.
     const emptyParagraphs = [
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: 200, after: 200 },
-        children: [
-          new TextRun({
-            text: "--- ESPAÇO RESERVADO PARA O ANEXO (COLE AQUI) ---",
-            color: "E2E8F0",
-            size: 16,
-            font: { name: 'Arial' }
-          })
-        ]
-      }),
-      // Poucos parágrafos apenas para guiar, o rodapé cuida do resto
-      ...Array(5).fill(0).map(() => new Paragraph({ children: [] }))
+      new Paragraph({ children: [] })
     ];
+
 
     const finalDoc = new Document({
       title: "Etiqueta Cirila",
