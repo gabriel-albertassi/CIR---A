@@ -234,6 +234,10 @@ export async function GET(req: NextRequest) {
         }
 
         const doc = new Document({
+          compatibility: {
+            doNotExpandShiftReturn: true,
+            useNormalStyleForList: true,
+          },
           sections: [{
             properties: { page: { margin: { top: 1000, right: 200, bottom: 800, left: 200 } } },
             children: pos === 'bottom'
@@ -260,6 +264,10 @@ export async function GET(req: NextRequest) {
     const emptyParagraphs = pos === 'bottom' ? Array(25).fill(0).map(() => new Paragraph({ children: [] })) : [];
 
     const finalDoc = new Document({
+      compatibility: {
+        doNotExpandShiftReturn: true,
+        useNormalStyleForList: true,
+      },
       sections: [{
         properties: {
           page: {

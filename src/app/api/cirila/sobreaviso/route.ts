@@ -193,6 +193,10 @@ export async function GET(req: NextRequest) {
 
     // ── Documento final (seção única) ─────────────────────────────────────────
     const doc = new Document({
+      compatibility: {
+        doNotExpandShiftReturn: true,
+        useNormalStyleForList: true,
+      },
       sections: [
         {
           properties: {
