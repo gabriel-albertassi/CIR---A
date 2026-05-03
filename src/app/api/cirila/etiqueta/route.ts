@@ -173,6 +173,7 @@ export async function GET(req: NextRequest) {
 
       const isDocx = contentType.includes('officedocument.wordprocessingml') || templateUrl.toLowerCase().endsWith('.docx');
       const isPdf = contentType.includes('application/pdf') || templateUrl.toLowerCase().endsWith('.pdf');
+      const isImage = contentType.includes('image/') || templateUrl.toLowerCase().endsWith('.jpg') || templateUrl.toLowerCase().endsWith('.jpeg') || templateUrl.toLowerCase().endsWith('.png');
 
       if (isDocx) {
         const templateZip = await JSZip.loadAsync(fileBuffer);
@@ -189,6 +190,7 @@ export async function GET(req: NextRequest) {
           const labelBody = bodyMatch[1].replace(/<w:sectPr[\s\S]*?<\/w:sectPr>/, '');
           let mergedXml = "";
           if (pos === 'bottom') {
+            // Em vez de só anexar, tentamos garantir que não haja quebra de página forçada
             mergedXml = templateXml.replace(/<\/w:body>/, `${labelBody}</w:body>`);
           } else {
             mergedXml = templateXml.replace(/(<w:body[^>]*>)/, `$1${labelBody}`);
@@ -203,56 +205,57 @@ export async function GET(req: NextRequest) {
             },
           });
         }
-      } else if (isPdf) {
-        // Tenta extrair texto do PDF — se falhar, gera só a etiqueta em documento novo
-        let pdfParagraphs: Paragraph[] = [];
-        try {
-          if (!fileBuffer || fileBuffer.length === 0) throw new Error("Buffer de PDF vazio");
-
-          // Tenta ler o PDF. Se o pdf-parse falhar (ex: estrutura inválida), caímos no catch.
-          const pdfData = await pdf(fileBuffer).catch(e => {
-            console.error('[PDF_PARSE_INTERNAL_ERROR]', e);
-            return null;
-          });
-
-          if (pdfData && pdfData.text) {
-            pdfParagraphs = pdfData.text
-              .split('\n')
-              .filter(l => l.trim())
-              .map(line => new Paragraph({
-                children: [new TextRun({ text: line, size: 20, font: { name: 'Arial' } })]
-              }));
-          } else {
-            throw new Error("PDF sem conteúdo extraível");
+      } else if (isPdf || isImage) {
+        // Tenta extrair texto do PDF ou apenas inserir a imagem
+        let attachmentElements: any[] = [];
+        
+        if (isPdf) {
+          try {
+            const pdfData = await pdf(fileBuffer).catch(() => null);
+            if (pdfData && pdfData.text) {
+              attachmentElements = pdfData.text
+                .split('\n')
+                .filter(l => l.trim())
+                .map(line => new Paragraph({
+                  children: [new TextRun({ text: line, size: 20, font: { name: 'Arial' } })]
+                }));
+            }
+          } catch (e) {
+            attachmentElements = [new Paragraph({ children: [new TextRun({ text: "[PDF Atachado]", italics: true })] })];
           }
-        } catch (pdfErr) {
-          console.warn('[PDF_RESILIENCE_MODE] Falha ao processar PDF original. Gerando apenas etiqueta.', pdfErr);
-          pdfParagraphs = [
+        } else if (isImage) {
+          // Inserção de Imagem (Anexo do Hospital/Pedido)
+          attachmentElements = [
             new Paragraph({
-              children: [new TextRun({ text: '[Documento Original Anexado - Ver arquivo original]', size: 18, font: { name: 'Arial' }, italics: true, color: '666666' })]
+              alignment: AlignmentType.CENTER,
+              children: [
+                new (require('docx').ImageRun)({
+                  data: fileBuffer,
+                  transformation: {
+                    width: 500, // Ajustado para caber na largura da página
+                    height: 500, // Altura máxima para não empurrar a etiqueta para a próxima página
+                  },
+                }),
+              ],
             }),
-            new Paragraph({ children: [] })
           ];
         }
 
         const doc = new Document({
-          title: "Autorização Cirila",
-          creator: "Cirila Bot",
-          description: "Etiqueta de Autorização de Exame",
-          compatibility: {
-            doNotExpandShiftReturn: true,
-            useNormalStyleForList: true,
-          },
           sections: [{
-            properties: { page: { margin: { top: 1000, right: 200, bottom: 800, left: 200 } } },
+            properties: { 
+              page: { 
+                margin: { top: 400, right: 400, bottom: 400, left: 400 }, // Margens menores para ganhar espaço
+              } 
+            },
             children: pos === 'bottom'
               ? [
-                ...pdfParagraphs,
-                // Múltiplos parágrafos vazios para empurrar para o final e permitir movimento
-                ...Array(15).fill(0).map(() => new Paragraph({ children: [] })),
+                ...attachmentElements,
+                // Espaçamento reduzido de 15 para 2 para evitar pular de página
+                new Paragraph({ spacing: { before: 400, after: 400 }, children: [] }),
                 ...labelElements
               ]
-              : [...labelElements, new Paragraph({ spacing: { after: 600 }, children: [] }), ...pdfParagraphs]
+              : [...labelElements, new Paragraph({ spacing: { after: 400 }, children: [] }), ...attachmentElements]
           }]
         });
         const finalBuffer = await Packer.toBuffer(doc);

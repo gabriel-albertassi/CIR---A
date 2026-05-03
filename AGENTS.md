@@ -8,4 +8,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 - **PLANILHA DE SOBREAVISO:** NUNCA altere o código, layout, cores ou formatação do arquivo `src/app/api/cirila/sobreaviso/route.ts`. Este documento segue um padrão institucional rígido que não deve ser modificado sob nenhuma circunstância, a menos que solicitado explicitamente com uma justificativa de mudança de norma.
 - **IDENTIDADE VISUAL:** Todas as etiquetas geradas devem seguir o padrão institucional: CAIXA ALTA, NEGRITO e PRETO.
+- **IMUTABILIDADE DA ETIQUETA:** NUNCA altere o código, layout ou formatação do arquivo `src/app/api/cirila/etiqueta/route.ts`. O formato da etiqueta Word é definitivo e institucional.
 - **VALIDAÇÃO:** Sempre exija o Hospital de Origem para geração de etiquetas oficiais.
