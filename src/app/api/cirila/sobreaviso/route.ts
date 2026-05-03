@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
             new Paragraph({
               alignment: AlignmentType.CENTER,
               children: [
-                new TextRun({ text: label, bold: true, size: 18, color: 'FFFFFF', font: 'Arial' }),
+                new TextRun({ text: label, bold: true, size: 18, color: 'FFFFFF', font: { name: 'Arial' } }),
               ],
             }),
           ],
@@ -138,11 +138,11 @@ export async function GET(req: NextRequest) {
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: dateStr, size: 16, color: '555555', font: 'Arial' })],
+                children: [new TextRun({ text: dateStr, size: 16, color: '555555', font: { name: 'Arial' } })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: key, bold: true, size: 18, color: '1A56DB', font: 'Arial' })],
+                children: [new TextRun({ text: key, bold: true, size: 18, color: '1A56DB', font: { name: 'Arial' } })],
               }),
             ],
           }),
@@ -172,21 +172,21 @@ export async function GET(req: NextRequest) {
         alignment: AlignmentType.CENTER,
         spacing: { before: 0, after: 40 },
         children: [
-          new TextRun({ text: 'CIR-A / REGULAÇÃO SMSVR', bold: true, size: 20, font: 'Arial', color: '000000' }),
+          new TextRun({ text: 'CIR-A / REGULAÇÃO SMSVR', bold: true, size: 20, font: { name: 'Arial' }, color: '000000' }),
         ],
       }),
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { before: 0, after: 60 },
         children: [
-          new TextRun({ text: 'MAPA DE SUPERVISÃO - SOBREAVISO', bold: true, size: 26, font: 'Arial', color: '000000' }),
+          new TextRun({ text: 'MAPA DE SUPERVISÃO - SOBREAVISO', bold: true, size: 26, font: { name: 'Arial' }, color: '000000' }),
         ],
       }),
       new Paragraph({
         alignment: AlignmentType.RIGHT,
         spacing: { before: 0, after: 120 },
         children: [
-          new TextRun({ text: `DATA: ${dateStr}`, size: 18, font: 'Arial', color: '000000' }),
+          new TextRun({ text: `DATA: ${dateStr}`, size: 18, font: { name: 'Arial' }, color: '000000' }),
         ],
       }),
     ];
@@ -208,7 +208,7 @@ export async function GET(req: NextRequest) {
 
     const buffer = await Packer.toBuffer(doc);
 
-    return new NextResponse(buffer as unknown as BodyInit, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="Mapa_Sobreaviso_${dateFileStr}.docx"`,

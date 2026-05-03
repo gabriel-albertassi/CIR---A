@@ -12,6 +12,7 @@ import {
   TableRow,
   WidthType,
   TextRun,
+  UnderlineType,
   BorderStyle,
   AlignmentType,
   Header,
@@ -90,6 +91,7 @@ export async function GET(req: NextRequest) {
 
       return new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
+        layout: TableLayoutType.FIXED,
         borders: {
           top: labelBorder, bottom: labelBorder, left: labelBorder, right: labelBorder,
           insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
@@ -109,8 +111,8 @@ export async function GET(req: NextRequest) {
                       children: [
                         new TextRun({
                           text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                          bold: true, size: 24, font: 'Arial', color: '000000',
-                          underline: { type: 'single', color: '000000' },
+                          bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
+                          underline: { type: UnderlineType.SINGLE, color: '000000' },
                         }),
                       ],
                     }),
@@ -121,7 +123,7 @@ export async function GET(req: NextRequest) {
                       children: [
                         new TextRun({
                           text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
-                          bold: true, size: 22, font: 'Arial', color: '000000',
+                          bold: true, size: 22, font: { name: 'Arial' }, color: '000000',
                         }),
                       ],
                     }),
@@ -133,7 +135,7 @@ export async function GET(req: NextRequest) {
                     children: [
                       new TextRun({
                         text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam}`,
-                        bold: true, size: 24, font: 'Arial', color: '000000',
+                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
                   }),
@@ -192,7 +194,7 @@ export async function GET(req: NextRequest) {
           templateZip.file("word/document.xml", mergedXml);
           const finalBuffer = await templateZip.generateAsync({ type: 'nodebuffer' });
 
-          return new NextResponse(finalBuffer as any, {
+          return new NextResponse(new Uint8Array(finalBuffer), {
             headers: {
               'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
               'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -245,7 +247,7 @@ export async function GET(req: NextRequest) {
           }]
         });
         const finalBuffer = await Packer.toBuffer(doc);
-        return new NextResponse(finalBuffer as any, {
+        return new NextResponse(new Uint8Array(finalBuffer), {
           headers: {
             'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
             'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -274,7 +276,7 @@ export async function GET(req: NextRequest) {
     });
 
     const buffer = await Packer.toBuffer(finalDoc);
-    return new NextResponse(buffer as any, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         'Content-Disposition': `attachment; filename="Etiqueta_${patient.replace(/\s/g, '_')}.docx"`,
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
