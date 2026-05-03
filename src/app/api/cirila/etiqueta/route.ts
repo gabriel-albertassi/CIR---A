@@ -167,10 +167,18 @@ export async function GET(req: NextRequest) {
     // --- PROCESSAMENTO COM ANEXO ---
     if (templateUrl) {
       const absoluteUrl = templateUrl.startsWith('http') ? templateUrl : `${req.nextUrl.origin}${templateUrl}`;
-      const response = await fetch(absoluteUrl);
-      if (!response.ok) throw new Error('Falha ao baixar anexo');
+      
+      console.log(`[CIRILA_ETIQUETA] Buscando anexo: ${absoluteUrl}`);
+      
+      const response = await fetch(absoluteUrl, { cache: 'no-store' });
+      if (!response.ok) {
+        console.error(`[CIRILA_ETIQUETA_ERROR] Falha ao baixar anexo (${response.status}): ${absoluteUrl}`);
+        throw new Error('Falha ao baixar anexo');
+      }
+      
       const fileBuffer = Buffer.from(await response.arrayBuffer());
       const contentType = response.headers.get('content-type') || '';
+      console.log(`[CIRILA_ETIQUETA] Anexo baixado. Tipo: ${contentType}, Tamanho: ${fileBuffer.length} bytes`);
 
       const isDocx = contentType.includes('officedocument.wordprocessingml') || templateUrl.toLowerCase().endsWith('.docx');
       const isPdf = contentType.includes('application/pdf') || templateUrl.toLowerCase().endsWith('.pdf');

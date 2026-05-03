@@ -90,6 +90,8 @@ export default function CirilaBotWidget() {
 
       const finalQuery = fileUrl ? `${processedQuery} [file_url:${fileUrl}]` : processedQuery;
       
+      console.log(`[CIRILA_WIDGET] Enviando query: "${processedQuery}" | Anexo: ${fileUrl || 'nenhum'}`);
+      
       const reply = await askCirila(finalQuery);
       
       // Se a resposta for uma pergunta sobre hospital ou assinatura, persiste o contexto
@@ -100,6 +102,7 @@ export default function CirilaBotWidget() {
         if (fileUrl) setLastIncompleteFileUrl(fileUrl);
       } else {
         // Se concluiu ou mudou de assunto, limpa o contexto
+        console.log('[CIRILA_WIDGET] Fluxo concluído. Limpando contexto de arquivo.');
         setLastIncompleteQuery(null);
         setLastIncompleteFileUrl(null);
         if ((window as any).lastCirilaFileUrl) (window as any).lastCirilaFileUrl = null;
@@ -434,6 +437,7 @@ export default function CirilaBotWidget() {
 
               // Armazena a URL do último arquivo anexado para a próxima mensagem
               (window as any).lastCirilaFileUrl = uploadData.url;
+              console.log(`[CIRILA_WIDGET] Novo anexo pronto: ${uploadData.url}`);
 
             } catch (err: any) {
               console.error('Erro no anexo:', err);
