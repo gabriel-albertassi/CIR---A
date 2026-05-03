@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
     const examsRaw = searchParams.get('exam')?.replace(/\+/g, ' ') || 'EXAME';
     const hospitalOrigin = searchParams.get('hospitalOrigin')?.replace(/\+/g, ' ') || 'HOSPITAL ORIGEM';
     const qty = parseInt(searchParams.get('qty') || '1');
+    const protocolo = parseInt(searchParams.get('protocolo') || '1');
 
     const examsList = examsRaw.split(',').map(e => e.trim());
     let finalExams: string[] = [];
@@ -71,7 +72,8 @@ export async function GET(req: NextRequest) {
       if (e.includes('COLANGIO')) return 'RADIO VIDA';
       if (e.includes('RNM') || e.includes('RMN') ||
         e.includes('RESSONANCIA') || e.includes('RESSON')) return 'RADIO VIDA';
-      if (e.includes('TC') || e.includes('TOMOGRAFIA')) return 'HSJB';
+      // PROTOCOLO 2: TC vai para HMMR em vez de HSJB
+      if (e.includes('TC') || e.includes('TOMOGRAFIA')) return protocolo === 2 ? 'HMMR' : 'HSJB';
       if (e.includes('ECO') || e.includes('ECOGRAFIA') ||
         e.includes('ECOCARDIOGRAMA')) return 'HSJB';
       if (e.includes('ENDOSCOPIA') || e.includes('COLONOSCOPIA')) return 'HSJB';

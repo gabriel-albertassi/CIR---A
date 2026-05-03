@@ -167,7 +167,7 @@ export default function CirilaBotWidget() {
 
     if (payload.startsWith('DOWNLOAD_ETIQUETA_DOCX:::')) {
       const parts = payload.split(':::');
-      // Ordem: PATIENT:::EXAM:::PROFESSIONAL:::KEY:::FILEURL:::QTY:::POS:::HOSPITAL
+      // Ordem: PATIENT:::EXAM:::PROFESSIONAL:::KEY:::FILEURL:::QTY:::POS:::HOSPITAL:::PROTOCOLO
       const patient      = parts[1] || 'AVULSA';
       const exam         = parts[2] || 'EXAME';
       const professional = parts[3] || 'paola';
@@ -176,6 +176,7 @@ export default function CirilaBotWidget() {
       const qty          = parts[6] || '1';
       const pos          = parts[7] || 'top';
       const hospitalOrigin = parts[8] || 'HOSPITAL ORIGEM';
+      const protocolo    = parts[9] || '1';
 
       const params: Record<string, string> = { 
         patient, 
@@ -184,7 +185,8 @@ export default function CirilaBotWidget() {
         key, 
         qty, 
         pos,
-        hospitalOrigin
+        hospitalOrigin,
+        protocolo
       };
       
       if (fileUrl.trim()) params.templateUrl = fileUrl.trim();

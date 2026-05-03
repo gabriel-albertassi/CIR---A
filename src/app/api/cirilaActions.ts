@@ -90,6 +90,11 @@ export async function executeEmailDispatch(patientId: string, targetType: string
   }
 }
 
+// --- PROTOCOLO ATIVO (Estado de sessão do servidor) ---
+// Protocolo 1 (padrão): TC → HSJB
+// Protocolo 2: TC → HMMR
+let protocoloAtivo = 1;
+
 export async function askCirila(query: string): Promise<CirilaResponse> {
   const text = query.toLowerCase();
 
@@ -125,7 +130,30 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     (cleanedText.includes('avulsa') && !cleanedText.includes('etiqueta')) ||
     (cleanedText.includes('chaves') && !cleanedText.includes('etiqueta'));
 
-  // 3. DETECÇÃO DE SOBREAVISO — SEMPRE TEM PRIORIDADE MÁXIMA
+  // 3. DETECÇÃO DE PROTOCOLO — Altera rota de destino das TCs
+  const isProtocoloCommand =
+    cleanedText.includes('protocolo 2') ||
+    cleanedText.includes('protocolo 1') ||
+    cleanedText.includes('protocolo normal') ||
+    cleanedText.includes('desativar protocolo');
+
+  if (isProtocoloCommand) {
+    if (cleanedText.includes('protocolo 2') || cleanedText.includes('ativar protocolo 2')) {
+      protocoloAtivo = 2;
+      return {
+        text: `Certo chefe, agora todas as Tomografias vão ser direcionadas para o **Hospital do Retiro**.\n\n*Para voltar ao padrão, digite: \"protocolo 1\" ou \"protocolo normal\".*`,
+        sender: 'ai'
+      };
+    } else {
+      protocoloAtivo = 1;
+      return {
+        text: `✅ **CIRILA — PROTOCOLO 1 (PADRÃO) RESTAURADO**\n\nTodas as **TCs** voltaram a ser autorizadas para o **HSJB**.`,
+        sender: 'ai'
+      };
+    }
+  }
+
+  // 4. DETECÇÃO DE SOBREAVISO — SEMPRE TEM PRIORIDADE MÁXIMA
   const isSobreavisoQuery =
     cleanedText.includes('sobreaviso') ||
     cleanedText.includes('sobre aviso') ||
@@ -180,12 +208,14 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const qty = batchMatch ? Math.max(1, Math.min(100, parseInt(batchMatch[1].split(/\s+/).pop()!))) : (cleanedText.includes('chaves') ? 10 : 1);
 
     // Hospital
-    const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hnsg|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+casa|santa\s+cecilia|santa\s+cecília|nelson\s+gonçalves|nelson|gonçalves)\b/i);
+    const hospMatch = cleanedText.match(/\b(hsjb|hmmr|hnsg|hmpagb|ps\s+pinheiral|pinheiral|hospital\s+sao\s+joao\s+batista|hospital\s+municipal|municipar|santa\s+casa|unimed|hmvr|upa|cais|hinja|santana|santa\s+casa|santa\s+cecilia|santa\s+cecília|nelson\s+gonçalves|nelson|gonçalves)\b/i);
     if (hospMatch) {
       const h = hospMatch[0].toUpperCase();
       if (h.includes('SAO JOAO BATISTA') || h.includes('HSJB')) hospitalOrigin = 'HSJB';
       else if (h.includes('MUNICIPAL') || h.includes('MUNICIPAR') || h.includes('HMMR')) hospitalOrigin = 'HMMR';
       else if (h.includes('NELSON') || h.includes('GONÇALVES') || h.includes('HNSG')) hospitalOrigin = 'HNSG';
+      else if (h.includes('HMPAGB')) hospitalOrigin = 'HMPAGB';
+      else if (h.includes('PINHEIRAL')) hospitalOrigin = 'PS PINHEIRAL';
       else hospitalOrigin = h;
     }
 
@@ -291,6 +321,8 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
           { label: 'HSJB', payload: `${cleanedText} no HSJB` },
           { label: 'HMMR', payload: `${cleanedText} no HMMR` },
           { label: 'HNSG', payload: `${cleanedText} no HNSG` },
+          { label: 'HMPAGB', payload: `${cleanedText} no HMPAGB` },
+          { label: 'PS PINHEIRAL', payload: `${cleanedText} no PS PINHEIRAL` },
           { label: 'UPA', payload: `${cleanedText} na UPA` },
           { label: 'SANTA CASA', payload: `${cleanedText} na SANTA CASA` }
         ]
@@ -308,7 +340,8 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       if (e.includes('COLANGIO')) return 'RADIO VIDA';
       if (e.includes('RNM') || e.includes('RMN') ||
         e.includes('RESSONANCIA') || e.includes('RESSON')) return 'RADIO VIDA';
-      if (e.includes('TC') || e.includes('TOMOGRAFIA')) return 'HSJB';
+      // PROTOCOLO 2: TC vai para HMMR em vez de HSJB
+      if (e.includes('TC') || e.includes('TOMOGRAFIA')) return protocoloAtivo === 2 ? 'HMMR' : 'HSJB';
       if (e.includes('ECO') || e.includes('ECOGRAFIA') ||
         e.includes('ECOCARDIOGRAMA')) return 'HSJB';
       if (e.includes('ENDOSCOPIA') || e.includes('COLONOSCOPIA')) return 'HSJB';
@@ -360,7 +393,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         sender: 'ai',
         actions: [{
           label: `📄 Baixar ${qty > 1 ? qty + ' Etiquetas' : 'Etiqueta'} (.docx)`,
-          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${firstKey}:::${currentFileUrl || ''}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}`
+          payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${firstKey}:::${currentFileUrl || ''}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}:::${protocoloAtivo}`
         }]
       };
     }
@@ -370,7 +403,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       sender: 'ai',
       actions: [{
         label: '📄 Baixar Pedido Autorizado (.docx)',
-        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${firstKey}:::${currentFileUrl}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}`
+        payload: `DOWNLOAD_ETIQUETA_DOCX:::${patient.replace(/\s/g, '+')}:::${examRaw.replace(/\s/g, '+')}:::${professionalRaw}:::${firstKey}:::${currentFileUrl}:::${qty}:::bottom:::${finalHospital.replace(/\s/g, '+')}:::${protocoloAtivo}`
       }]
     };
   }
