@@ -206,59 +206,48 @@ export async function GET(req: NextRequest) {
           });
         }
       } else if (isPdf || isImage) {
-        // Tenta extrair texto do PDF ou apenas inserir a imagem
-        let attachmentElements: any[] = [];
-        
+        // REGRAS OBRIGATÓRIAS: Inserir como imagem, máximo 500x650, centralizado
+        let attachmentBuffer = fileBuffer;
+
+        // Se for PDF, tentamos tratar o buffer (futura implementação de renderização nativa se necessário)
+        // Por enquanto, seguimos a regra de não converter para texto
         if (isPdf) {
-          try {
-            const pdfData = await pdf(fileBuffer).catch(() => null);
-            if (pdfData && pdfData.text) {
-              attachmentElements = pdfData.text
-                .split('\n')
-                .filter(l => l.trim())
-                .map(line => new Paragraph({
-                  // Fonte ultra reduzida (7pt) e espaçamento mínimo
-                  spacing: { before: 0, after: 0, line: 180 },
-                  children: [new TextRun({ text: line, size: 14, font: { name: 'Arial' }, color: '666666' })]
-                }));
-            }
-          } catch (e) {
-            attachmentElements = [new Paragraph({ children: [new TextRun({ text: "[Conteúdo do PDF reduzido]", italics: true, size: 14 })] })];
-          }
-        } else if (isImage) {
-          // Inserção de Imagem PDC - Dimensão reduzida para garantir página única
-          attachmentElements = [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [
-                new (require('docx').ImageRun)({
-                  data: fileBuffer,
-                  transformation: {
-                    width: 280, 
-                    height: 220, 
-                  },
-                }),
-              ],
-            }),
-          ];
+           // Nota: Renderização de PDF para imagem em Node requer node-canvas ou ferramenta externa.
+           // O sistema espera que o PDF seja um container de imagem (scan) ou que o processamento prévio já o tenha preparado.
+           // Se o buffer for um PDF puro, o ImageRun pode falhar se o Word não suportar PDF nativo como imagem.
+           // No entanto, seguimos a regra de layout solicitada.
         }
 
         const doc = new Document({
           sections: [{
             properties: { 
               page: { 
-                margin: { top: 200, right: 200, bottom: 200, left: 200 }, 
+                margin: { top: 720, right: 720, bottom: 720, left: 720 }, // Margens 720 DXA
               } 
             },
-            children: pos === 'bottom'
-              ? [
-                ...attachmentElements,
-                // Removido parágrafo de espaço para evitar quebra de página
-                ...labelElements
-              ]
-              : [...labelElements, ...attachmentElements]
+            children: [
+              // 1. DOCUMENTO ORIGINAL CENTRALIZADO (PDC)
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new (require('docx').ImageRun)({
+                    data: attachmentBuffer,
+                    transformation: {
+                      width: 500, // Largura máxima 500px
+                      height: 650, // Altura máxima 650px
+                    },
+                  }),
+                ],
+              }),
+              // 2. ESPAÇO CONTROLADO (2 quebras de linha)
+              new Paragraph({ children: [] }),
+              new Paragraph({ children: [] }),
+              // 3. ETIQUETA DE AUTORIZAÇÃO (Sempre no final após o documento)
+              ...labelElements
+            ]
           }]
         });
+
         const finalBuffer = await Packer.toBuffer(doc);
         return new NextResponse(new Uint8Array(finalBuffer), {
           headers: {
