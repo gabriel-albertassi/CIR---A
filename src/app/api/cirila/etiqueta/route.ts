@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
       const labelBorder = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
 
       return new Table({
-        width: { size: 9500, type: WidthType.DXA },
+        width: { size: 8500, type: WidthType.DXA }, // Ajuste moderado
         alignment: AlignmentType.CENTER,
         layout: TableLayoutType.FIXED,
         borders: {
@@ -104,40 +104,40 @@ export async function GET(req: NextRequest) {
           new TableRow({
             children: [
               new TableCell({
-                margins: { top: 120, bottom: 120, left: 300, right: 300 }, // Margens reduzidas
+                margins: { top: 120, bottom: 120, left: 250, right: 250 }, // Margens moderadas
                 children: [
-                  // LINHA 1: Nome – Registro – Cargo (negrito + sublinhado) - Pula se for AVULSA
+                  // LINHA 1: Nome – Registro – Cargo
                   ...(!isAvulsa ? [
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 200 }, 
+                      spacing: { after: 120 }, 
                       children: [
                         new TextRun({
                           text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                          bold: true, size: 28, font: { name: 'Arial' }, color: '000000',
+                          bold: true, size: 24, font: { name: 'Arial' }, color: '000000', // Fonte 12pt
                         }),
                       ],
                     }),
                     // LINHA 2: Departamento
                     new Paragraph({
                       alignment: AlignmentType.LEFT,
-                      spacing: { after: 200 },
+                      spacing: { after: 120 },
                       children: [
                         new TextRun({
                           text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
-                          bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
+                          bold: true, size: 20, font: { name: 'Arial' }, color: '000000', // Fonte 10pt
                         }),
                       ],
                     }),
                   ] : []),
-                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] AUTORIZADO PARA [DESTINO]
+                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] ...
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
                     spacing: { before: 0 },
                     children: [
                       new TextRun({
                         text: `${dateStr} : ${authKey.trim()} - ${finalPatient.trim()} – ${finalHospital.trim()} - ${finalExam.trim()} AUTORIZADO PARA ${destination.toUpperCase().trim()}`,
-                        bold: true, size: 28, font: { name: 'Arial' }, color: '000000',
+                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000', // Fonte 12pt
                       }),
                     ],
                   }),
@@ -217,14 +217,16 @@ export async function GET(req: NextRequest) {
                 .split('\n')
                 .filter(l => l.trim())
                 .map(line => new Paragraph({
-                  children: [new TextRun({ text: line, size: 20, font: { name: 'Arial' } })]
+                  // Fonte reduzida (8pt) e espaçamento mínimo para caber na página
+                  spacing: { before: 0, after: 0, line: 200 },
+                  children: [new TextRun({ text: line, size: 16, font: { name: 'Arial' }, color: '666666' })]
                 }));
             }
           } catch (e) {
-            attachmentElements = [new Paragraph({ children: [new TextRun({ text: "[PDF Atachado]", italics: true })] })];
+            attachmentElements = [new Paragraph({ children: [new TextRun({ text: "[Conteúdo do PDF reduzido para visualização]", italics: true, size: 16 })] })];
           }
         } else if (isImage) {
-          // Inserção de Imagem (Anexo do Hospital/Pedido)
+          // Inserção de Imagem Reduzida (Miniatura do Pedido)
           attachmentElements = [
             new Paragraph({
               alignment: AlignmentType.CENTER,
@@ -232,8 +234,8 @@ export async function GET(req: NextRequest) {
                 new (require('docx').ImageRun)({
                   data: fileBuffer,
                   transformation: {
-                    width: 500, // Ajustado para caber na largura da página
-                    height: 500, // Altura máxima para não empurrar a etiqueta para a próxima página
+                    width: 450, // Tamanho ideal para visualização rápida
+                    height: 400, // Altura limitada para não quebrar página
                   },
                 }),
               ],
@@ -245,17 +247,16 @@ export async function GET(req: NextRequest) {
           sections: [{
             properties: { 
               page: { 
-                margin: { top: 400, right: 400, bottom: 400, left: 400 }, // Margens menores para ganhar espaço
+                margin: { top: 300, right: 300, bottom: 300, left: 300 }, // Margens ultra-compactas
               } 
             },
             children: pos === 'bottom'
               ? [
                 ...attachmentElements,
-                // Espaçamento reduzido de 15 para 2 para evitar pular de página
-                new Paragraph({ spacing: { before: 400, after: 400 }, children: [] }),
+                new Paragraph({ spacing: { before: 200, after: 200 }, children: [] }),
                 ...labelElements
               ]
-              : [...labelElements, new Paragraph({ spacing: { after: 400 }, children: [] }), ...attachmentElements]
+              : [...labelElements, new Paragraph({ spacing: { after: 200 }, children: [] }), ...attachmentElements]
           }]
         });
         const finalBuffer = await Packer.toBuffer(doc);
