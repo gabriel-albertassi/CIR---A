@@ -219,15 +219,7 @@ export async function GET(req: NextRequest) {
             },
           });
         }
-      } else if (isPdf || isImage) {
-        // REGRAS OBRIGATÓRIAS CRÍTICAS:
-        // 1. PDF/Imagem no TOPO, centralizado, máximo 480x630px
-        // 2. Etiqueta SEMPRE abaixo, na mesma página
-        // 3. Margens 720 DXA em todos os lados
-        
-        const MAX_WIDTH = 430;
-        const MAX_HEIGHT = 600;
-
+      } else if (isImage) {
         const mainContent = [
           new Paragraph({
             alignment: AlignmentType.CENTER,
@@ -239,7 +231,7 @@ export async function GET(req: NextRequest) {
                   width: 430,
                   height: 600,
                 },
-              }),
+              } as any),
             ],
           }),
         ];
@@ -266,12 +258,10 @@ export async function GET(req: NextRequest) {
           headers: {
             'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
             'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0',
           },
         });
       }
+
     }
 
     // --- CASO PADRÃO: SEM ANEXO (TEMPLATE VAZIO PARA COLAGEM MANUAL) ---
