@@ -153,7 +153,8 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   }
 
   // 4. GERAÇÃO DE CHAVES OU ETIQUETAS
-  const isGeneratingEtiqueta = (text.includes('gerar') || text.includes('gera') || text.includes('chave') || text.includes('autoriza')) && (
+  // Aceita "gerar tc..." OU "tc ... etiqueta ..." (formato direto sem 'gerar')
+  const isGeneratingEtiqueta = (text.includes('gerar') || text.includes('gera') || text.includes('chave') || text.includes('autoriza') || text.includes('etiqueta')) && (
     text.includes('etiqueta') ||
     text.includes('tc') ||
     text.includes('rnm') ||
@@ -242,7 +243,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         patient = candidate.toUpperCase();
       }
     } else {
-      // Se não achou "para", tenta buscar o que sobrou após remover o exame e o hospital
+      // Se não achou "para", tenta buscar o que sobrou após remover o exame, hospital e profissional
       let residue = cleanedText;
       foundExams.forEach(e => {
         const parts = e.split(' DE ');
@@ -252,7 +253,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         if (spec) residue = residue.replace(new RegExp(`\\b${spec}\\b`, 'gi'), '');
       });
       if (hospMatch) residue = residue.replace(new RegExp(`\\b${hospMatch[0]}\\b`, 'gi'), '');
-      residue = residue.replace(/\b(gerar|gera|etiqueta|no|chat|chave|chaves|de|do|da|em|na|no)\b/gi, '').trim();
+      // Remove palavras comuns e nomes de profissionais válidos
+      residue = residue.replace(/\b(gerar|gera|etiqueta|no|chat|chave|chaves|de|do|da|em|na|no|autorizado|autorizada)\b/gi, '').trim();
+      validProfs.forEach(p => {
+        residue = residue.replace(new RegExp(`\\b${p}\\b`, 'gi'), '');
+      });
+      residue = residue.trim();
       
       if (residue.length > 2 && residue.length < 50) {
         patient = residue.toUpperCase();
