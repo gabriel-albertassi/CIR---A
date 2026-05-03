@@ -206,16 +206,16 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     };
     
     const foundExams: string[] = [];
-    // Busca exames e tenta pegar o que vem depois (ex: TC de crânio)
+    // Busca exames e captura especificação anatômica (ex: TC de crânio, RNM de coluna)
+    // Regex limitada: captura 1 palavra + opcionalmente preposição + 1 palavra (ex: "seios da face")
+    // Isso evita capturar nomes de pacientes que vêm logo após o termo anatômico
     for (const [kw, label] of Object.entries(examKeywords)) {
-      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)\\s+([^,e\\n\\-]+))?`, 'i');
+      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)\\s+(\\w+(?:\\s+(?:da|do|de|dos|das|com|e)\\s+\\w+)*))?`, 'i');
       const match = cleanedText.match(regex);
       if (match) {
         let fullExam = label;
         if (match[1]) {
-          // Limita a especificação para não pegar nomes de pacientes ou destinos redundantes
-          // Adicionado 'autorizado' e 'autorizada' como limitadores
-          const spec = match[1].trim().split(/\s+(?:para|no|na|pelo|pela|do|da|com|sem|etiqueta|chave|hsjb|hmmr|hnsg|upa|autorizado|autorizada)\b/i)[0].trim();
+          const spec = match[1].trim();
           if (spec.length > 0 && spec.length < 30) {
             fullExam = `${label} DE ${spec.toUpperCase()}`;
           }
@@ -228,7 +228,18 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       examRaw = foundExams.join(', ');
     }
 
-    // Paciente
+    // --- PROFISSIONAL (detectado ANTES do paciente para não conflitar nomes) ---
+    const profMarkers = '(?:assinado|assinada|por|etiqueta|regulação|regulador|assinatura|ass|at|pela|do|da|pelo|na|paga|na\\s+etiqueta\\s+do|na\\s+etiqueta\\s+da)';
+    const explicitProfMatch = cleanedText.match(new RegExp(`${profMarkers}\\s+\\b(${validProfs.join('|')})\\b`, 'i'));
+    
+    if (explicitProfMatch) {
+      professionalRaw = explicitProfMatch[1].toLowerCase();
+    } else {
+      // Fallback: NÃO usar busca livre (evita confundir paciente com profissional)
+      professionalRaw = "";
+    }
+
+    // --- PACIENTE ---
     const m1 = cleanedText.match(/para\s+([^,;.\n\-\(\)]+)/i);
     if (m1 && m1[1]) {
       let candidate = m1[1].trim();
@@ -236,15 +247,19 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         const hospName = hospMatch[0].toLowerCase();
         candidate = candidate.toLowerCase().replace(new RegExp(`\\b${hospName}\\b`, 'g'), '').trim();
       }
-      // Adicionado 'autorizado' e 'autorizada' para limpeza do nome do paciente
-      candidate = candidate.replace(/\b(sem|com|etiqueta|no|chat|apenas|texto|so|só|chave|chaves|avulsa|do|da|pelo|pela|na|paga|inimá|inima|paola|carlos|roberto|sabrina|barenco|rosely|mazoni|autorizado|autorizada)\b/gi, '').trim();
+      // Remove stop-words e o profissional detectado
+      candidate = candidate.replace(/\b(sem|com|etiqueta|no|chat|apenas|texto|so|só|chave|chaves|avulsa|do|da|pelo|pela|na|paga|autorizado|autorizada)\b/gi, '').trim();
+      if (professionalRaw) {
+        candidate = candidate.replace(new RegExp(`\\b${professionalRaw}\\b`, 'gi'), '').trim();
+      }
       
       if (candidate && candidate.length > 2) {
         patient = candidate.toUpperCase();
       }
     } else {
-      // Se não achou "para", tenta buscar o que sobrou após remover o exame, hospital e profissional
+      // Se não achou "para", extrai o paciente por resíduo (remove exame, hospital, profissional, stop-words)
       let residue = cleanedText;
+      // Remove palavras-chave do exame e especificação anatômica
       foundExams.forEach(e => {
         const parts = e.split(' DE ');
         const kw = parts[0].toLowerCase();
@@ -252,29 +267,19 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         residue = residue.replace(new RegExp(`\\b${kw}\\b`, 'gi'), '');
         if (spec) residue = residue.replace(new RegExp(`\\b${spec}\\b`, 'gi'), '');
       });
+      // Remove hospital
       if (hospMatch) residue = residue.replace(new RegExp(`\\b${hospMatch[0]}\\b`, 'gi'), '');
-      // Remove palavras comuns e nomes de profissionais válidos
-      residue = residue.replace(/\b(gerar|gera|etiqueta|no|chat|chave|chaves|de|do|da|em|na|no|autorizado|autorizada)\b/gi, '').trim();
-      validProfs.forEach(p => {
-        residue = residue.replace(new RegExp(`\\b${p}\\b`, 'gi'), '');
-      });
+      // Remove stop-words comuns
+      residue = residue.replace(/\b(gerar|gera|etiqueta|no|chat|chave|chaves|de|do|da|em|na|no|autorizado|autorizada|para)\b/gi, '').trim();
+      // Remove APENAS o profissional detectado (não todos — "gabriel" pode ser paciente)
+      if (professionalRaw) {
+        residue = residue.replace(new RegExp(`\\b${professionalRaw}\\b`, 'gi'), '');
+      }
       residue = residue.trim();
       
       if (residue.length > 2 && residue.length < 50) {
         patient = residue.toUpperCase();
       }
-    }
-
-    // Profissional (Marcadores expandidos: DO/DA/PAGA/NA ETIQUETA DO)
-    const profMarkers = '(?:assinado|assinada|por|etiqueta|regulação|regulador|assinatura|ass|at|pela|do|da|pelo|na|paga|na\\s+etiqueta\\s+do|na\\s+etiqueta\\s+da)';
-    const explicitProfMatch = cleanedText.match(new RegExp(`${profMarkers}\\s+\\b(${validProfs.join('|')})\\b`, 'i'));
-    
-    if (explicitProfMatch) {
-      professionalRaw = explicitProfMatch[1].toLowerCase();
-    } else {
-      // Fallback: busca qualquer um dos nomes de profissionais válidos no texto final
-      const potentialProf = validProfs.find(p => new RegExp(`\\b${p}\\b`, 'i').test(cleanedText));
-      professionalRaw = potentialProf || "";
     }
 
     // VALIDAR HOSPITAL DE ORIGEM - SE NÃO TIVER, PERGUNTAR
