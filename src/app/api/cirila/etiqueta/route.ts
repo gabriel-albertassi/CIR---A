@@ -21,7 +21,9 @@ import {
   HeightRule,
   TableLayoutType,
   ImageRun,
+  Footer,
 } from 'docx';
+
 
 const generateKey = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -228,8 +230,8 @@ export async function GET(req: NextRequest) {
               new ImageRun({
                 data: fileBuffer,
                 transformation: {
-                  width: 430,
-                  height: 600,
+                  width: 400, // Reduzido
+                  height: 550, // Reduzido
                 },
               } as any),
             ],
@@ -243,12 +245,13 @@ export async function GET(req: NextRequest) {
                 margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
               } 
             },
+            footers: {
+              default: new Footer({
+                children: labelElements,
+              }),
+            },
             children: [
               ...mainContent,
-              new Paragraph({
-                children: [new TextRun({ text: "", break: 1 })],
-              }),
-              ...labelElements
             ]
           }]
         });
@@ -279,8 +282,8 @@ export async function GET(req: NextRequest) {
           })
         ]
       }),
-      // Espaço vertical em branco (aproximadamente 12-15cm)
-      ...Array(18).fill(0).map(() => new Paragraph({ children: [] }))
+      // Poucos parágrafos apenas para guiar, o rodapé cuida do resto
+      ...Array(5).fill(0).map(() => new Paragraph({ children: [] }))
     ];
 
     const finalDoc = new Document({
@@ -298,9 +301,15 @@ export async function GET(req: NextRequest) {
             }
           },
         },
-        children: [...emptyParagraphs, ...labelElements]
+        footers: {
+          default: new Footer({
+            children: labelElements,
+          }),
+        },
+        children: [...emptyParagraphs]
       }]
     });
+
 
     const buffer = await Packer.toBuffer(finalDoc);
     return new NextResponse(new Uint8Array(buffer), {
