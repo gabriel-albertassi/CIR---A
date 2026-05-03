@@ -168,9 +168,14 @@ export async function GET(req: NextRequest) {
     if (templateUrl) {
       const absoluteUrl = templateUrl.startsWith('http') ? templateUrl : `${req.nextUrl.origin}${templateUrl}`;
       
-      console.log(`[CIRILA_ETIQUETA] Buscando anexo: ${absoluteUrl}`);
+      // Cache buster for the template fetch
+      const cacheBustedUrl = absoluteUrl.includes('?') 
+        ? `${absoluteUrl}&cb=${Date.now()}` 
+        : `${absoluteUrl}?cb=${Date.now()}`;
+
+      console.log(`[CIRILA_ETIQUETA] Buscando anexo (Fresh): ${cacheBustedUrl}`);
       
-      const response = await fetch(absoluteUrl, { cache: 'no-store' });
+      const response = await fetch(cacheBustedUrl, { cache: 'no-store' });
       if (!response.ok) {
         console.error(`[CIRILA_ETIQUETA_ERROR] Falha ao baixar anexo (${response.status}): ${absoluteUrl}`);
         throw new Error('Falha ao baixar anexo');
@@ -226,29 +231,15 @@ export async function GET(req: NextRequest) {
         const mainContent = [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { after: 200 }, // espaço antes da etiqueta
+            spacing: { after: 200 },
             children: [
               new ImageRun({
                 data: fileBuffer,
                 transformation: {
-                  width: MAX_WIDTH,
-                  height: MAX_HEIGHT,
+                  width: 430,
+                  height: 600,
                 },
-                // 🔥 AJUSTE INTELIGENTE: posicionamento fixo para evitar quebra de página
-                floating: {
-                  horizontalPosition: {
-                    relative: "page",
-                    align: "center",
-                  },
-                  verticalPosition: {
-                    relative: "page",
-                    offset: 0,
-                  },
-                  wrap: {
-                    type: "none",
-                  },
-                },
-              } as any),
+              }),
             ],
           }),
         ];
@@ -275,30 +266,45 @@ export async function GET(req: NextRequest) {
           headers: {
             'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
             'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
           },
         });
       }
     }
 
-    // --- CASO PADRÃO: SEM ANEXO OU FALLBACK ---
-    const emptyParagraphs = pos === 'bottom' ? Array(25).fill(0).map(() => new Paragraph({ children: [] })) : [];
+    // --- CASO PADRÃO: SEM ANEXO (TEMPLATE VAZIO PARA COLAGEM MANUAL) ---
+    // Usamos margens institucionais de 720 DXA e deixamos espaço no topo
+    const emptyParagraphs = [
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200, after: 200 },
+        children: [
+          new TextRun({
+            text: "--- ESPAÇO RESERVADO PARA O ANEXO (COLE AQUI) ---",
+            color: "E2E8F0",
+            size: 16,
+            font: { name: 'Arial' }
+          })
+        ]
+      }),
+      // Espaço vertical em branco (aproximadamente 12-15cm)
+      ...Array(18).fill(0).map(() => new Paragraph({ children: [] }))
+    ];
 
     const finalDoc = new Document({
       title: "Etiqueta Cirila",
       creator: "Cirila Bot",
       description: "Etiqueta de Autorização de Exame",
-      compatibility: {
-        doNotExpandShiftReturn: true,
-        useNormalStyleForList: true,
-      },
       sections: [{
         properties: {
           page: {
             margin: {
-              top: 1000,
-              right: 200,
-              bottom: 800,
-              left: 200
+              top: 720,
+              right: 720,
+              bottom: 720,
+              left: 720
             }
           },
         },
@@ -311,6 +317,9 @@ export async function GET(req: NextRequest) {
       headers: {
         'Content-Disposition': `attachment; filename="Etiqueta_${patient.replace(/\s/g, '_')}.docx"`,
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
 

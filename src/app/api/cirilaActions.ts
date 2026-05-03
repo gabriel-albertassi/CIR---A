@@ -112,11 +112,15 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
   const validProfs = ['paola', 'inima', 'inimá', 'carlos', 'roberto', 'sabrina', 'sabina', 'barenco', 'rosely', 'mazoni', 'gabriel'];
 
-  // 1. Detecção de Anexo
-  const fileUrlMatch = text.match(/\[file_url:(.+?)\]/i);
-  const currentFileUrl = fileUrlMatch ? fileUrlMatch[1] : null;
+  // 1. Detecção de Anexo (Pega sempre o ÚLTIMO para evitar conflitos de cache no prompt)
+  const fileUrls = text.match(/\[file_url:(.+?)\]/gi);
+  const currentFileUrl = fileUrls ? fileUrls[fileUrls.length - 1].match(/\[file_url:(.+?)\]/i)![1] : null;
   const isDocumentAttached = !!currentFileUrl;
-  const cleanedText = text.replace(/\[file_url:.+?\]/i, '').trim();
+  
+  if (isDocumentAttached) {
+    console.log(`[CIRILA_ACTIONS] Arquivo detectado na query: ${currentFileUrl}`);
+  }
+  const cleanedText = text.replace(/\[file_url:.+?\]/gi, '').trim();
 
   // 2. Detecção de Preferência de Saída (Chat Only / Sem Etiqueta)
   // REGRA: "Chave" ou "Avulsa" sem "Etiqueta" implica Chat Only e SEM ASSINATURA
@@ -484,7 +488,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
   // Fallback
   return {
-    text: `Entendido chefe! Estou pronta para regular.\n\nSe tiver um pedido médico, anexe o arquivo PDF e me dê o comando.\n\nPara gerar a **Planilha de Sobreaviso**, escolha a quantidade de chaves abaixo ou diga: *"Gerar planilha sobreaviso com 20 chaves"*`,
+    text: `Entendido chefe! Estou pronta para regular.\n\nComo você prefere colar o anexo manualmente, vou gerar o documento Word com **espaço reservado no topo** e a etiqueta no final da folha.\n\nEscolha a quantidade de chaves abaixo ou me dê o comando (ex: *"Gerar TC para João Silva"*):`,
     sender: 'ai',
     actions: [
       { label: '📄 Sobreaviso — 10 chaves', payload: 'DOWNLOAD_DOCX_10' },
@@ -492,7 +496,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       { label: '📄 Sobreaviso — 20 chaves', payload: 'DOWNLOAD_DOCX_20' },
       { label: '📄 Sobreaviso — 30 chaves', payload: 'DOWNLOAD_DOCX_30' },
       { label: '📄 Sobreaviso — 50 chaves', payload: 'DOWNLOAD_DOCX_50' },
-      { label: 'Como anexar?', payload: 'ajuda' },
+      { label: 'Como funciona?', payload: 'ajuda' },
     ]
   };
 }

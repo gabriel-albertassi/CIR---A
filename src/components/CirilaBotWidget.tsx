@@ -435,9 +435,10 @@ export default function CirilaBotWidget() {
                 }
               }]);
 
-              // Armazena a URL do último arquivo anexado para a próxima mensagem
+              // 🔥 LIMPEZA CRÍTICA: Garante que o novo arquivo mate qualquer contexto anterior
+              setLastIncompleteFileUrl(null);
               (window as any).lastCirilaFileUrl = uploadData.url;
-              console.log(`[CIRILA_WIDGET] Novo anexo pronto: ${uploadData.url}`);
+              console.log(`[CIRILA_WIDGET] Novo anexo pronto (Cache Buster): ${uploadData.url}`);
 
             } catch (err: any) {
               console.error('Erro no anexo:', err);
