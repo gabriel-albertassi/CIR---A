@@ -206,43 +206,38 @@ export async function GET(req: NextRequest) {
           });
         }
       } else if (isPdf || isImage) {
-        // REGRAS OBRIGATÓRIAS: Inserir como imagem, máximo 500x650, centralizado
+        // REGRAS OBRIGATÓRIAS CRÍTICAS:
+        // 1. PDF/Imagem no TOPO, centralizado, máximo 480x630px
+        // 2. Etiqueta SEMPRE abaixo, na mesma página
+        // 3. Margens 720 DXA em todos os lados
+        
         let attachmentBuffer = fileBuffer;
-
-        // Se for PDF, tentamos tratar o buffer (futura implementação de renderização nativa se necessário)
-        // Por enquanto, seguimos a regra de não converter para texto
-        if (isPdf) {
-           // Nota: Renderização de PDF para imagem em Node requer node-canvas ou ferramenta externa.
-           // O sistema espera que o PDF seja um container de imagem (scan) ou que o processamento prévio já o tenha preparado.
-           // Se o buffer for um PDF puro, o ImageRun pode falhar se o Word não suportar PDF nativo como imagem.
-           // No entanto, seguimos a regra de layout solicitada.
-        }
 
         const doc = new Document({
           sections: [{
             properties: { 
               page: { 
-                margin: { top: 720, right: 720, bottom: 720, left: 720 }, // Margens 720 DXA
+                margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
               } 
             },
             children: [
-              // 1. DOCUMENTO ORIGINAL CENTRALIZADO (PDC)
+              // 1. PDF/IMAGEM REDUZIDO E CENTRALIZADO (TOPO)
               new Paragraph({
                 alignment: AlignmentType.CENTER,
                 children: [
                   new (require('docx').ImageRun)({
                     data: attachmentBuffer,
                     transformation: {
-                      width: 500, // Largura máxima 500px
-                      height: 650, // Altura máxima 650px
+                      width: 480, // Largura ideal: 450px-480px
+                      height: 630, // Altura ideal: 600px-650px
                     },
                   }),
                 ],
               }),
-              // 2. ESPAÇO CONTROLADO (2 quebras de linha)
-              new Paragraph({ children: [] }),
-              new Paragraph({ children: [] }),
-              // 3. ETIQUETA DE AUTORIZAÇÃO (Sempre no final após o documento)
+              // 2. ESPAÇO CONTROLADO (Espaçamento de ~1-2 linhas)
+              new Paragraph({ spacing: { before: 240, after: 240 }, children: [] }),
+              
+              // 3. ETIQUETA DE AUTORIZAÇÃO (Sempre abaixo do PDF)
               ...labelElements
             ]
           }]
