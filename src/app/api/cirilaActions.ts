@@ -207,12 +207,14 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const foundExams: string[] = [];
     // Busca exames e tenta pegar o que vem depois (ex: TC de crânio)
     for (const [kw, label] of Object.entries(examKeywords)) {
-      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)\\s+([^,e]+))?`, 'i');
+      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)\\s+([^,e\\n\\-]+))?`, 'i');
       const match = cleanedText.match(regex);
       if (match) {
         let fullExam = label;
         if (match[1]) {
-          const spec = match[1].trim().split(/\s+(?:para|no|na|pelo|pela|do|da|com|sem|etiqueta|chave)\b/i)[0].trim();
+          // Limita a especificação para não pegar nomes de pacientes ou destinos redundantes
+          // Adicionado 'autorizado' e 'autorizada' como limitadores
+          const spec = match[1].trim().split(/\s+(?:para|no|na|pelo|pela|do|da|com|sem|etiqueta|chave|hsjb|hmmr|hnsg|upa|autorizado|autorizada)\b/i)[0].trim();
           if (spec.length > 0 && spec.length < 30) {
             fullExam = `${label} DE ${spec.toUpperCase()}`;
           }
@@ -229,16 +231,31 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     const m1 = cleanedText.match(/para\s+([^,;.\n\-\(\)]+)/i);
     if (m1 && m1[1]) {
       let candidate = m1[1].trim();
-      // Remove hospital do nome do paciente se ele estiver grudado
       if (hospMatch) {
         const hospName = hospMatch[0].toLowerCase();
         candidate = candidate.toLowerCase().replace(new RegExp(`\\b${hospName}\\b`, 'g'), '').trim();
       }
-      // Remove marcadores de profissional do nome do paciente
-      candidate = candidate.replace(/\b(sem|com|etiqueta|no|chat|apenas|texto|so|só|chave|chaves|avulsa|do|da|pelo|pela|na|paga|inimá|inima|paola|carlos|roberto|sabrina|barenco|rosely|mazoni)\b/gi, '').trim();
+      // Adicionado 'autorizado' e 'autorizada' para limpeza do nome do paciente
+      candidate = candidate.replace(/\b(sem|com|etiqueta|no|chat|apenas|texto|so|só|chave|chaves|avulsa|do|da|pelo|pela|na|paga|inimá|inima|paola|carlos|roberto|sabrina|barenco|rosely|mazoni|autorizado|autorizada)\b/gi, '').trim();
       
       if (candidate && candidate.length > 2) {
         patient = candidate.toUpperCase();
+      }
+    } else {
+      // Se não achou "para", tenta buscar o que sobrou após remover o exame e o hospital
+      let residue = cleanedText;
+      foundExams.forEach(e => {
+        const parts = e.split(' DE ');
+        const kw = parts[0].toLowerCase();
+        const spec = parts[1]?.toLowerCase();
+        residue = residue.replace(new RegExp(`\\b${kw}\\b`, 'gi'), '');
+        if (spec) residue = residue.replace(new RegExp(`\\b${spec}\\b`, 'gi'), '');
+      });
+      if (hospMatch) residue = residue.replace(new RegExp(`\\b${hospMatch[0]}\\b`, 'gi'), '');
+      residue = residue.replace(/\b(gerar|gera|etiqueta|no|chat|chave|chaves|de|do|da|em|na|no)\b/gi, '').trim();
+      
+      if (residue.length > 2 && residue.length < 50) {
+        patient = residue.toUpperCase();
       }
     }
 
@@ -273,19 +290,31 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     // --- REGRAS DE SAÍDA ---
     const dateStr = new Date().toLocaleDateString('pt-BR');
-    const destination = (kw: string) => {
-      const e = kw.toUpperCase();
-      if (e.includes('ANGIO')) return 'HMMR';
-      if (e.includes('RNM') || e.includes('RMN') || e.includes('RESSONANCIA')) return 'RADIO VIDA';
+    const destination = (exam: string) => {
+      const e = exam.toUpperCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (e.includes('ANGIOTC') || e.includes('ANGIO')) return 'HMMR';
+      if (e.includes('COLANGIO')) return 'RADIO VIDA';
+      if (e.includes('RNM') || e.includes('RMN') ||
+        e.includes('RESSONANCIA') || e.includes('RESSON')) return 'RADIO VIDA';
+      if (e.includes('TC') || e.includes('TOMOGRAFIA')) return 'HSJB';
+      if (e.includes('ECO') || e.includes('ECOGRAFIA') ||
+        e.includes('ECOCARDIOGRAMA')) return 'HSJB';
+      if (e.includes('ENDOSCOPIA') || e.includes('COLONOSCOPIA')) return 'HSJB';
+      if (e.includes('PET') || e.includes('CINTILOGRAFIA') ||
+        e.includes('MAMOGRAFIA') || e.includes('DENSITOMETRIA')) return 'RADIO VIDA';
       return 'HSJB';
     };
 
-    const finalExam = examRaw === "EXAME" ? "EXAME AUTORIZADO PARA DESTINO" : `${examRaw} AUTORIZADO PARA ${destination(examRaw)}`;
+    const finalExamOnly = examRaw === "EXAME" ? "EXAME" : examRaw;
     
     // Gerar a lista de chaves (sempre respeitando a quantidade)
     const generatedKeys = Array.from({ length: qty }, () => generateKey());
     const firstKey = generatedKeys[0];
-    const textKeysBlock = generatedKeys.map(k => `\`${dateStr} : ${k} - ${patient} – ${finalHospital} - ${finalExam}\``).join('\n');
+    const textKeysBlock = generatedKeys.map(k => {
+      const dest = destination(examRaw);
+      return `\`${dateStr} : ${k.trim()} - ${patient.trim()} – ${finalHospital.trim()} - ${finalExamOnly.trim()} (${dest.trim()})\``;
+    }).join('\n');
 
     // CASO 1: CHAT ONLY (Chave / Avulsa sem etiqueta) -> NUNCA pede assinatura
     if (isChatOnly) {

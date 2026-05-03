@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
     const createLabelTable = (examName: string, authKey: string, destination: string, pName: string, hOrigin: string) => {
       const isAvulsa = examName.toUpperCase().includes('AVULSA');
       const finalExam = isAvulsa ? 'EXAME' : examName.toUpperCase();
-      const finalPatient = (isAvulsa ? 'PACIENTE A PREENCHER' : pName.toUpperCase()).trim();
+      const finalPatient = (isAvulsa ? 'PACIENTE' : pName.toUpperCase()).trim();
       const finalHospital = (isAvulsa ? 'HOSPITAL ORIGEM' : hOrigin.toUpperCase()).trim();
       const labelBorder = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
 
@@ -128,13 +128,13 @@ export async function GET(req: NextRequest) {
                       ],
                     }),
                   ] : []),
-                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] AUTORIZADO PARA [DESTINO]
+                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] (DESTINO)
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
                     spacing: { before: 0 },
                     children: [
                       new TextRun({
-                        text: `${dateStr} : ${authKey} - ${finalPatient} – ${finalHospital} - ${finalExam} (${destination.toUpperCase()})`,
+                        text: `${dateStr} : ${authKey.trim()} - ${finalPatient.trim()} – ${finalHospital.trim()} - ${finalExam.trim()} (${destination.toUpperCase().trim()})`,
                         bold: true, size: 28, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
