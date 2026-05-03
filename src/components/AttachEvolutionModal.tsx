@@ -60,8 +60,6 @@ export default function AttachEvolutionModal({ patientId, patientName, onClose }
             transition: 'all 0.2s',
             zIndex: 10
           }}
-          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#f1f5f9'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
         >
           <X size={18} strokeWidth={2.5} />
         </button>
@@ -72,9 +70,9 @@ export default function AttachEvolutionModal({ patientId, patientName, onClose }
             Anexar Evolução
           </h3>
         </div>
-          <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Paciente</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9' }}>{patientName}</div>
-
+        
+        <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Paciente</div>
+        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '1.5rem' }}>{patientName}</div>
 
         {success ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
@@ -126,7 +124,6 @@ export default function AttachEvolutionModal({ patientId, patientName, onClose }
             </button>
           </div>
         )}
-
       </div>
     </div>
   );
