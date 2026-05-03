@@ -8,6 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 - **PLANILHA DE SOBREAVISO:** NUNCA altere o código, layout, cores ou formatação do arquivo `src/app/api/cirila/sobreaviso/route.ts`. Este documento segue um padrão institucional rígido que não deve ser modificado sob nenhuma circunstância, a menos que solicitado explicitamente com uma justificativa de mudança de norma.
 - **IDENTIDADE VISUAL:** Todas as etiquetas geradas devem seguir o padrão institucional: CAIXA ALTA, NEGRITO e PRETO.
-- **IMUTABILIDADE DA ETIQUETA:** NUNCA altere o código, layout ou formatação do arquivo `src/app/api/cirila/etiqueta/route.ts`. O formato da etiqueta Word é definitivo e institucional.
-- **REGRA DE PÁGINA ÚNICA (PDC + ETIQUETA):** O anexo (PDC) deve ser inserido como imagem centralizada (máx 430x600px) e a etiqueta deve vir logo abaixo, na mesma folha, com margens de 720 DXA em todos os lados.
+- **IMUTABILIDADE DA ETIQUETA (RODAPÉ FIXO):** NUNCA altere o código, layout ou formatação do arquivo `src/app/api/cirila/etiqueta/route.ts`. O formato atual (Corpo 100% limpo para colagem manual + Etiqueta fixa no Rodapé) é o padrão definitivo e institucional.
+- **REGRA DE PÁGINA ÚNICA (RODAPÉ FIXO):** Se houver anexo automático, ele deve ser centralizado (máx 400x550px) para garantir que a etiqueta (que está no rodapé) permaneça na mesma folha. As margens devem ser sempre 720 DXA em todos os lados.
 - **VALIDAÇÃO:** Sempre exija o Hospital de Origem para geração de etiquetas oficiais.
+
