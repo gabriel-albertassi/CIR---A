@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
       const labelBorder = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
 
       return new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
+        width: { size: 9500, type: WidthType.DXA },
         layout: TableLayoutType.FIXED,
         borders: {
           top: labelBorder, bottom: labelBorder, left: labelBorder, right: labelBorder,
@@ -218,7 +218,7 @@ export async function GET(req: NextRequest) {
               .split('\n')
               .filter(l => l.trim())
               .map(line => new Paragraph({
-                children: [new TextRun({ text: line, size: 20, font: 'Arial' })]
+                children: [new TextRun({ text: line, size: 20, font: { name: 'Arial' } })]
               }));
           } else {
             throw new Error("PDF sem conteúdo extraível");
@@ -227,13 +227,16 @@ export async function GET(req: NextRequest) {
           console.warn('[PDF_RESILIENCE_MODE] Falha ao processar PDF original. Gerando apenas etiqueta.', pdfErr);
           pdfParagraphs = [
             new Paragraph({
-              children: [new TextRun({ text: '[Documento Original Anexado - Ver arquivo original]', size: 18, font: 'Arial', italics: true, color: '666666' })]
+              children: [new TextRun({ text: '[Documento Original Anexado - Ver arquivo original]', size: 18, font: { name: 'Arial' }, italics: true, color: '666666' })]
             }),
             new Paragraph({ children: [] })
           ];
         }
 
         const doc = new Document({
+          title: "Autorização Cirila",
+          creator: "Cirila Bot",
+          description: "Etiqueta de Autorização de Exame",
           compatibility: {
             doNotExpandShiftReturn: true,
             useNormalStyleForList: true,
@@ -264,6 +267,9 @@ export async function GET(req: NextRequest) {
     const emptyParagraphs = pos === 'bottom' ? Array(25).fill(0).map(() => new Paragraph({ children: [] })) : [];
 
     const finalDoc = new Document({
+      title: "Etiqueta Cirila",
+      creator: "Cirila Bot",
+      description: "Etiqueta de Autorização de Exame",
       compatibility: {
         doNotExpandShiftReturn: true,
         useNormalStyleForList: true,

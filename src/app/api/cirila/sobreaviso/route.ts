@@ -193,6 +193,9 @@ export async function GET(req: NextRequest) {
 
     // ── Documento final (seção única) ─────────────────────────────────────────
     const doc = new Document({
+      title: "Mapa de Sobreaviso",
+      creator: "Cirila Bot",
+      description: "Mapa de Supervisão - Sobreaviso",
       compatibility: {
         doNotExpandShiftReturn: true,
         useNormalStyleForList: true,
