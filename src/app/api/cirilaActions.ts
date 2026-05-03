@@ -311,15 +311,22 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     // Gerar a lista de chaves (sempre respeitando a quantidade)
     const generatedKeys = Array.from({ length: qty }, () => generateKey());
     const firstKey = generatedKeys[0];
+
+    // Formato COMPLETO para etiquetas (documento): DATA : CHAVE - PACIENTE – ORIGEM - EXAME AUTORIZADO PARA DESTINO
     const textKeysBlock = generatedKeys.map(k => {
       const dest = destination(examRaw);
-      return `\`${dateStr} : ${k.trim()} - ${patient.trim()} – ${finalHospital.trim()} - ${finalExamOnly.trim()} (${dest.trim()})\``;
+      return `\`${dateStr} : ${k.trim()} - ${patient.trim()} – ${finalHospital.trim()} - ${finalExamOnly.trim()} AUTORIZADO PARA ${dest.trim()}\``;
+    }).join('\n');
+
+    // Formato SIMPLES para chaves avulsas (chat only): DATA : CHAVE
+    const chatKeysBlock = generatedKeys.map(k => {
+      return `\`${dateStr} : ${k.trim()}\``;
     }).join('\n');
 
     // CASO 1: CHAT ONLY (Chave / Avulsa sem etiqueta) -> NUNCA pede assinatura
     if (isChatOnly) {
       return {
-        text: `✅ **CIRILA — CHAVES GERADAS NO CHAT**\n\nAqui estão suas chaves institucionalizadas:\n\n${textKeysBlock}\n\n*Processo concluído com sucesso.*`,
+        text: `✅ **CIRILA — CHAVES GERADAS NO CHAT**\n\nAqui estão suas chaves:\n\n${chatKeysBlock}\n\n*Processo concluído com sucesso.*`,
         sender: 'ai'
       };
     }

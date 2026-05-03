@@ -128,13 +128,13 @@ export async function GET(req: NextRequest) {
                       ],
                     }),
                   ] : []),
-                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] (DESTINO)
+                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] – [HOSPITAL ORIGEM] - [EXAME] AUTORIZADO PARA [DESTINO]
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
                     spacing: { before: 0 },
                     children: [
                       new TextRun({
-                        text: `${dateStr} : ${authKey.trim()} - ${finalPatient.trim()} – ${finalHospital.trim()} - ${finalExam.trim()} (${destination.toUpperCase().trim()})`,
+                        text: `${dateStr} : ${authKey.trim()} - ${finalPatient.trim()} – ${finalHospital.trim()} - ${finalExam.trim()} AUTORIZADO PARA ${destination.toUpperCase().trim()}`,
                         bold: true, size: 28, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
