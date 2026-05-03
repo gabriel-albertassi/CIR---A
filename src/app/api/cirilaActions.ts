@@ -219,9 +219,10 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       else hospitalOrigin = h;
     }
 
-    // Exame (Suporte a múltiplos e listas complexas)
+    // Exame (Suporte a múltiplos, regiões anatômicas compostas e modificadores)
     const examKeywords: Record<string, string> = {
       'angiotc': 'ANGIOTC',
+      'urotc': 'UROTC',
       'rnm': 'RNM',
       'rmn': 'RNM',
       'ressonancia': 'RNM',
@@ -231,22 +232,76 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       'ecografia': 'ECOGRAFIA',
       'ecocardiograma': 'ECOCARDIOGRAMA',
       'eco': 'ECO',
+      'usg': 'USG',
+      'ultrassom': 'USG',
+      'ultrasom': 'USG',
+      'ultrassonografia': 'USG',
+      'doppler': 'DOPPLER',
+      'duplex': 'DOPPLER',
+      'ecodoppler': 'ECODOPPLER',
+      'ecodopplercardiograma': 'ECODOPPLERCARDIOGRAMA',
       'endoscopia': 'ENDOSCOPIA',
       'colonoscopia': 'COLONOSCOPIA',
+      'broncoscopia': 'BRONCOSCOPIA',
+      'laringoscopia': 'LARINGOSCOPIA',
+      'cistoscopia': 'CISTOSCOPIA',
+      'histeroscopia': 'HISTEROSCOPIA',
+      'pet': 'PET',
+      'cintilografia': 'CINTILOGRAFIA',
+      'mamografia': 'MAMOGRAFIA',
+      'densitometria': 'DENSITOMETRIA',
+      'raio x': 'RAIO X',
+      'rx': 'RX',
+      'raiox': 'RX',
+      'cateterismo': 'CATETERISMO',
+      'arteriografia': 'ARTERIOGRAFIA',
+      'eletroencefalograma': 'ELETROENCEFALOGRAMA',
+      'eeg': 'EEG',
+      'eletrocardiograma': 'ECG',
+      'ecg': 'ECG',
+      'holter': 'HOLTER',
+      'mapa': 'MAPA',
+      'espirometria': 'ESPIROMETRIA',
+      'audiometria': 'AUDIOMETRIA',
+      'biopsia': 'BIOPSIA',
+      'puncao': 'PUNCAO',
+      'punção': 'PUNCAO',
+      'colangiornm': 'COLANGIORNM',
+      'colangio': 'COLANGIO',
+      'urografia': 'UROGRAFIA',
     };
+
+    // Stop-words: quando encontrar essas, parar de capturar a especificação do exame
+    const examStopWords = [
+      ...validProfs,
+      'hsjb', 'hmmr', 'hnsg', 'hmpagb', 'pinheiral', 'upa', 'unimed', 'hmvr', 'cais',
+      'etiqueta', 'gerar', 'para', 'paciente', 'avulsa', 'chave', 'chaves', 'no', 'na', 'chat',
+    ];
     
     const foundExams: string[] = [];
-    // Busca exames e captura especificação anatômica (ex: TC de crânio, RNM de coluna)
-    // Regex limitada: captura 1 palavra + opcionalmente preposição + 1 palavra (ex: "seios da face")
-    // Isso evita capturar nomes de pacientes que vêm logo após o termo anatômico
     for (const [kw, label] of Object.entries(examKeywords)) {
-      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)\\s+(\\w+(?:\\s+(?:da|do|de|dos|das|com|e)\\s+\\w+)*))?`, 'i');
+      // Regex: captura o exame + preposição + especificação anatômica completa
+      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)\\s+(.+?))?(?=\\s+(?:${examStopWords.join('|')})\\b|$)`, 'i');
       const match = cleanedText.match(regex);
       if (match) {
         let fullExam = label;
         if (match[1]) {
-          const spec = match[1].trim();
-          if (spec.length > 0 && spec.length < 30) {
+          // Limpa a especificação: remove resíduos de stop-words no final
+          let spec = match[1].trim()
+            .replace(new RegExp(`\\b(${examStopWords.join('|')})\\b.*$`, 'i'), '')
+            .trim();
+
+          // REGRA DE OURO: Se achar "com/sem contraste", corta tudo que vem depois
+          // Isso evita que o nome do paciente seja engolido pelo exame
+          const contrastMatch = spec.match(/\b(?:com|sem|c\/|s\/)\s+(?:contraste|contr)\b/i);
+          if (contrastMatch) {
+            const contrastStr = contrastMatch[0];
+            const endIdx = spec.toLowerCase().indexOf(contrastStr.toLowerCase()) + contrastStr.length;
+            spec = spec.substring(0, endIdx).trim();
+          }
+
+          // Limita a 60 chars para segurança
+          if (spec.length > 0 && spec.length < 60) {
             fullExam = `${label} DE ${spec.toUpperCase()}`;
           }
         }
@@ -299,8 +354,8 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       });
       // Remove hospital
       if (hospMatch) residue = residue.replace(new RegExp(`\\b${hospMatch[0]}\\b`, 'gi'), '');
-      // Remove stop-words comuns
-      residue = residue.replace(/\b(gerar|gera|etiqueta|no|chat|chave|chaves|de|do|da|em|na|no|autorizado|autorizada|para)\b/gi, '').trim();
+      // Remove stop-words comuns e termos de contraste remanescentes
+      residue = residue.replace(/\b(gerar|gera|etiqueta|no|chat|chave|chaves|de|do|da|em|na|no|autorizado|autorizada|para|com|sem|contraste|contr|c\/|s\/)\b/gi, '').trim();
       // Remove APENAS o profissional detectado (não todos — "gabriel" pode ser paciente)
       if (professionalRaw) {
         residue = residue.replace(new RegExp(`\\b${professionalRaw}\\b`, 'gi'), '');
