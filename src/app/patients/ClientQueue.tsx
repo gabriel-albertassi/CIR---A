@@ -485,30 +485,32 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </button>
                           </div>
                         ) : (
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr auto', gap: '8px', width: '100%' }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                             <button 
                               onClick={() => setAttachModal({ id: p.id, name: p.name })}
                               className={`${styles.premiumActionButton} ${styles.btnAttach}`}
                               title="Anexar Evolução Médica (PDF/Laudos)"
+                              style={{ padding: '0 0.75rem' }}
                             >
                               <Paperclip size={14} strokeWidth={2.5} /> ANEXAR
                             </button>
 
                             <button 
                               className={`${styles.premiumActionButton} ${styles.btnRequest}`}
-                              style={{ width: '100%' }}
                               onClick={() => setRequestingId(p.id)} 
                               disabled={loadingId === p.id}
+                              style={{ padding: '0 0.85rem' }}
                             >
-                              Leito Solicitado
+                              Solicitar Leito
                             </button>
                             
                             <button
                               className={`${styles.premiumActionButton} ${styles.btnBlast}`}
                               onClick={() => setBlastModal({ id: p.id, severity: p.severity, is_private: p.is_private })}
                               title="Disparo em Massa (E-mail)"
+                              style={{ minWidth: '36px', width: '36px', padding: '0' }}
                             >
-                              <Send size={18} strokeWidth={2.5} />
+                              <Send size={16} strokeWidth={2.5} />
                             </button>
                           </div>
                         )}
@@ -577,11 +579,11 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                         ) : (
                           <button 
                             className={`${styles.premiumActionButton} ${styles.btnRefusal}`}
-                            style={{ width: '100%' }}
                             onClick={() => setRefusingId(p.id)} 
                             disabled={loadingId === p.id}
+                            style={{ padding: '0 0.85rem' }}
                           >
-                            Leito Recusado
+                            Registrar Recusa
                           </button>
                         )}
 
@@ -627,9 +629,9 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           ) : (
                             <button 
                               className={`${styles.premiumActionButton} ${styles.btnTransfer}`} 
-                              style={{ width: '100%' }}
                               onClick={() => setTransferringId(p.id)} 
                               disabled={loadingId === p.id}
+                              style={{ padding: '0 0.85rem' }}
                             >
                               Transferir
                             </button>
@@ -697,11 +699,11 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                         ) : (
                           <button
                             className={`${styles.premiumActionButton} ${styles.btnExit}`}
-                            style={{ width: '100%' }}
                             onClick={() => setCancellingId(p.id)}
                             disabled={loadingId === p.id}
+                            style={{ padding: '0 0.85rem' }}
                           >
-                            Saída / Cancelar
+                            Saída / Alta
                           </button>
                         )}
 
@@ -745,12 +747,12 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                         ) : (
                           <button 
                             className={`${styles.premiumActionButton} ${styles.btnEvolve}`}
-                            style={{ flex: 1 }}
                             onClick={() => setEvolvingId(p.id)} 
                             disabled={loadingId === p.id}
                             title="Atualizar Quadro Clínico"
+                            style={{ padding: '0 0.85rem' }}
                           >
-                            <TrendingUp size={16} /> Evoluir
+                            <TrendingUp size={14} /> Evoluir
                           </button>
                         )}
                         
