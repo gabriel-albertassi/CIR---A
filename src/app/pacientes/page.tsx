@@ -136,7 +136,7 @@ export default async function PacientesTodosPage() {
                             {p.status === 'TRANSFERRED' ? '✅ Transferido' : p.status === 'ALTA' ? '🏠 Alta' : '✝️ Óbito'}
                           </div>
                         ) : (
-                          <span style={{ color: '#475569', fontSize: '0.82rem' }}>Em Regulação Ativa</span>
+                          <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>Em Regulação Ativa</span>
                         )}
                       </td>
 
