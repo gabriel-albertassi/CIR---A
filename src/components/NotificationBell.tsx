@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Check, Hospital, User, Info, AlertTriangle, CheckCircle, Mail } from 'lucide-react'
-import { markAsRead } from '@/lib/notifications'
+import { Bell, Check, Hospital, User, Info, AlertTriangle, CheckCircle, Mail, Trash2 } from 'lucide-react'
+import { markAsRead, markAllAsRead } from '@/lib/notifications'
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState<any[]>([])
@@ -40,6 +40,19 @@ export default function NotificationBell() {
     }
   }
 
+  const handleMarkAllAsRead = async () => {
+    if (notifications.length === 0) return
+    setLoading(true)
+    try {
+      await markAllAsRead()
+      setNotifications([])
+    } catch (err) {
+      console.error('Erro ao limpar notificações:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'SUCCESS': return <CheckCircle className="text-green-400" size={18} />
@@ -69,15 +82,28 @@ export default function NotificationBell() {
 
       {isOpen && (
         <div className="absolute right-0 mt-3 w-80 max-h-[450px] overflow-y-auto bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-[100] animate-in fade-in zoom-in duration-200">
-          <div className="p-4 border-b border-white/10 flex justify-between items-center">
+          <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
             <h3 className="font-bold text-white flex items-center gap-2">
               <span className="text-blue-400">Notificações</span>
             </h3>
-            {notifications.length > 0 && (
-              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full font-medium">
-                {notifications.length} novas
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {notifications.length > 0 && (
+                <button 
+                  onClick={handleMarkAllAsRead}
+                  disabled={loading}
+                  className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-red-400 transition-colors uppercase font-bold tracking-wider"
+                  title="Limpar todas as notificações"
+                >
+                  <Trash2 size={12} />
+                  Limpar tudo
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full font-medium">
+                  {notifications.length}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col">
@@ -139,4 +165,5 @@ export default function NotificationBell() {
     </div>
   )
 }
+
 

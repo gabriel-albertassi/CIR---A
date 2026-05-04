@@ -98,27 +98,43 @@ export async function getCirilaStats(examType?: 'TC' | 'RNM') {
     const firstDayYear = new Date(now.getFullYear(), 0, 1);
 
     const filter: any = {};
-    if (examType === 'TC') filter.exam_type = { contains: 'TC' };
-    if (examType === 'RNM') filter.exam_type = { contains: 'RNM' };
+    if (examType === 'TC') filter.exam_type = { equals: 'TC' };
+    if (examType === 'RNM') filter.exam_type = { equals: 'RNM' };
+
+    // Tenta acessar o modelo, com fallback para query bruta se o client não estiver atualizado
+    const getLogs = async (since: Date) => {
+      try {
+        const model = (prisma as any).cirilaAudit;
+        if (model) {
+          return await model.findMany({
+            where: { 
+              timestamp: { gte: since },
+              ...filter
+            }
+          });
+        }
+        // Fallback para SQL bruto se o modelo não existir no PrismaClient (cache do node_modules)
+        const tableName = '"CirilaAudit"';
+        const dateStr = since.toISOString();
+        let sql = `SELECT * FROM ${tableName} WHERE timestamp >= '${dateStr}'`;
+        if (examType) sql += ` AND exam_type = '${examType}'`;
+        return await prisma.$queryRawUnsafe(sql);
+      } catch (err) {
+        console.error(`[CIRILA_STATS] Falha ao buscar logs desde ${since}:`, err);
+        return [];
+      }
+    };
 
     const [monthly, annual] = await Promise.all([
-      (prisma as any).cirilaAudit.findMany({
-        where: { 
-          timestamp: { gte: firstDayMonth },
-          ...filter
-        }
-      }),
-      (prisma as any).cirilaAudit.findMany({
-        where: { 
-          timestamp: { gte: firstDayYear },
-          ...filter
-        }
-      })
+      getLogs(firstDayMonth),
+      getLogs(firstDayYear)
     ]);
 
     const summarize = (data: any[]) => {
-      const tc = data.filter((d: any) => d.exam_type.includes('TC')).length;
-      const rnm = data.filter((d: any) => d.exam_type.includes('RNM') || d.exam_type.includes('RESSONANCIA')).length;
+      if (!Array.isArray(data)) return { total: 0, tc: 0, rnm: 0, others: 0, byHospital: {} };
+      
+      const tc = data.filter((d: any) => d.exam_type === 'TC').length;
+      const rnm = data.filter((d: any) => d.exam_type === 'RNM').length;
       
       return {
         total: data.length,
@@ -126,7 +142,8 @@ export async function getCirilaStats(examType?: 'TC' | 'RNM') {
         rnm,
         others: data.length - tc - rnm,
         byHospital: data.reduce((acc: any, d: any) => {
-          acc[d.hospital_origin] = (acc[d.hospital_origin] || 0) + 1;
+          const hosp = d.hospital_origin || 'NÃO INFORMADO';
+          acc[hosp] = (acc[hosp] || 0) + 1;
           return acc;
         }, {})
       };
@@ -137,7 +154,7 @@ export async function getCirilaStats(examType?: 'TC' | 'RNM') {
       annual: summarize(annual)
     };
   } catch (err) {
-    console.error('[CIRILA_STATS] Erro:', err);
+    console.error('[CIRILA_STATS] Erro fatal:', err);
     return null;
   }
 }
@@ -557,16 +574,26 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     if (!isDocumentAttached) {
       // --- LOG DE AUDITORIA (Precisão 100%) ---
       try {
-        await (prisma as any).cirilaAudit.create({
-          data: {
-            exam_type: finalExamOnly.includes('TC') ? 'TC' : (finalExamOnly.includes('RNM') || finalExamOnly.includes('RMN') ? 'RNM' : 'OUTROS'),
-            patient_name: patient,
-            hospital_origin: finalHospital,
-            destination: destination(examRaw),
-            professional: professionalRaw,
-            key: firstKey
-          }
-        });
+        const auditData = {
+          exam_type: finalExamOnly.includes('TC') ? 'TC' : (finalExamOnly.includes('RNM') || finalExamOnly.includes('RMN') ? 'RNM' : 'OUTROS'),
+          patient_name: patient,
+          hospital_origin: finalHospital,
+          destination: destination(examRaw),
+          professional: professionalRaw,
+          key: firstKey
+        };
+
+        const model = (prisma as any).cirilaAudit;
+        if (model) {
+          await model.create({ data: auditData });
+        } else {
+          // Fallback SQL para salvar caso o client esteja desatualizado
+          const sql = `
+            INSERT INTO "CirilaAudit" (id, exam_type, patient_name, hospital_origin, destination, professional, key, timestamp)
+            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW())
+          `;
+          await prisma.$executeRawUnsafe(sql, auditData.exam_type, auditData.patient_name, auditData.hospital_origin, auditData.destination, auditData.professional, auditData.key);
+        }
       } catch (e) {
         console.error('[CIRILA_AUDIT] Erro ao gravar log:', e);
       }
@@ -583,16 +610,26 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
     // --- LOG DE AUDITORIA (Precisão 100%) ---
     try {
-      await (prisma as any).cirilaAudit.create({
-        data: {
-          exam_type: finalExamOnly.includes('TC') ? 'TC' : (finalExamOnly.includes('RNM') || finalExamOnly.includes('RMN') ? 'RNM' : 'OUTROS'),
-          patient_name: patient,
-          hospital_origin: finalHospital,
-          destination: destination(examRaw),
-          professional: professionalRaw,
-          key: firstKey
-        }
-      });
+      const auditData = {
+        exam_type: finalExamOnly.includes('TC') ? 'TC' : (finalExamOnly.includes('RNM') || finalExamOnly.includes('RMN') ? 'RNM' : 'OUTROS'),
+        patient_name: patient,
+        hospital_origin: finalHospital,
+        destination: destination(examRaw),
+        professional: professionalRaw,
+        key: firstKey
+      };
+
+      const model = (prisma as any).cirilaAudit;
+      if (model) {
+        await model.create({ data: auditData });
+      } else {
+        // Fallback SQL para salvar caso o client esteja desatualizado
+        const sql = `
+          INSERT INTO "CirilaAudit" (id, exam_type, patient_name, hospital_origin, destination, professional, key, timestamp)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW())
+        `;
+        await prisma.$executeRawUnsafe(sql, auditData.exam_type, auditData.patient_name, auditData.hospital_origin, auditData.destination, auditData.professional, auditData.key);
+      }
     } catch (e) {
       console.error('[CIRILA_AUDIT] Erro ao gravar log:', e);
     }
