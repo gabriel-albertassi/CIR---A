@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   /* Cirila & CIR-A Premium Palette */
@@ -52,6 +52,13 @@ body {
   min-height: 100vh;
   background-attachment: fixed;
   position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 /* ════════════════════════════════════
@@ -154,10 +161,11 @@ input, select, textarea {
 }
 
 .btn {
-  padding: 0.65rem 1.25rem;
-  border-radius: 10px;
+  font-family: 'Outfit', sans-serif;
+  padding: 0.5rem 1.1rem;
+  border-radius: 9px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   cursor: pointer;
   border: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -166,6 +174,7 @@ input, select, textarea {
   justify-content: center;
   gap: 0.5rem;
   text-decoration: none;
+  letter-spacing: 0.01em;
   /* Garante que o texto do botão nunca seja herdado como transparente */
   color: inherit;
 }
@@ -315,9 +324,9 @@ td select option {
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-weight: 700;
-  font-size: 1.05rem;
-  letter-spacing: -0.2px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.1px;
   margin-bottom: 0.3rem;
   position: relative;
   overflow: hidden;

@@ -133,10 +133,10 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
                 </div>
                 {!isSidebarCollapsed && (
                   <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', fontFamily: 'Outfit, sans-serif' }}>
                       {user?.name || user?.email?.split('@')[0] || 'Acesso'}
                     </span>
-                    <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <span style={{ fontSize: '0.58rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Outfit, sans-serif' }}>
                       {user?.role || 'Acesso Automatizado'}
                     </span>
                   </div>
@@ -220,11 +220,12 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
                   justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
                   gap: '1rem',
                   color: isSidebarCollapsed ? '#00b4d8' : '#e2e8f0',
-                  fontSize: '0.9rem',
+                  fontSize: '0.88rem',
                   border: '1px solid rgba(0, 216, 255, 0.1)',
                   transition: 'all 0.2s',
                   width: '100%',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  fontFamily: 'Outfit, sans-serif'
                 }}
               >
                 <Info size={20} color="#00b4d8" style={{ opacity: 0.9 }} />

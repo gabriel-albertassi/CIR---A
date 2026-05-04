@@ -238,22 +238,23 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
       
       <div className={styles.queueHeader}>
         <div className={styles.queueTitle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Fila Dinâmica de Pacientes</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.4rem' }}>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0, fontFamily: 'Outfit, sans-serif' }}>Fila Dinâmica de Pacientes</h1>
             <Link href="/patients/new" className="btn btn-primary" style={{ 
-              padding: '0.4rem 1rem', 
-              fontSize: '0.8rem', 
+              padding: '0.35rem 0.85rem', 
+              fontSize: '0.78rem', 
               borderRadius: '8px', 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '8px', 
-              background: 'rgba(59, 130, 246, 0.25)', 
+              gap: '6px', 
+              background: 'rgba(59, 130, 246, 0.2)', 
               color: '#60a5fa', 
-              border: '1px solid rgba(59, 130, 246, 0.4)',
-              fontWeight: 700,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              border: '1.2px solid rgba(59, 130, 246, 0.3)',
+              fontWeight: 600,
+              fontFamily: 'Outfit, sans-serif',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
-              <Plus size={16} /> Nova Regulação
+              <Plus size={14} /> Nova Regulação
             </Link>
           </div>
           <p style={{ margin: 0, opacity: 0.7 }}>Gerenciamento estratégico de transferências e ocupação.</p>
@@ -357,26 +358,27 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           <button 
                             onClick={() => handleTogglePrivate(p.id, p.is_private ?? false)}
                             style={{ 
-                              background: p.is_private ? 'rgba(245, 158, 11, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
+                              background: p.is_private ? 'rgba(245, 158, 11, 0.12)' : 'rgba(148, 163, 184, 0.08)', 
                               color: p.is_private ? '#fbbf24' : '#94a3b8', 
-                              border: `1px solid ${p.is_private ? 'rgba(245, 158, 11, 0.4)' : 'rgba(148, 163, 184, 0.25)'}`, 
-                              padding: '4px 12px', 
-                              borderRadius: '8px', 
-                              fontSize: '0.75rem', 
-                              fontWeight: 900, 
+                              border: `1px solid ${p.is_private ? 'rgba(245, 158, 11, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
+                              padding: '3px 10px', 
+                              borderRadius: '7px', 
+                              fontSize: '0.72rem', 
+                              fontWeight: 700, 
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
+                              gap: '5px',
                               transition: 'all 0.2s',
-                              boxShadow: p.is_private ? '0 4px 15px rgba(245, 158, 11, 0.1)' : 'none',
+                              boxShadow: p.is_private ? '0 2px 10px rgba(245, 158, 11, 0.05)' : 'none',
                               whiteSpace: 'nowrap',
                               textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
+                              letterSpacing: '0.3px',
+                              fontFamily: 'Outfit, sans-serif'
                             }}
                             title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado"}
                           >
-                            {p.is_private ? <ShieldCheck size={14} strokeWidth={2.5} /> : <ShieldAlert size={14} strokeWidth={2.5} />}
+                            {p.is_private ? <ShieldCheck size={12} strokeWidth={2.5} /> : <ShieldAlert size={12} strokeWidth={2.5} />}
                             {p.is_private ? 'PERFIL PRIVADO' : 'PERFIL SUS'}
                           </button>
                         </div>
@@ -406,14 +408,14 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                       
                       {HOSPITAL_CONTACTS[p.origin_hospital] && (
                         <div className="no-print" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                          <button 
-                            onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
-                            className="btn"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '11px', backgroundColor: 'rgba(22,163,74,0.15)', color: '#86efac', border: '1px solid rgba(22,163,74,0.3)', borderRadius: '6px' }}
-                            title="Cobrar pelo Sistema"
-                          >
-                            <MessageCircle size={12} /> Cobrar NIR
-                          </button>
+                            <button 
+                              onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
+                              className="btn"
+                              style={{ padding: '0.25rem 0.5rem', fontSize: '10px', backgroundColor: 'rgba(22,163,74,0.12)', color: '#86efac', border: '1px solid rgba(22,163,74,0.2)', borderRadius: '5px', fontFamily: 'Outfit, sans-serif' }}
+                              title="Cobrar pelo Sistema"
+                            >
+                              <MessageCircle size={11} /> Cobrar NIR
+                            </button>
                         </div>
                       )}
                     </td>
@@ -459,7 +461,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </select>
                             <button 
                               className="btn btn-primary" 
-                              style={{ padding: '0.25rem 0.75rem', fontWeight: 700 }}
+                              style={{ padding: '0.2rem 0.65rem', fontWeight: 600, fontSize: '0.78rem', fontFamily: 'Outfit, sans-serif' }}
                               onClick={() => handleAction('request', p.id)} 
                               disabled={loadingId === p.id || !targetHospital}
                             >
@@ -756,10 +758,10 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           className={`${styles.premiumActionButton} ${styles.btnEvolve}`}
                           onClick={() => fillAiSuggestion(p)} 
                           disabled={loadingAi === p.id}
-                          style={{ minWidth: '48px', width: '48px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}
+                          style={{ minWidth: '40px', width: '40px', height: '36px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', borderRadius: '10px' }}
                           title="Dica da Inteligência Artificial"
                         >
-                          {loadingAi === p.id ? <Clock size={16} className="animate-spin" /> : <Activity size={18} strokeWidth={2.5} />}
+                          {loadingAi === p.id ? <Clock size={14} className="animate-spin" /> : <Activity size={16} strokeWidth={2.5} />}
                         </button>
 
                       </div>
