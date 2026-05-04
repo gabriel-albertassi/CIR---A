@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'CIR-A | Sistema de Regulação Automatizada',
   description: 'Central Inteligente de Regulação Automatizada - SMSVR',
   icons: {
-    icon: '/favicon-cira.svg',
+    icon: '/logo.png',
   }
 }
 
@@ -25,7 +25,7 @@ export default async function RootLayout({
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   let dbUser = null
   try {
     if (user) {
