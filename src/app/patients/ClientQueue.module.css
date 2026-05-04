@@ -146,70 +146,110 @@
 }
 
 .premiumActionButton {
-  padding: 0.5rem;
-  border-radius: 10px;
-  font-size: 0.78rem;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  font-size: 0.82rem;
   font-weight: 800;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
   border: 1.5px solid transparent;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+  height: 42px; /* Altura fixa para harmonia */
+}
+
+.premiumActionButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: 0.5s;
+}
+
+.premiumActionButton:hover::after {
+  left: 100%;
 }
 
 .premiumActionButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
 }
 
 .premiumActionButton:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
+/* Cores Harmonizadas e Premium */
+
 .btnRequest {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: rgba(96, 165, 250, 0.3);
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btnRefusal {
-  background: #fffbeb;
-  color: #b45309;
-  border-color: #fde68a;
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+  color: #ffffff;
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 4px 15px rgba(180, 83, 9, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btnTransfer {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border-color: rgba(52, 211, 153, 0.3);
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btnEvolve {
-  background: #eff6ff;
-  color: #2563eb;
-  border-color: #bfdbfe;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: #ffffff;
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btnExit {
-  background: rgba(239, 68, 68, 0.12);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+  color: #ffffff;
+  border-color: rgba(251, 113, 133, 0.3);
+  box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
+
 .btnAttach {
-  background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(15, 23, 42, 0.6);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.btnAttach:hover {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: #38bdf8;
 }
 
 .btnBlast {
   background: #0f172a;
-  color: white;
+  color: #f1f5f9;
   border-color: rgba(255, 255, 255, 0.1);
-  min-width: 44px;
+  min-width: 48px;
+  width: 48px;
 }
+
+.btnBlast:hover {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+

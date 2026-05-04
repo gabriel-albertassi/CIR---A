@@ -33,7 +33,7 @@ export default function SobrePage() {
             </p>
           </div>
           <div className="logo-container-glow" style={{ background: 'rgba(255,255,255,0.05)', padding: '2rem', borderRadius: '20px', border: '1px dashed rgba(0,180,216,0.3)' }}>
-            <Image src="/logo2.png" alt="Logo CIR-A" width={300} height={100} style={{ width: '100%', height: 'auto', maxWidth: '300px', display: 'block', margin: '0 auto' }} />
+            <Image src="/logo.png" alt="Logo CIR-A" width={300} height={100} style={{ width: '100%', height: 'auto', maxWidth: '300px', display: 'block', margin: '0 auto' }} />
           </div>
         </div>
       </div>

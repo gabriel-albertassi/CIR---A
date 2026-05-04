@@ -123,7 +123,7 @@ function LoginForm() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
               <div className={`logo-container-glow ${styles.loginLogoWrapper}`} style={{ marginBottom: '-0.75rem' }}>
                 <Image
-                  src="/logo2.png"
+                  src="/logo.png"
                   alt="CIR-A Logo"
                   width={220}
                   height={70}

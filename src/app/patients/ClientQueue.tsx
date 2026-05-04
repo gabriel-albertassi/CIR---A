@@ -483,13 +483,13 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </button>
                           </div>
                         ) : (
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr auto', gap: '8px', width: '100%' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr auto', gap: '8px', width: '100%' }}>
                             <button 
                               onClick={() => setAttachModal({ id: p.id, name: p.name })}
                               className={`${styles.premiumActionButton} ${styles.btnAttach}`}
                               title="Anexar Evolução Médica (PDF/Laudos)"
                             >
-                              <Paperclip size={14} /> Anexar
+                              <Paperclip size={14} strokeWidth={2.5} /> ANEXAR
                             </button>
 
                             <button 
@@ -506,7 +506,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               onClick={() => setBlastModal({ id: p.id, severity: p.severity, is_private: p.is_private })}
                               title="Disparo em Massa (E-mail)"
                             >
-                              <Send size={16} />
+                              <Send size={18} strokeWidth={2.5} />
                             </button>
                           </div>
                         )}
@@ -753,13 +753,13 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                         )}
                         
                         <button 
-                          className="btn btn-outline" 
+                          className={`${styles.premiumActionButton} ${styles.btnEvolve}`}
                           onClick={() => fillAiSuggestion(p)} 
                           disabled={loadingAi === p.id}
-                          style={{ color: '#8b5cf6', borderColor: '#8b5cf6' }}
-                          title="Dica da Inteligência"
+                          style={{ minWidth: '48px', width: '48px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}
+                          title="Dica da Inteligência Artificial"
                         >
-                          <Activity size={16} /> IA
+                          {loadingAi === p.id ? <Clock size={16} className="animate-spin" /> : <Activity size={18} strokeWidth={2.5} />}
                         </button>
 
                       </div>

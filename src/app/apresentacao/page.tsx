@@ -94,7 +94,7 @@ export default function ApresentacaoCIRA() {
         {/* HEADER DA APRESENTAÇÃO */}
         <div className="no-print" style={{ padding: '1.5rem 3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <img src="/logo2.png" alt="CIR-A Logo" style={{ height: '40px', filter: 'brightness(0) invert(1)' }} />
+            <img src="/logo.png" alt="CIR-A Logo" style={{ height: '40px', filter: 'brightness(0) invert(1)' }} />
             <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '1px' }}>APRESENTAÇÃO EXECUTIVA</span>
           </div>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
