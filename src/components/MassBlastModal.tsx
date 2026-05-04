@@ -98,8 +98,8 @@ export default function MassBlastModal({
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-      <div className="card" style={{ width: '460px', padding: '2rem', position: 'relative', animation: 'fadeInSlideUp 0.3s ease', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)', fontFamily: 'Outfit, sans-serif' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.45)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+      <div className="card" style={{ width: '480px', padding: '2.5rem', position: 'relative', animation: 'fadeInSlideUp 0.3s ease', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)', fontFamily: "'Outfit', sans-serif", background: '#ffffff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
         <button 
           onClick={onClose} 
           style={{ 
@@ -207,29 +207,31 @@ export default function MassBlastModal({
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
               <button 
                 className="btn" 
                 disabled={loading || selectedUnits.length === 0}
                 onClick={handleSend}
                 style={{ 
-                  minWidth: '240px', 
-                  padding: '0.75rem 1.5rem', 
-                  background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #0f172a, #334155)' : '#94a3b8', 
+                  minWidth: '260px', 
+                  height: '44px',
+                  padding: '0 2rem', 
+                  background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #0f172a, #1e293b)' : '#94a3b8', 
                   color: 'white', 
-                  borderRadius: '10px', 
-                  fontSize: '0.9rem', 
+                  borderRadius: '12px', 
+                  fontSize: '0.95rem', 
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center', 
-                  gap: '10px',
-                  fontWeight: '700', 
+                  gap: '12px',
+                  fontWeight: '800', 
                   cursor: selectedUnits.length > 0 ? 'pointer' : 'not-allowed',
                   border: 'none',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+                  fontFamily: "'Outfit', sans-serif"
                 }}
               >
-                <Send size={16} /> {loading ? 'Disparando...' : `Disparar para ${selectedUnits.length} unidades`}
+                <Send size={18} /> {loading ? 'Disparando...' : `Disparar para ${selectedUnits.length} unidades`}
               </button>
             </div>
           </>
