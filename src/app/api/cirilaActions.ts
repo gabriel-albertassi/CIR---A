@@ -215,20 +215,16 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     (cleanedText.includes('avulsa') && !cleanedText.includes('etiqueta')) ||
     (cleanedText.includes('chaves') && !cleanedText.includes('etiqueta'));
 
+  // --- DETECÇÃO DE TIPO DE EXAME (GLOBAL) ---
+  const isTC = /\b(tc|tomografia)\b/i.test(cleanedText);
+  const isRNM = /\b(rnm|ressonancia|ressonância|rmn)\b/i.test(cleanedText);
+
   // --- COMANDOS DE RELATÓRIO ---
   if (cleanedText.includes('relatório') || cleanedText.includes('relatorio')) {
     console.log(`[CIRILA_ACTIONS] Comando de relatório detectado: "${cleanedText}"`);
     
-    let examFilter: 'TC' | 'RNM' | undefined = undefined;
-    
-    // Detecção mais agressiva e flexível
-    const isTC = /\btc\b/i.test(cleanedText) || cleanedText.includes('tomografia');
-    const isRNM = /\b(rnm|ressonancia|ressonância|rmn)\b/i.test(cleanedText);
-
-    if (isTC) examFilter = 'TC';
-    if (isRNM) examFilter = 'RNM';
-
-    const isAnnual = cleanedText.includes('anual') || cleanedText.includes('ano');
+    const examFilter: 'TC' | 'RNM' | undefined = isTC ? 'TC' : (isRNM ? 'RNM' : undefined);
+    const isAnnual = /\b(anual|ano|anualmente)\b/i.test(cleanedText);
     const period: 'MENSAL' | 'ANUAL' = isAnnual ? 'ANUAL' : 'MENSAL';
     
     console.log(`[CIRILA_ACTIONS] Filtro Identificado: ${examFilter || 'GERAL'}, Período: ${period}`);
@@ -278,7 +274,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
             `• **Gerar Etiquetas**: *"Gerar [EXAME] para [PACIENTE]"* \n  *(Ex: "Gerar TC de Crânio para João Silva")*\n\n` +
             `• **Planilha de Sobreaviso**: *"Sobreaviso [QTD]"* \n  *(Ex: "Sobreaviso 20" — Gera mapa com 20 chaves)*\n\n` +
             `• **Protocolos (TC)**: *"Protocolo 1"* (HSJB) ou *"Protocolo 2"* (Retiro)\n\n` +
-            `• **Relatórios**: *"Relatório Mensal"* ou *"Relatório Anual"* \n  *(Pode filtrar: "Gerar Relatório de TC Mensal" ou "Relatório RNM Anual")*\n\n` +
+            `• **Relatórios**: *"Relatório Mensal"* ou *"Relatório Anual"* \n  *(Filtros: "Relatório de TC Mensal", "Relatório RNM Anual")*\n\n` +
             `• **Chaves no Chat**: Adicione *"no chat"* ao comando de etiqueta para gerar apenas o texto.\n\n` +
             `• **Assinatura**: Você pode incluir o médico direto: *"Assinado por Inimá"* ou *"Inimá"*.\n\n` +
             `• **Anexos**: Basta arrastar um PDF/Imagem e depois me dar o comando de gerar.\n\n` +
@@ -609,7 +605,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       // --- LOG DE AUDITORIA (Precisão 100%) ---
       try {
         const auditData = {
-          exam_type: finalExamOnly.includes('TC') ? 'TC' : (finalExamOnly.includes('RNM') || finalExamOnly.includes('RMN') ? 'RNM' : 'OUTROS'),
+          exam_type: isTC ? 'TC' : (isRNM ? 'RNM' : 'OUTROS'),
           patient_name: patient,
           hospital_origin: finalHospital,
           destination: destination(examRaw),
@@ -645,7 +641,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     // --- LOG DE AUDITORIA (Precisão 100%) ---
     try {
       const auditData = {
-        exam_type: finalExamOnly.includes('TC') ? 'TC' : (finalExamOnly.includes('RNM') || finalExamOnly.includes('RMN') ? 'RNM' : 'OUTROS'),
+        exam_type: isTC ? 'TC' : (isRNM ? 'RNM' : 'OUTROS'),
         patient_name: patient,
         hospital_origin: finalHospital,
         destination: destination(examRaw),

@@ -91,15 +91,15 @@ export default function NotificationBell() {
                 <button 
                   onClick={handleMarkAllAsRead}
                   disabled={loading}
-                  className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-red-400 transition-colors uppercase font-bold tracking-wider"
-                  title="Limpar todas as notificações"
+                  className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-white/5 bg-white/5 transition-all duration-200 uppercase font-bold tracking-wider shadow-sm"
+                  title="Marcar todas como lidas"
                 >
                   <Trash2 size={12} />
                   Limpar tudo
                 </button>
               )}
               {notifications.length > 0 && (
-                <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full font-medium">
+                <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full font-bold border border-blue-500/10">
                   {notifications.length}
                 </span>
               )}

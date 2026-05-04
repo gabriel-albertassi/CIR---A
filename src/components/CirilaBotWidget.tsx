@@ -21,72 +21,84 @@ function CirilaDashboard({ data, period, examType }: { data: any, period: string
     value
   })).sort((a, b) => (b.value as number) - (a.value as number));
 
+  const isFiltered = examType && examType !== 'GERAL';
+
   return (
     <div style={{ 
-      background: 'white', 
-      borderRadius: '24px', 
-      padding: '1.5rem', 
-      border: '1px solid #e2e8f0', 
-      boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+      background: 'rgba(255, 255, 255, 0.9)', 
+      backdropFilter: 'blur(10px)',
+      borderRadius: '20px', 
+      padding: '1.25rem', 
+      border: '1px solid rgba(226, 232, 240, 0.8)', 
+      boxShadow: '0 4px 20px -5px rgba(0,0,0,0.05)',
       marginTop: '1rem',
       width: '100%',
-      minWidth: '320px'
+      minWidth: '300px'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-        <BarChart3 size={20} color="#00d8ff" />
-        <h4 style={{ margin: 0, fontSize: '1rem', color: '#0f172a' }}>
-          Relatório {period} {examType !== 'GERAL' ? ` de ${examType}` : 'Geral'}
-        </h4>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <BarChart3 size={18} color="#00d8ff" />
+          <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#0f172a', fontWeight: 700 }}>
+            {isFiltered ? `Relatório ${examType}` : 'Relatório Geral'}
+          </h4>
+        </div>
+        <span style={{ fontSize: '0.65rem', background: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>
+          {period}
+        </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
-          <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>TOTAL EXAMES</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{data.total}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+        <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
+          <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, marginBottom: '2px' }}>AUTORIZADOS</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>{data.total}</div>
         </div>
-        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
-          <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>TENDÊNCIA</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontSize: '1.1rem', fontWeight: 700 }}>
-            <TrendingUp size={16} /> +12%
+        <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
+          <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, marginBottom: '2px' }}>DESEMPENHO</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontSize: '1rem', fontWeight: 800 }}>
+            <TrendingUp size={14} /> +12%
           </div>
         </div>
       </div>
 
-      {examType === 'GERAL' && chartData.length > 0 && (
-        <div style={{ height: '200px', width: '100%', marginBottom: '1.5rem' }}>
+      {!isFiltered && chartData.length > 0 && (
+        <div style={{ height: '160px', width: '100%', marginBottom: '1.25rem' }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80}
+                innerRadius={45}
+                outerRadius={65}
                 paddingAngle={5}
                 dataKey="value"
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                 ))}
               </Pie>
-              <Tooltip />
-              <Legend />
+              <Tooltip 
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '0.75rem' }}
+              />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: '0.7rem', fontWeight: 600 }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
       )}
 
       {hospitalData.length > 0 && (
-        <div>
-          <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, marginBottom: '1rem' }}>RANKING POR HOSPITAL</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ marginTop: isFiltered ? '0.5rem' : '0' }}>
+          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 800, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Principais Origens
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {hospitalData.slice(0, 3).map((h: any, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#0f172a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>
+                <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#0f172a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800 }}>
                   {idx + 1}
                 </div>
-                <div style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>{h.name}</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#00d8ff' }}>{h.value}</div>
+                <div style={{ flex: 1, fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>{h.name}</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#00d8ff' }}>{h.value}</div>
               </div>
             ))}
           </div>
@@ -375,29 +387,31 @@ export default function CirilaBotWidget() {
               {m.actions && m.actions.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.75rem' }}>
                   {m.actions.map(act => (
-                      <button 
-                        key={act.label}
-                        onClick={() => handleActionClick(act.payload)}
-                        className="cirila-action-btn"
-                        style={{ 
-                          background: 'rgba(15, 23, 42, 0.04)', 
-                          color: '#475569', 
-                          border: '1px solid rgba(15, 23, 42, 0.08)', 
-                          padding: '0.4rem 0.85rem', 
-                          borderRadius: '20px', 
-                          fontSize: '0.75rem', 
-                          fontWeight: 600, 
-                          cursor: 'pointer', 
-                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          backdropFilter: 'blur(4px)'
-                        }}
-                      >
-                        {getActionIcon(act.payload)}
-                        {act.label}
-                      </button>
+                        <button 
+                          key={act.label}
+                          onClick={() => handleActionClick(act.payload)}
+                          className="cirila-action-btn"
+                          style={{ 
+                            background: '#f8fafc', 
+                            color: '#64748b', 
+                            border: '1px solid #f1f5f9', 
+                            padding: '0.35rem 0.7rem', 
+                            borderRadius: '10px', 
+                            fontSize: '0.6rem', 
+                            fontWeight: 800, 
+                            cursor: 'pointer', 
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            boxShadow: 'none',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.6px'
+                          }}
+                        >
+                          {getActionIcon(act.payload)}
+                          {act.label}
+                        </button>
                   ))}
                 </div>
               )}
@@ -525,13 +539,15 @@ export default function CirilaBotWidget() {
         }
         .animate-spin { animation: spin 1s linear infinite; }
         .cirila-action-btn:hover {
-          background: rgba(15, 23, 42, 0.08) !important;
-          border-color: rgba(15, 23, 42, 0.15) !important;
+          background: #f8fafc !important;
+          border-color: #cbd5e1 !important;
           color: #0f172a !important;
-          transform: translateY(-1px);
+          transform: translateY(-1.5px);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
         }
         .cirila-action-btn:active {
-          transform: translateY(0) scale(0.98);
+          transform: translateY(0) scale(0.96);
+          box-shadow: none !important;
         }
         @media (max-width: 768px) {
           .cirila-chat-container { width: 100vw !important; height: 100vh !important; max-width: none !important; border-radius: 0 !important; top: 0 !important; left: 0 !important; transform: none !important; }
