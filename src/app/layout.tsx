@@ -8,7 +8,9 @@ export const metadata: Metadata = {
   title: 'CIR-A | Sistema de Regulação Automatizada',
   description: 'Central Inteligente de Regulação Automatizada - SMSVR',
   icons: {
-    icon: '/logo.png',
+    icon: '/logo2.png?v=3',
+    shortcut: '/logo2.png?v=3',
+    apple: '/logo2.png?v=3',
   }
 }
 
