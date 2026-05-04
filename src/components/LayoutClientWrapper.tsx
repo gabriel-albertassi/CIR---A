@@ -63,7 +63,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
           {/* LOGO & BRANDING */}
           <div className="logo-container-glow" style={{ marginBottom: '1.5rem', marginTop: '1.5rem', position: 'relative', height: '120px', width: '100%' }}>
             <Image
-              src="/logo.png"
+              src="/logo2.png"
               alt="Logo CIR-A"
               fill
               priority
@@ -298,7 +298,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
             textAlign: 'center'
           }}>
             <div className="logo-container-glow" style={{ position: 'relative', width: '240px', height: '70px' }}>
-              <Image src="/logo.png" alt="Logo CIR-A" fill style={{ objectFit: 'contain' }} />
+              <Image src="/logo2.png" alt="Logo CIR-A" fill style={{ objectFit: 'contain' }} />
             </div>
             <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#00d8ff', textTransform: 'uppercase', letterSpacing: '2px', opacity: 0.8 }}>
               SMSVR • SECRETARIA MUNICIPAL DE SAÚDE

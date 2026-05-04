@@ -94,18 +94,21 @@ export async function executeEmailDispatch(patientId: string, targetType: string
 export async function getCirilaStats(examType?: 'TC' | 'RNM') {
   try {
     const now = new Date();
-    const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const firstDayYear = new Date(now.getFullYear(), 0, 1);
+    // Ajuste para garantir que pegamos o início do dia local/UTC corretamente
+    const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    const firstDayYear = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
+
+    console.log(`[CIRILA_STATS] Buscando estatísticas para: ${examType || 'GERAL'}`);
 
     const filter: any = {};
     if (examType === 'TC') filter.exam_type = { equals: 'TC' };
     if (examType === 'RNM') filter.exam_type = { equals: 'RNM' };
 
-    // Tenta acessar o modelo, com fallback para query bruta se o client não estiver atualizado
     const getLogs = async (since: Date) => {
       try {
         const model = (prisma as any).cirilaAudit;
         if (model) {
+          console.log(`[CIRILA_STATS] Usando Prisma Model para busca desde ${since.toISOString()}`);
           return await model.findMany({
             where: { 
               timestamp: { gte: since },
@@ -113,14 +116,19 @@ export async function getCirilaStats(examType?: 'TC' | 'RNM') {
             }
           });
         }
-        // Fallback para SQL bruto se o modelo não existir no PrismaClient (cache do node_modules)
+        
+        console.log(`[CIRILA_STATS] Fallback para SQL bruto (Prisma Model não encontrado)`);
         const tableName = '"CirilaAudit"';
         const dateStr = since.toISOString();
-        let sql = `SELECT * FROM ${tableName} WHERE timestamp >= '${dateStr}'`;
-        if (examType) sql += ` AND exam_type = '${examType}'`;
-        return await prisma.$queryRawUnsafe(sql);
+        let sql = `SELECT * FROM ${tableName} WHERE timestamp >= $1`;
+        
+        if (examType) {
+          sql += ` AND exam_type = $2`;
+          return await prisma.$queryRawUnsafe(sql, dateStr, examType);
+        }
+        return await prisma.$queryRawUnsafe(sql, dateStr);
       } catch (err) {
-        console.error(`[CIRILA_STATS] Falha ao buscar logs desde ${since}:`, err);
+        console.error(`[CIRILA_STATS] Erro em getLogs:`, err);
         return [];
       }
     };
@@ -130,22 +138,26 @@ export async function getCirilaStats(examType?: 'TC' | 'RNM') {
       getLogs(firstDayYear)
     ]);
 
+    console.log(`[CIRILA_STATS] Logs encontrados - Mensal: ${monthly?.length || 0}, Anual: ${annual?.length || 0}`);
+
     const summarize = (data: any[]) => {
       if (!Array.isArray(data)) return { total: 0, tc: 0, rnm: 0, others: 0, byHospital: {} };
       
       const tc = data.filter((d: any) => d.exam_type === 'TC').length;
       const rnm = data.filter((d: any) => d.exam_type === 'RNM').length;
       
+      const byHospital = data.reduce((acc: any, d: any) => {
+        const hosp = d.hospital_origin || 'NÃO INFORMADO';
+        acc[hosp] = (acc[hosp] || 0) + 1;
+        return acc;
+      }, {});
+
       return {
         total: data.length,
         tc,
         rnm,
         others: data.length - tc - rnm,
-        byHospital: data.reduce((acc: any, d: any) => {
-          const hosp = d.hospital_origin || 'NÃO INFORMADO';
-          acc[hosp] = (acc[hosp] || 0) + 1;
-          return acc;
-        }, {})
+        byHospital
       };
     };
 
@@ -205,20 +217,42 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
 
   // --- COMANDOS DE RELATÓRIO ---
   if (cleanedText.includes('relatório') || cleanedText.includes('relatorio')) {
-    let examFilter: 'TC' | 'RNM' | undefined = undefined;
-    if (/\btc\b/i.test(cleanedText)) examFilter = 'TC';
-    if (/\b(rnm|ressonancia|ressonância)\b/i.test(cleanedText)) examFilter = 'RNM';
-
-    const period: 'MENSAL' | 'ANUAL' = (cleanedText.includes('anual') || cleanedText.includes('ano')) ? 'ANUAL' : 'MENSAL';
+    console.log(`[CIRILA_ACTIONS] Comando de relatório detectado: "${cleanedText}"`);
     
+    let examFilter: 'TC' | 'RNM' | undefined = undefined;
+    
+    // Detecção mais agressiva e flexível
+    const isTC = /\btc\b/i.test(cleanedText) || cleanedText.includes('tomografia');
+    const isRNM = /\b(rnm|ressonancia|ressonância|rmn)\b/i.test(cleanedText);
+
+    if (isTC) examFilter = 'TC';
+    if (isRNM) examFilter = 'RNM';
+
+    const isAnnual = cleanedText.includes('anual') || cleanedText.includes('ano');
+    const period: 'MENSAL' | 'ANUAL' = isAnnual ? 'ANUAL' : 'MENSAL';
+    
+    console.log(`[CIRILA_ACTIONS] Filtro Identificado: ${examFilter || 'GERAL'}, Período: ${period}`);
+
     const stats = await getCirilaStats(examFilter);
-    if (!stats) return { text: "⚠️ Erro ao acessar dados de auditoria.", sender: 'ai' };
+    if (!stats) {
+      console.error('[CIRILA_ACTIONS] Falha ao obter estatísticas.');
+      return { text: "⚠️ Desculpe chefe, tive um problema técnico ao acessar os dados de auditoria para o relatório.", sender: 'ai' };
+    }
 
     const data = period === 'ANUAL' ? stats.annual : stats.monthly;
+    
+    if (!data || data.total === 0) {
+      const typeStr = examFilter ? ` de ${examFilter}` : '';
+      return { 
+        text: `📊 **Relatório ${period}${typeStr}**\n\nChefe, não encontrei nenhum registro de auditoria para este período no banco de dados. \n\n*Dica: Os relatórios são baseados nas etiquetas oficiais geradas.*`,
+        sender: 'ai'
+      };
+    }
+
     const examLabel = examFilter ? ` de ${examFilter}` : '';
 
     return {
-      text: `📊 **Relatório ${period}${examLabel}**\n\nProcessando dados específicos para sua solicitação...`,
+      text: `📊 **Relatório ${period}${examLabel}**\n\nAqui estão os dados consolidados da sua regulação, baseados nas etiquetas geradas:`,
       sender: 'ai',
       payload: {
         type: 'CIRILA_DASHBOARD',

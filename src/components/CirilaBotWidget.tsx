@@ -207,88 +207,17 @@ export default function CirilaBotWidget() {
     }
   }
 
-  async function handleActionClick(payload: string) {
-    if (payload === 'NAV_QUEUE') router.push('/patients');
-    if (payload === 'NAV_HOSPITALS') router.push('/admin/hospitals');
-    if (payload === 'QUERY_QUEUE') handleSend('quantos pacientes na fila vermelha e normal?');
-    if (payload === 'QUERY_ABOUT') handleSend('o que você sabe fazer?');
-    if (payload === '!comandos') handleSend('!comandos');
-    
-    if (payload.startsWith('SEND_MAIL_')) {
-      const parts = payload.split('_');
-      const target = parts[parts.length - 1] === 'PUBLIC' ? 'Rede Pública' : 'Rede Pública + Privada';
-      handleSend(`Excelente. Prepare o envio para a ${target}.`);
-    }
+  const handleActionClick = (payload: string) => {
+    handleSend(payload);
+  };
 
-    if (payload.startsWith('EXECUTE_SEND_')) {
-      const parts = payload.split('_');
-      // Formato: EXECUTE_SEND_patientId_target OU EXECUTE_SEND_patientId_ONLY_hospitalId
-      const id = parts[2];
-      const target = parts[3] === 'ONLY' ? `ONLY_${parts[4]}` : parts[3];
-      
-      setLoading(true);
-      setExpression('thinking');
-      
-      const res = await executeEmailDispatch(id, target);
-      
-      if (res.success) {
-        setMessages(prev => [...prev, { 
-          text: `🚀 **Disparo Concluído com Sucesso!** Enviei notificações para **${res.count} hospital(is)**: ${res.targetNames?.join(', ')}.`, 
-          sender: 'ai',
-          image: '/cirila_icone.png'
-        }]);
-      } else {
-        setMessages(prev => [...prev, { 
-          text: `❌ **Falha no Disparo:** ${res.error}`, 
-          sender: 'ai',
-          image: '/cirila_3D_neutral.png'
-        }]);
-      }
-      setLoading(false);
-      setExpression('neutral');
-    }
-
-    if (payload === 'TRIGGER_CHARGE' || payload === 'TRIGGER_BLAST') {
-      router.push('/patients');
-      setTimeout(() => alert('Acesso transferido para a Fila Dinâmica.\n\nVocê também pode pedir: "Cirila, envie o paciente [NOME] para a rede pública"'), 500);
-    }
-
-    if (payload.startsWith('DOWNLOAD_DOCX_')) {
-      const parts = payload.split('_');
-      const count = isNaN(parseInt(parts[2])) ? '15' : parts[2];
-      window.open(`/api/cirila/sobreaviso?count=${count}`, '_blank');
-    }
-
-    if (payload.startsWith('DOWNLOAD_ETIQUETA_DOCX:::')) {
-      const parts = payload.split(':::');
-      // Ordem: PATIENT:::EXAM:::PROFESSIONAL:::KEY:::FILEURL:::QTY:::POS:::HOSPITAL:::PROTOCOLO
-      const patient      = parts[1] || 'AVULSA';
-      const exam         = parts[2] || 'EXAME';
-      const professional = parts[3] || 'paola';
-      const key          = parts[4] || '';
-      const fileUrl      = parts[5] || '';
-      const qty          = parts[6] || '1';
-      const pos          = parts[7] || 'top';
-      const hospitalOrigin = parts[8] || 'HOSPITAL ORIGEM';
-      const protocolo    = parts[9] || '1';
-
-      const params: Record<string, string> = { 
-        patient, 
-        exam, 
-        professional, 
-        key, 
-        qty, 
-        pos,
-        hospitalOrigin,
-        protocolo
-      };
-      
-      if (fileUrl.trim()) params.templateUrl = fileUrl.trim();
-
-      window.open(`/api/cirila/etiqueta?${new URLSearchParams(params).toString()}`, '_blank');
-    }
-
-  }
+  const getActionIcon = (payload: string) => {
+    if (payload.includes('relatorio')) return <BarChart3 size={14} />;
+    if (payload.includes('DOWNLOAD_DOCX') || payload.includes('DOWNLOAD_ETIQUETA')) return <FileText size={14} />;
+    if (payload.includes('protocolo')) return <Bot size={14} />;
+    if (payload.includes('ajuda') || payload.includes('comandos')) return <Sparkles size={14} />;
+    return null;
+  };
 
   return (
     <div className="card cirila-chat-container" style={{ 
@@ -444,15 +373,31 @@ export default function CirilaBotWidget() {
               )}
 
               {m.actions && m.actions.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.75rem' }}>
                   {m.actions.map(act => (
-                    <button 
-                      key={act.label}
-                      onClick={() => handleActionClick(act.payload)}
-                      style={{ background: '#e0e7ff', color: '#3730a3', border: '1px solid #c7d2fe', padding: '0.6rem 1rem', borderRadius: '14px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
-                    >
-                      {act.label}
-                    </button>
+                      <button 
+                        key={act.label}
+                        onClick={() => handleActionClick(act.payload)}
+                        className="cirila-action-btn"
+                        style={{ 
+                          background: 'rgba(15, 23, 42, 0.04)', 
+                          color: '#475569', 
+                          border: '1px solid rgba(15, 23, 42, 0.08)', 
+                          padding: '0.4rem 0.85rem', 
+                          borderRadius: '20px', 
+                          fontSize: '0.75rem', 
+                          fontWeight: 600, 
+                          cursor: 'pointer', 
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          backdropFilter: 'blur(4px)'
+                        }}
+                      >
+                        {getActionIcon(act.payload)}
+                        {act.label}
+                      </button>
                   ))}
                 </div>
               )}
@@ -579,6 +524,15 @@ export default function CirilaBotWidget() {
           15% { opacity: 1; transform: skewY(0deg) scale(1); }
         }
         .animate-spin { animation: spin 1s linear infinite; }
+        .cirila-action-btn:hover {
+          background: rgba(15, 23, 42, 0.08) !important;
+          border-color: rgba(15, 23, 42, 0.15) !important;
+          color: #0f172a !important;
+          transform: translateY(-1px);
+        }
+        .cirila-action-btn:active {
+          transform: translateY(0) scale(0.98);
+        }
         @media (max-width: 768px) {
           .cirila-chat-container { width: 100vw !important; height: 100vh !important; max-width: none !important; border-radius: 0 !important; top: 0 !important; left: 0 !important; transform: none !important; }
         }
