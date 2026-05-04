@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react'
 import { requestBed, transferPatient, cancelPatient, registerRefusal, evolvePatient } from './actions'
 import { AlertTriangle, Clock, Activity, MessageSquare, TrendingUp, Search, MessageCircle, Mail, Send, Paperclip, Plus, ShieldCheck, ShieldAlert, X } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { togglePatientPrivateProfile } from './actions'
 import PrintButton from '@/components/PrintButton'
 import ChargeEvolutionModal from '@/components/ChargeEvolutionModal'
@@ -114,7 +115,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
   const [exitType, setExitType] = useState<'ALTA_MEDICA' | 'OBITO' | 'OUTRO' | ''>('');
   const [exitNote, setExitNote] = useState<string>('');
 
-  const TRANSFER_HOSPITALS = [...ALL_HOSPITALS, 'Hospital Regional'];
+  const TRANSFER_HOSPITALS = ALL_HOSPITALS.filter(h => h !== 'UPA 24H');
 
   const [notifying, setNotifying] = useState<string | null>(null);
 
@@ -125,7 +126,12 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
     setNotifying(patientId);
     try {
       const { sendMassBedRequest } = await import('./communicationActions');
-      const res = await sendMassBedRequest(patientId, 'PUBLIC_ONLY', severity, [hospital]);
+      
+      // Determine profile based on hospital type
+      const isPrivateHosp = PRIVATE_HOSPITALS.includes(hospital);
+      const profile = isPrivateHosp ? 'PRIVATE_ONLY' : 'PUBLIC_ONLY';
+
+      const res = await sendMassBedRequest(patientId, profile, severity, [hospital]);
       if (res.error) {
         alert("Erro no disparo: " + res.error);
       } else {
@@ -210,7 +216,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
       await new Promise(r => setTimeout(r, 600));
       let text = '';
       if (p.severity === 'SALA_VERMELHA' || p.score === -1) {
-        text = 'Prioridade 1: Risco Iminente de Vida. Acionar recurso de Vaga Zero IMEDIATAMENTE (Hospital Regional ou Santa Casa). Acionar chefia médica no local.';
+        text = 'Prioridade 1: Risco Iminente de Vida. Acionar recurso de Vaga Zero IMEDIATAMENTE (Hospitais de Referência ou Santa Casa). Acionar chefia médica no local.';
       } else if (p.score > 35) {
         text = 'Score muito crítico. Se houver fila no CTI, comunique o plantonista da Regulação para contato telefônico urgente com a origem.';
       } else if (p.status === 'OFFERED') {
@@ -237,27 +243,38 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
     <div className="card" style={{ overflowX: 'auto', padding: '0', backgroundColor: 'var(--surface)' }}>
       
       <div className={styles.queueHeader}>
-        <div className={styles.queueTitle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.4rem' }}>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0, fontFamily: 'Outfit, sans-serif' }}>Fila Dinâmica de Pacientes</h1>
-            <Link href="/patients/new" className="btn btn-primary" style={{ 
-              padding: '0.35rem 0.85rem', 
-              fontSize: '0.78rem', 
-              borderRadius: '8px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px', 
-              background: 'rgba(59, 130, 246, 0.2)', 
-              color: '#60a5fa', 
-              border: '1.2px solid rgba(59, 130, 246, 0.3)',
-              fontWeight: 600,
-              fontFamily: 'Outfit, sans-serif',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-              <Plus size={14} /> Nova Regulação
-            </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div className="logo-container-glow" style={{ position: 'relative', width: '120px', height: '50px', flexShrink: 0 }}>
+            <Image 
+              src="/logo.png" 
+              alt="Logo CIR-A" 
+              fill 
+              style={{ objectFit: 'contain' }} 
+            />
           </div>
-          <p style={{ margin: 0, opacity: 0.7 }}>Gerenciamento estratégico de transferências e ocupação.</p>
+          <div className={styles.queueTitle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.2rem' }}>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, fontFamily: 'Outfit, sans-serif', letterSpacing: '-0.03em' }}>Fila Dinâmica</h1>
+              <Link href="/patients/new" className="btn btn-primary" style={{ 
+                padding: '0.25rem 0.6rem', 
+                fontSize: '0.65rem', 
+                borderRadius: '6px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '4px', 
+                background: 'rgba(59, 130, 246, 0.2)', 
+                color: '#60a5fa', 
+                border: '1.1px solid rgba(59, 130, 246, 0.3)',
+                fontWeight: 800,
+                fontFamily: 'Outfit, sans-serif',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                <Plus size={12} /> Novo
+              </Link>
+            </div>
+            <p style={{ margin: 0, opacity: 0.6, fontSize: '0.85rem', fontWeight: 500 }}>Gestão estratégica de transferências.</p>
+          </div>
         </div>
         
         <div className={`no-print ${styles.filterPanel}`}>
@@ -297,11 +314,11 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
           
           <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
             <tr>
-              <th style={{ padding: '0.75rem 1.5rem' }}>Critério (Score)</th>
-              <th style={{ padding: '0.75rem 1.5rem' }}>Paciente</th>
-              <th style={{ padding: '0.75rem 1.5rem' }}>Diagnóstico & Origem</th>
-              <th style={{ padding: '0.75rem 1.5rem' }}>Status / Espera</th>
-              <th className="no-print" style={{ padding: '0.75rem 1.5rem', minWidth: '320px' }}>Ações de Regulação</th>
+              <th style={{ padding: '0.6rem 1rem' }}>Critério</th>
+              <th style={{ padding: '0.6rem 1rem' }}>Paciente</th>
+              <th style={{ padding: '0.6rem 1rem' }}>Diagnóstico & Origem</th>
+              <th style={{ padding: '0.6rem 1rem' }}>Status</th>
+              <th className="no-print" style={{ padding: '0.6rem 1rem', width: '1px', whiteSpace: 'nowrap' }}>Ações</th>
             </tr>
           </thead>
 
@@ -313,6 +330,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
               // Filtra: hospitais já solicitados para este paciente não aparecem novamente
               // LOGIC FIX: Também remove o hospital de origem para não permitir auto-transferência
               const availableHospitals = ALL_HOSPITALS.filter(h => {
+                if (h === 'UPA 24H') return false; // Remover UPA da lista de solicitação
                 if (h === p.origin_hospital) return false;
                 if (h === 'Hospital Doutor Nelson Gonçalves (HNSG)') return canOfferToHNSG;
                 if (p.requested_hospitals && p.requested_hospitals.includes(h)) return false;
@@ -321,6 +339,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
 
               // Filtra: hospitais já recusados não aparecem no dropdown de recusa
               const availableRefusalHospitals = ALL_HOSPITALS.filter(h => {
+                if (h === 'UPA 24H') return false;
                 if (p.refused_hospitals && p.refused_hospitals.includes(h)) return false;
                 return true;
               });
@@ -760,10 +779,10 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           className={`${styles.premiumActionButton} ${styles.btnEvolve}`}
                           onClick={() => fillAiSuggestion(p)} 
                           disabled={loadingAi === p.id}
-                          style={{ minWidth: '40px', width: '40px', height: '36px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', borderRadius: '10px' }}
+                          style={{ minWidth: '32px', width: '32px', height: '32px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', borderRadius: '8px', padding: 0 }}
                           title="Dica da Inteligência Artificial"
                         >
-                          {loadingAi === p.id ? <Clock size={14} className="animate-spin" /> : <Activity size={16} strokeWidth={2.5} />}
+                          {loadingAi === p.id ? <Clock size={12} className="animate-spin" /> : <Activity size={14} strokeWidth={2.5} />}
                         </button>
 
                       </div>

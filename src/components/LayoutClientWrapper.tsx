@@ -286,23 +286,23 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
             {children}
           </div>
 
-          {/* MOBILE ONLY FOOTER - Limpo e com destaque */}
-          <footer className="mobile-only" style={{
-            marginTop: '3rem',
+          {/* FOOTER INSTITUCIONAL GLOBAL */}
+          <footer style={{
+            marginTop: 'auto',
             padding: '2rem 1.5rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1.25rem',
-            background: 'rgba(8, 20, 35, 0.4)',
-            borderTop: '1px solid rgba(0, 180, 216, 0.15)',
+            gap: '1rem',
+            background: 'rgba(8, 20, 35, 0.2)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.05)',
             alignItems: 'center',
             textAlign: 'center'
           }}>
-            <div className="logo-container-glow" style={{ position: 'relative', width: '240px', height: '70px' }}>
-              <Image src="/logo.png" alt="Logo CIR-A" fill style={{ objectFit: 'contain' }} />
+            <div className="logo-container-glow" style={{ position: 'relative', width: '200px', height: '60px' }}>
+              <Image src="/logo.png" alt="Logo CIR-A" fill style={{ objectFit: 'contain', opacity: 0.8 }} />
             </div>
-            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#00d8ff', textTransform: 'uppercase', letterSpacing: '2px', opacity: 0.8 }}>
-              SMSVR • SECRETARIA MUNICIPAL DE SAÚDE
+            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6 }}>
+              SMSVR • SECRETARIA MUNICIPAL DE SAÚDE • VOLTA REDONDA
             </div>
           </footer>
         </main>

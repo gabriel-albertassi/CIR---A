@@ -26,7 +26,7 @@ export default function MassBlastModal({
   
   const isTargeted = !!initialSelectedUnits && initialSelectedUnits.length > 0;
   
-  const basePublic = [...PUBLIC_HOSPITALS, 'Hospital Regional'];
+  const basePublic = PUBLIC_HOSPITALS.filter(u => u !== 'UPA 24H');
   const basePrivate = PRIVATE_HOSPITALS;
 
   // Filter if targeted, otherwise show all relevant
@@ -36,7 +36,7 @@ export default function MassBlastModal({
     
   const privateUnitsToShow = isTargeted
     ? (initialSelectedUnits || []).filter(u => basePrivate.includes(u))
-    : (isPrivatePatient ? basePrivate : []);
+    : basePrivate; // Always show private units to allow special requests
 
   const toggleUnit = (unit: string) => {
     setSelectedUnits(prev => 
@@ -68,7 +68,15 @@ export default function MassBlastModal({
       return;
     }
     setLoading(true);
-    const res = await sendMassBedRequest(patientId, 'PUBLIC_ONLY', severity, selectedUnits);
+    
+    // Determine profile based on selection
+    const hasPrivate = selectedUnits.some(u => basePrivate.includes(u));
+    const hasPublic = selectedUnits.some(u => basePublic.includes(u));
+    let profile: 'PUBLIC_ONLY' | 'PUBLIC_AND_PRIVATE' | 'PRIVATE_ONLY' = 'PUBLIC_ONLY';
+    if (hasPrivate && hasPublic) profile = 'PUBLIC_AND_PRIVATE';
+    else if (hasPrivate) profile = 'PRIVATE_ONLY';
+
+    const res = await sendMassBedRequest(patientId, profile, severity, selectedUnits);
     setLoading(false);
     
     if (res.error) {
