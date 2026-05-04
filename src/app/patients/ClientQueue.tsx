@@ -10,7 +10,7 @@ import PrintButton from '@/components/PrintButton'
 import ChargeEvolutionModal from '@/components/ChargeEvolutionModal'
 import MassBlastModal from '@/components/MassBlastModal'
 import AttachEvolutionModal from '@/components/AttachEvolutionModal'
-import { ALL_HOSPITALS, SEVERITY_LEVELS, HOSPITAL_CONTACTS } from '@/lib/constants'
+import { ALL_HOSPITALS, PRIVATE_HOSPITALS, SEVERITY_LEVELS, HOSPITAL_CONTACTS } from '@/lib/constants'
 import styles from './ClientQueue.module.css'
 
 // We maintain the logic for the red Score tag on rows, but transfer the banner to Cirila's logic.
