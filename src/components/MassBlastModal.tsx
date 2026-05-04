@@ -45,20 +45,20 @@ export default function MassBlastModal({
   };
 
   const toggleAllPublic = () => {
-    const allSelected = publicUnits.every(u => selectedUnits.includes(u));
+    const allSelected = publicUnitsToShow.every(u => selectedUnits.includes(u));
     if (allSelected) {
-      setSelectedUnits(prev => prev.filter(u => !publicUnits.includes(u)));
+      setSelectedUnits(prev => prev.filter(u => !publicUnitsToShow.includes(u)));
     } else {
-      setSelectedUnits(prev => Array.from(new Set([...prev, ...publicUnits])));
+      setSelectedUnits(prev => Array.from(new Set([...prev, ...publicUnitsToShow])));
     }
   };
 
   const toggleAllPrivate = () => {
-    const allSelected = privateUnits.every(u => selectedUnits.includes(u));
+    const allSelected = privateUnitsToShow.every(u => selectedUnits.includes(u));
     if (allSelected) {
-      setSelectedUnits(prev => prev.filter(u => !privateUnits.includes(u)));
+      setSelectedUnits(prev => prev.filter(u => !privateUnitsToShow.includes(u)));
     } else {
-      setSelectedUnits(prev => Array.from(new Set([...prev, ...privateUnits])));
+      setSelectedUnits(prev => Array.from(new Set([...prev, ...privateUnitsToShow])));
     }
   };
 

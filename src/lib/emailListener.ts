@@ -24,6 +24,7 @@ export async function fetchUnseenCentralEmails() {
     verifyOnly: false
   });
 
+  let messages: number[] = [];
   try {
     await client.connect();
 
@@ -32,7 +33,8 @@ export async function fetchUnseenCentralEmails() {
     try {
       // Busca e-mails não lidos (UNSEEN)
       // Usamos 'unseen' para pegar apenas o que o regulador ainda não abriu
-      const messages = await client.search({ seen: false });
+      const searchResult = await client.search({ seen: false });
+      messages = (searchResult || []) as number[];
       
       console.log(`[EmailListener] Encontrados ${messages.length} e-mails não lidos.`);
 
