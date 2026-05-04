@@ -98,8 +98,8 @@ export default function MassBlastModal({
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-      <div className="card" style={{ width: '480px', padding: '2rem', position: 'relative', animation: 'fadeInSlideUp 0.3s ease', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+      <div className="card" style={{ width: '460px', padding: '2rem', position: 'relative', animation: 'fadeInSlideUp 0.3s ease', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)', fontFamily: 'Outfit, sans-serif' }}>
         <button 
           onClick={onClose} 
           style={{ 
@@ -163,7 +163,7 @@ export default function MassBlastModal({
                         disabled={disabled}
                         style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                       />
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'Outfit, sans-serif' }}>
                         <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>{unit}</span>
                         {isHNSG && !canOfferToHNSG && (
                           <span style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 700 }}>❌ Não recebe CTI / Sala Vermelha</span>
@@ -200,21 +200,38 @@ export default function MassBlastModal({
                         onChange={() => toggleUnit(unit)}
                         style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                       />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>{unit}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', fontFamily: 'Outfit, sans-serif' }}>{unit}</span>
                     </label>
                   ))}
                 </div>
               </div>
             )}
 
-            <button 
-              className="btn" 
-              disabled={loading || selectedUnits.length === 0}
-              onClick={handleSend}
-              style={{ width: '100%', padding: '1rem', background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #0f172a, #334155)' : '#94a3b8', color: 'white', borderRadius: '12px', fontSize: '1rem', justifyContent: 'center', fontWeight: '700', cursor: selectedUnits.length > 0 ? 'pointer' : 'not-allowed' }}
-            >
-              <Send size={18} /> {loading ? 'Disparando...' : `Disparar para ${selectedUnits.length} unidade(s)`}
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+              <button 
+                className="btn" 
+                disabled={loading || selectedUnits.length === 0}
+                onClick={handleSend}
+                style={{ 
+                  minWidth: '240px', 
+                  padding: '0.75rem 1.5rem', 
+                  background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #0f172a, #334155)' : '#94a3b8', 
+                  color: 'white', 
+                  borderRadius: '10px', 
+                  fontSize: '0.9rem', 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center', 
+                  gap: '10px',
+                  fontWeight: '700', 
+                  cursor: selectedUnits.length > 0 ? 'pointer' : 'not-allowed',
+                  border: 'none',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                }}
+              >
+                <Send size={16} /> {loading ? 'Disparando...' : `Disparar para ${selectedUnits.length} unidades`}
+              </button>
+            </div>
           </>
         ) : (
           <div style={{ textAlign: 'center', animation: 'fadeIn 0.5s ease' }}>
@@ -240,12 +257,27 @@ export default function MassBlastModal({
               ))}
             </div>
 
-            <button 
-              onClick={onClose}
-              style={{ marginTop: '1.5rem', width: '100%', padding: '0.8rem', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}
-            >
-              Concluir e Voltar
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
+              <button 
+                onClick={onClose}
+                style={{ 
+                  minWidth: '180px', 
+                  padding: '0.65rem 1.25rem', 
+                  background: '#f1f5f9', 
+                  color: '#64748b', 
+                  border: '1px solid #e2e8f0', 
+                  borderRadius: '10px', 
+                  fontWeight: 700, 
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#64748b'; }}
+              >
+                Concluir e Voltar
+              </button>
+            </div>
           </div>
         )}
       </div>

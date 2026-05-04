@@ -480,7 +480,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </select>
                             <button 
                               className="btn btn-primary" 
-                              style={{ padding: '0.2rem 0.65rem', fontWeight: 600, fontSize: '0.78rem', fontFamily: 'Outfit, sans-serif' }}
+                              style={{ padding: '0.35rem 1rem', fontWeight: 700, fontSize: '0.78rem', fontFamily: 'Outfit, sans-serif' }}
                               onClick={() => handleAction('request', p.id)} 
                               disabled={loadingId === p.id || !targetHospital}
                             >
@@ -622,7 +622,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               </select>
                               <button 
                                 className="btn" 
-                                style={{ padding: '0.25rem 0.75rem', backgroundColor: '#16a34a', color: 'white' }}
+                                style={{ padding: '0.35rem 1rem', backgroundColor: '#16a34a', color: 'white', fontWeight: 700, fontSize: '0.78rem' }}
                                 onClick={() => handleAction('transfer', p.id)} 
                                 disabled={loadingId === p.id || !transferHospital}
                               >
@@ -700,7 +700,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                               <button
                                 className="btn"
-                                style={{ padding: '0.3rem 0.75rem', background: '#dc2626', color: 'white', fontWeight: 700, fontSize: '0.82rem', opacity: (!exitType || !exitNote.trim()) ? 0.4 : 1, flex: 1 }}
+                                style={{ padding: '0.35rem 1rem', background: '#dc2626', color: 'white', fontWeight: 700, fontSize: '0.82rem', opacity: (!exitType || !exitNote.trim()) ? 0.4 : 1, minWidth: '140px' }}
                                 onClick={() => handleAction('cancel', p.id)}
                                 disabled={loadingId === p.id || !exitType || !exitNote.trim()}
                               >
@@ -749,7 +749,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             />
                             <button 
                               className="btn" 
-                              style={{ padding: '0.25rem 0.75rem', backgroundColor: '#f97316', color: 'white' }}
+                              style={{ padding: '0.35rem 1rem', backgroundColor: '#f97316', color: 'white', fontWeight: 700, fontSize: '0.78rem' }}
                               onClick={() => handleAction('evolve', p.id)} 
                               disabled={loadingId === p.id || !newSeverity}
                             >
