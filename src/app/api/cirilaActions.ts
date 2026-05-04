@@ -227,17 +227,17 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
             `• **Gerar Etiquetas**: *"Gerar [EXAME] para [PACIENTE]"* \n  *(Ex: "Gerar TC de Crânio para João Silva")*\n\n` +
             `• **Planilha de Sobreaviso**: *"Sobreaviso [QTD]"* \n  *(Ex: "Sobreaviso 20" — Gera mapa com 20 chaves)*\n\n` +
             `• **Protocolos (TC)**: *"Protocolo 1"* (HSJB) ou *"Protocolo 2"* (Retiro)\n\n` +
-            `• **Relatórios**: *"Relatório Mensal"* ou *"Relatório Anual"* \n  *(Exibe dashboard de produtividade real)*\n\n` +
+            `• **Relatórios**: *"Relatório Mensal"* ou *"Relatório Anual"* \n  *(Pode filtrar: "Gerar Relatório de TC Mensal" ou "Relatório RNM Anual")*\n\n` +
             `• **Chaves no Chat**: Adicione *"no chat"* ao comando de etiqueta para gerar apenas o texto.\n\n` +
             `• **Assinatura**: Você pode incluir o médico direto: *"Assinado por Inimá"* ou *"Inimá"*.\n\n` +
             `• **Anexos**: Basta arrastar um PDF/Imagem e depois me dar o comando de gerar.\n\n` +
             `*Dica: Você pode usar !comandos ou @comandos a qualquer momento.*`,
       sender: 'ai',
       actions: [
-        { label: '📊 Relatório Mensal', payload: 'relatório mensal' },
-        { label: 'Gerar Sobreaviso', payload: 'sobreaviso 15' },
-        { label: 'Protocolo 1 (HSJB)', payload: 'protocolo 1' },
-        { label: 'Protocolo 2 (Retiro)', payload: 'protocolo 2' },
+        { label: '📊 Relatório TC Mensal', payload: 'gerar relatorio de tc mensal' },
+        { label: '📊 Relatório RNM Mensal', payload: 'gerar relatorio de rnm mensal' },
+        { label: '📄 Sobreaviso (15)', payload: 'sobreaviso 15' },
+        { label: '🚑 Protocolo 2 (Retiro)', payload: 'protocolo 2' },
       ]
     };
   }

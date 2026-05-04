@@ -7,6 +7,9 @@ import { prisma } from '../lib/db'
 export const metadata: Metadata = {
   title: 'CIR-A | Sistema de Regulação Automatizada',
   description: 'Central Inteligente de Regulação Automatizada - SMSVR',
+  icons: {
+    icon: '/favicon-cira.svg',
+  }
 }
 
 export const viewport: Viewport = {
