@@ -34,11 +34,12 @@ function makeKeyGenerator() {
 }
 
 // ─── Constantes de layout ─────────────────────────────────────────────────────
-// A4 Paisagem: largura total 16838 twips — margens L+R = 400 twips → útil = 16438
-const PAGE_W = 16438;
+// A4 Paisagem: largura total 16838 twips — margens L+R = 720 twips → útil = 15398
+const PAGE_W = 15398;
 
 // Proporções das colunas (devem somar 100)
-const COL_PCTS = [10, 30, 16, 14, 15, 12, 6, 10]; // ← ajuste de 7% para 10% no AUDITOR (total=113, normalizado abaixo)
+// Ajustadas para equilibrar melhor conforme o print de referência
+const COL_PCTS = [10, 24, 17, 12, 12, 11, 7, 7]; 
 const COL_LABELS = [
   'DATA / CHAVE',
   'CLIENTE (PACIENTE)',
@@ -72,9 +73,8 @@ const BORDERS = {
   insideVertical:   { style: BD, size: 4, color: '000000' },
 };
 
-// Altura FIXA das linhas de dados — nunca muda
-// ~960 twips = ~1,7 cm por linha → ≈ 9 linhas por página A4 paisagem
-const ROW_HEIGHT = 960;
+// Altura FIXA das linhas de dados — REDUZIDA para caber mais uma linha
+const ROW_HEIGHT = 690;
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
@@ -93,18 +93,19 @@ export async function GET(req: NextRequest) {
     const headerRow = new TableRow({
       tableHeader: true,
       cantSplit:   true,
-      height: { value: 700, rule: HeightRule.ATLEAST },
+      height: { value: 500, rule: HeightRule.ATLEAST },
       children: COL_LABELS.map((label, i) =>
         new TableCell({
           width: { size: COL_WIDTHS[i], type: WidthType.DXA },
           shading: { fill: '000000', color: '000000', type: 'solid' },
           verticalAlign: VerticalAlign.CENTER,
-          margins: { top: 80, bottom: 80, left: 100, right: 100 },
+          margins: { top: 20, bottom: 20, left: 80, right: 80 },
           children: [
             new Paragraph({
               alignment: AlignmentType.CENTER,
+              spacing: { before: 0, after: 0 },
               children: [
-                new TextRun({ text: label, bold: true, size: 18, color: 'FFFFFF', font: { name: 'Arial' } }),
+                new TextRun({ text: label, bold: true, size: 15, color: 'FFFFFF', font: { name: 'Arial' } }),
               ],
             }),
           ],
@@ -122,7 +123,7 @@ export async function GET(req: NextRequest) {
           width: { size: COL_WIDTHS[colIndex], type: WidthType.DXA },
           shading: { fill, color: fill, type: 'solid' },
           verticalAlign: VerticalAlign.CENTER,
-          children: [new Paragraph({ children: [new TextRun({ text: '' })] })],
+          children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [new TextRun({ text: '' })] })],
         });
 
       return new TableRow({
@@ -134,15 +135,17 @@ export async function GET(req: NextRequest) {
             width: { size: COL_WIDTHS[0], type: WidthType.DXA },
             shading: { fill, color: fill, type: 'solid' },
             verticalAlign: VerticalAlign.CENTER,
-            margins: { top: 60, bottom: 60, left: 80, right: 80 },
+            margins: { top: 20, bottom: 20, left: 60, right: 60 },
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: '___/___', size: 16, color: '555555', font: { name: 'Arial' } })],
+                spacing: { before: 0, after: 0 },
+                children: [new TextRun({ text: '__/__', size: 14, color: '555555', font: { name: 'Arial' } })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: key, bold: true, size: 18, color: '1A56DB', font: { name: 'Arial' } })],
+                spacing: { before: 0, after: 0 },
+                children: [new TextRun({ text: key, bold: true, size: 16, color: '1A56DB', font: { name: 'Arial' } })],
               }),
             ],
           }),
@@ -166,30 +169,21 @@ export async function GET(req: NextRequest) {
       rows: [headerRow, ...dataRows],
     });
 
-    // ── Cabeçalho do documento ────────────────────────────────────────────────
+    // Título e Data na mesma linha para economizar espaço vertical
     const docTitle = [
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: 0, after: 40 },
-        children: [
-          new TextRun({ text: 'CIR-A / REGULAÇÃO SMSVR', bold: true, size: 20, font: { name: 'Arial' }, color: '000000' }),
-        ],
-      }),
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { before: 0, after: 60 },
         children: [
-          new TextRun({ text: 'MAPA DE SUPERVISÃO - SOBREAVISO', bold: true, size: 26, font: { name: 'Arial' }, color: '000000' }),
+          new TextRun({ 
+            text: 'CIR-A / REGULAÇÃO SMSVR   |   MAPA DE SUPERVISÃO - SOBREAVISO   |   DATA: ____/____/_______', 
+            bold: true, 
+            size: 16, 
+            font: { name: 'Arial' }, 
+            color: '000000' 
+          }),
         ],
       }),
-      new Paragraph({
-        alignment: AlignmentType.RIGHT,
-        spacing: { before: 0, after: 120 },
-        children: [
-          new TextRun({ text: 'DATA: ____/____/_______', size: 18, font: { name: 'Arial' }, color: '000000' }),
-        ],
-      }),
-
     ];
 
     // ── Documento final (seção única) ─────────────────────────────────────────
@@ -206,7 +200,7 @@ export async function GET(req: NextRequest) {
           properties: {
             page: {
               size: { orientation: PageOrientation.LANDSCAPE },
-              margin: { top: 1000, bottom: 800, left: 200, right: 200 },
+              margin: { top: 720, bottom: 720, left: 720, right: 720 },
             },
           },
           children: [...docTitle, table],
