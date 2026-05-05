@@ -732,3 +732,118 @@ td select option {
 .logo-hover:hover {
   transform: scale(1.05);
 }
+
+/* ════════════════════════════════════
+   PREMIUM NOTIFICATION SYSTEM (TOASTS)
+   ════════════════════════════════════ */
+
+@keyframes toast-slide-in {
+  0% { transform: translateX(120%) scale(0.9); opacity: 0; }
+  70% { transform: translateX(-5%) scale(1.02); opacity: 1; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+@keyframes toast-slide-out {
+  from { transform: translateX(0) scale(1); opacity: 1; }
+  to { transform: translateX(120%) scale(0.9); opacity: 0; }
+}
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  50%, 100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+@keyframes notification-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 216, 255, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 216, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 216, 255, 0); }
+}
+
+.premium-glass {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.3), 
+    0 4px 6px -2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.toast-premium {
+  @apply premium-glass rounded-2xl p-5 flex gap-4 items-start max-w-sm pointer-events-auto relative overflow-hidden;
+  animation: toast-slide-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  border-left: 4px solid var(--primary);
+}
+
+.toast-premium-exit {
+  animation: toast-slide-out 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.toast-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.03),
+    transparent
+  );
+  animation: shimmer 4s infinite;
+  pointer-events: none;
+}
+
+.toast-icon-glow {
+  @apply p-2.5 rounded-xl flex-shrink-0 relative z-10;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.toast-action-btn {
+  @apply mt-3 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 w-fit;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.toast-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.toast-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(to right, transparent, var(--primary));
+  animation: toast-progress linear forwards;
+  opacity: 0.6;
+}
+
+/* Scrollbar para o painel de notificações */
+.notifications-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.notifications-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.notifications-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.notifications-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 216, 255, 0.3);
+}

@@ -10,6 +10,7 @@ import NotificationBell from '@/components/NotificationBell'
 import SimulatorPanel from '@/components/SimulatorPanel'
 import CallCirilaButton from '@/components/CallCirilaButton'
 import dynamic from 'next/dynamic'
+import { NotificationProvider } from '@/context/NotificationContext'
 
 const CirilaBotWidget = dynamic(() => import('@/components/CirilaBotWidget'), {
   ssr: false,
@@ -44,7 +45,8 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
   if (isLoginPage) return <>{children}</>
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
+    <NotificationProvider>
+      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
       
       {/* BOTÃO HAMBÚRGUER FLUTUANTE PARA MOBILE */}
       {!isLoginPage && (
@@ -325,6 +327,6 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
           <CallCirilaButton />
         </>
       )}
-    </div>
+    </NotificationProvider>
   )
 }

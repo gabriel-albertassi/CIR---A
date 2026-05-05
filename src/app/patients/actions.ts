@@ -146,7 +146,19 @@ export async function evolvePatient(patientId: string, newSeverity: string, newD
   }
 }
 
-export async function attachMedicalEvolution(patientId: string, file: File) {
+export async function attachMedicalEvolution(formData: FormData) {
+  const patientId = formData.get('patientId') as string;
+  const file = formData.get('file') as File;
+
+  if (!patientId || !file) {
+    return { error: 'Dados incompletos para o anexo.' };
+  }
+
+  // Validação de tamanho (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: 'O arquivo excede o limite de 5MB.' };
+  }
+
   try {
     const supabase = await createClient();
     
@@ -155,11 +167,19 @@ export async function attachMedicalEvolution(patientId: string, file: File) {
     const fileName = `evolution_${patientId}_${Date.now()}.${fileExt}`;
     const filePath = `evolucoes/${fileName}`;
 
+    console.log(`[ATTACH_EVOLUTION] Iniciando upload: ${fileName} (${file.size} bytes)`);
+
     const { error: uploadError } = await supabase.storage
       .from('malotes-pacientes')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-    if (uploadError) throw new Error(`Falha no upload: ${uploadError.message}`);
+    if (uploadError) {
+      console.error('[ATTACH_EVOLUTION] Erro no Supabase Storage:', uploadError);
+      throw new Error(`Falha no upload: ${uploadError.message}`);
+    }
 
     const { data: { publicUrl } } = supabase.storage
       .from('malotes-pacientes')
@@ -183,11 +203,14 @@ export async function attachMedicalEvolution(patientId: string, file: File) {
       }
     });
 
+    console.log(`[ATTACH_EVOLUTION] Sucesso para o paciente ${patientId}: ${publicUrl}`);
+
     revalidatePath('/patients');
+    revalidatePath('/');
     return { success: true };
   } catch (err: any) {
-    console.error('Erro ao anexar evolução:', err);
-    return { error: err.message };
+    console.error('[ATTACH_EVOLUTION] Erro crítico:', err);
+    return { error: err.message || 'Erro interno ao processar anexo.' };
   }
 }
 

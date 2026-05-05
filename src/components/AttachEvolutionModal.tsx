@@ -23,7 +23,11 @@ export default function AttachEvolutionModal({ patientId, patientName, onClose }
     setError(null);
 
     try {
-      const res = await attachMedicalEvolution(patientId, file);
+      const formData = new FormData();
+      formData.append('patientId', patientId);
+      formData.append('file', file);
+
+      const res = await attachMedicalEvolution(formData);
       if (res.success) {
         setSuccess(true);
         setTimeout(() => onClose(), 2000);
@@ -31,7 +35,7 @@ export default function AttachEvolutionModal({ patientId, patientName, onClose }
         setError(res.error || 'Erro desconhecido ao enviar arquivo.');
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Falha na conexão com o servidor.');
     } finally {
       setUploading(false);
     }
