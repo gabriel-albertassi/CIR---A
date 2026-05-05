@@ -76,7 +76,6 @@ export async function executeEmailDispatch(patientId: string, targetType: string
 
     await sendHospitalNotification({
       to: emails,
-      subject: `Solicitação de Vaga: ${patient.name}`,
       patientName: patient.name,
       patientId: patient.id,
       severity: patient.severity,

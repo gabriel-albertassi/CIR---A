@@ -17,7 +17,6 @@ const transporter = nodemailer.createTransport({
 
 interface MailOptions {
   to: string[];
-  subject: string;
   patientName: string;
   patientId: string;
   severity: string;
@@ -31,7 +30,6 @@ interface MailOptions {
 
 export async function sendHospitalNotification({
   to,
-  subject,
   patientName,
   patientId,
   severity,
@@ -55,10 +53,10 @@ export async function sendHospitalNotification({
       from: `"CIRA Regulação" <${process.env.SMTP_USER}>`,
       to: to.join(', '),
       bcc: 'central.internacao@epdvr.com.br',
-      subject: `[REGULAÇÃO CIRA] ${subject}`,
+      subject: `[CIR-A | REGULAÇÃO AUTOMATIZADA] Solicitação de Vaga: ${patientName}`,
       attachments: attachments,
       text: `
-CIR-A: Nova Solicitação de Vaga
+[CIR-A | REGULAÇÃO AUTOMATIZADA] Solicitação de Vaga: ${patientName}
 Paciente: ${patientName}
 Gravidade: ${severity}
 Hospital de Origem: ${originHospital}

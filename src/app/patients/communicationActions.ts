@@ -100,7 +100,6 @@ export async function sendMassBedRequest(
     // DISPARO REAL PELO SERVIDOR SMTP
     await sendHospitalNotification({
       to: toEmails,
-      subject: `[CIRA] Solicitação de Vaga: ${patient.name}`,
       patientName: patient.name,
       patientId: patient.id,
       severity: patient.severity,
