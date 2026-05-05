@@ -98,7 +98,7 @@ export default function MassBlastModal({
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.45)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(8, 14, 26, 0.9)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
       <div className="card" style={{ width: '480px', padding: '2.5rem', position: 'relative', animation: 'fadeInSlideUp 0.3s ease', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)', fontFamily: "'Outfit', sans-serif", background: '#ffffff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
         <button 
           onClick={onClose} 
@@ -213,22 +213,24 @@ export default function MassBlastModal({
                 disabled={loading || selectedUnits.length === 0}
                 onClick={handleSend}
                 style={{ 
-                  minWidth: '260px', 
-                  height: '44px',
-                  padding: '0 2rem', 
-                  background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #0f172a, #1e293b)' : '#94a3b8', 
+                  minWidth: '220px', 
+                  height: '40px',
+                  padding: '0 1.5rem', 
+                  background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #00b4d8, #0077b6)' : '#475569', 
                   color: 'white', 
-                  borderRadius: '12px', 
-                  fontSize: '0.95rem', 
+                  borderRadius: '10px', 
+                  fontSize: '0.85rem', 
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center', 
-                  gap: '12px',
+                  gap: '8px',
                   fontWeight: '800', 
                   cursor: selectedUnits.length > 0 ? 'pointer' : 'not-allowed',
                   border: 'none',
-                  boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
-                  fontFamily: "'Outfit', sans-serif"
+                  boxShadow: '0 10px 20px -5px rgba(0, 180, 216, 0.3)',
+                  fontFamily: "'Outfit', sans-serif",
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
                 }}
               >
                 <Send size={18} /> {loading ? 'Disparando...' : `Disparar para ${selectedUnits.length} unidades`}
