@@ -33,15 +33,15 @@ export default function ChargeEvolutionModal({ patientId, originHospital, onClos
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-      <div className="card" style={{ width: '400px', padding: '2rem', position: 'relative', animation: 'fadeInSlideUp 0.3s ease' }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-          <X size={20} />
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(2, 6, 23, 1)', backdropFilter: 'blur(40px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999 }}>
+      <div className="card" style={{ width: '420px', padding: '2.5rem', position: 'relative', animation: 'fadeInSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)', border: '1px solid rgba(56, 189, 248, 0.5)', borderRadius: '32px', background: 'rgba(15, 23, 42, 1)', boxShadow: '0 60px 120px -20px rgba(0, 0, 0, 1), 0 0 80px rgba(56, 189, 248, 0.2)' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', cursor: 'pointer', color: '#94a3b8', width: '32px', height: '32px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+          <X size={18} strokeWidth={2.5} />
         </button>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>Cobrar Evolução Médica</h2>
-        <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.75rem', letterSpacing: '-0.02em', fontFamily: "'Outfit', sans-serif" }}>Cobrar Evolução Médica</h2>
+        <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.5' }}>
           A <strong>Cirila</strong> abrirá o canal oficial da regulação
-          <span style={{ color: '#00d8ff', fontWeight: 800 }}> (+55 24 99961-5198) </span>
+          <span style={{ color: '#38bdf8', fontWeight: 800 }}> (+55 24 99961-5198) </span>
           para exigir a atualização clínica do paciente no NIR do <strong>{originHospital}</strong>.
         </p>
 
@@ -50,17 +50,17 @@ export default function ChargeEvolutionModal({ patientId, originHospital, onClos
             className="btn"
             disabled={loading}
             onClick={() => handleSend('WHATSAPP')}
-            style={{ padding: '0.8rem', background: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '12px', fontSize: '0.95rem', justifyContent: 'center' }}
+            style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '16px', fontSize: '0.9rem', fontWeight: 800, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '10px', textTransform: 'uppercase' }}
           >
-            <MessageCircle size={18} /> Disparar WhatsApp
+            <MessageCircle size={18} strokeWidth={2.5} /> Disparar WhatsApp
           </button>
           <button
             className="btn"
             disabled={loading}
             onClick={() => handleSend('EMAIL')}
-            style={{ padding: '0.8rem', background: '#f8fafc', color: '#334155', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem', justifyContent: 'center' }}
+            style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', color: '#f1f5f9', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '16px', fontSize: '0.9rem', fontWeight: 800, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '10px', textTransform: 'uppercase' }}
           >
-            <Mail size={18} /> Disparar E-mail
+            <Mail size={18} strokeWidth={2.5} /> Disparar E-mail
           </button>
         </div>
       </div>

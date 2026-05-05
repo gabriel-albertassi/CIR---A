@@ -26,17 +26,23 @@ export default function MassBlastModal({
   
   const isTargeted = !!initialSelectedUnits && initialSelectedUnits.length > 0;
   
-  const basePublic = PUBLIC_HOSPITALS.filter(u => u !== 'UPA 24H');
-  const basePrivate = PRIVATE_HOSPITALS;
+  const basePublic = PUBLIC_HOSPITALS.filter(u => {
+    const low = u.toLowerCase();
+    return low !== 'upa 24h' && !low.includes('regional') && !low.includes('upa');
+  });
+  const basePrivate = [...PRIVATE_HOSPITALS, 'Hospitais Privados (Geral)'];
 
   // Filter if targeted, otherwise show all relevant
   const publicUnitsToShow = isTargeted 
-    ? (initialSelectedUnits || []).filter(u => !basePrivate.includes(u))
+    ? (initialSelectedUnits || []).filter(u => {
+        const low = u.toLowerCase();
+        return !basePrivate.includes(u) && low !== 'upa 24h' && !low.includes('regional') && !low.includes('upa');
+      })
     : basePublic;
-    
+
   const privateUnitsToShow = isTargeted
     ? (initialSelectedUnits || []).filter(u => basePrivate.includes(u))
-    : basePrivate; // Always show private units to allow special requests
+    : basePrivate;
 
   const toggleUnit = (unit: string) => {
     setSelectedUnits(prev => 
@@ -98,75 +104,82 @@ export default function MassBlastModal({
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(8, 14, 26, 0.9)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
-      <div className="card" style={{ width: '480px', padding: '2.5rem', position: 'relative', animation: 'fadeInSlideUp 0.3s ease', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)', fontFamily: "'Outfit', sans-serif", background: '#ffffff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(40px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999999 }}>
+      <div className="card" style={{ width: '520px', padding: '2.5rem', position: 'relative', animation: 'fadeInSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)', maxHeight: '92vh', overflowY: 'auto', border: '1px solid rgba(56, 189, 248, 0.4)', fontFamily: "'Outfit', sans-serif", background: 'rgba(15, 23, 42, 0.95)', boxShadow: '0 60px 120px -20px rgba(0, 0, 0, 1), 0 0 50px rgba(56, 189, 248, 0.15)', borderRadius: '32px', backdropFilter: 'blur(60px)' }}>
         <button 
           onClick={onClose} 
           style={{ 
             position: 'absolute', 
             top: '20px', 
             right: '20px', 
-            background: '#f1f5f9', 
-            border: '1px solid #e2e8f0', 
+            background: 'rgba(255, 255, 255, 0.05)', 
+            border: '1px solid rgba(255, 255, 255, 0.1)', 
             cursor: 'pointer', 
-            color: '#64748b',
+            color: '#94a3b8',
             width: '32px',
             height: '32px',
-            borderRadius: '50%',
+            borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'all 0.2s',
             zIndex: 10
           }}
-          onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#64748b'; }}
+          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ffffff'; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
         >
           <X size={18} strokeWidth={2.5} />
         </button>
 
         {!isSent ? (
           <>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>
-              {isTargeted ? 'Notificação de Unidade' : 'Disparo de Vaga'}
-            </h2>
-            <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
-              Selecione as unidades NIR que devem receber a solicitação oficial de <strong>{severity}</strong>:
-            </p>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.35rem', letterSpacing: '-0.02em' }}>
+                {isTargeted ? 'Notificação Direta' : 'Disparo de Vaga'}
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.4' }}>
+                Unidades NIR que receberão a solicitação de <strong>{severity}</strong>:
+              </p>
+            </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Rede Pública</span>
-                {!isTargeted && <button onClick={toggleAllPublic} style={{ fontSize: '0.7rem', color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Alternar Todos</button>}
+                <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>REDE PÚBLICA (SUS)</span>
+                {!isTargeted && (
+                  <button onClick={toggleAllPublic} style={{ fontSize: '0.65rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700 }}>
+                    Marcar/Desmarcar Todos
+                  </button>
+                )}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {publicUnitsToShow.map(unit => {
                   const isHNSG = unit.includes('Nelson Gonçalves');
                   const disabled = isHNSG && !canOfferToHNSG;
+                  const checked = selectedUnits.includes(unit);
                   return (
                     <label key={unit} style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
                       gap: '12px', 
                       padding: '10px 14px', 
-                      background: selectedUnits.includes(unit) ? '#eff6ff' : '#f8fafc',
-                      borderRadius: '10px',
+                      background: checked ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                      borderRadius: '12px',
                       cursor: disabled ? 'not-allowed' : 'pointer',
-                      border: `1px solid ${selectedUnits.includes(unit) ? '#bfdbfe' : '#f1f5f9'}`,
+                      border: `1px solid ${checked ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255, 255, 255, 0.05)'}`,
                       transition: 'all 0.2s',
-                      opacity: disabled ? 0.5 : 1
+                      opacity: disabled ? 0.4 : 1
                     }}>
                       <input 
                         type="checkbox" 
-                        checked={selectedUnits.includes(unit)} 
+                        checked={checked} 
                         onChange={() => !disabled && toggleUnit(unit)}
                         disabled={disabled}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#38bdf8' }}
                       />
-                      <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'Outfit, sans-serif' }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>{unit}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: checked ? '#38bdf8' : '#f1f5f9' }}>{unit}</span>
                         {isHNSG && !canOfferToHNSG && (
-                          <span style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 700 }}>❌ Não recebe CTI / Sala Vermelha</span>
+                          <span style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 800, textTransform: 'uppercase' }}>⚠️ Restrito (Apenas Clínica)</span>
                         )}
                       </div>
                     </label>
@@ -176,84 +189,108 @@ export default function MassBlastModal({
             </div>
 
             {privateUnitsToShow.length > 0 && (
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Rede Privada</span>
-                  {!isTargeted && <button onClick={toggleAllPrivate} style={{ fontSize: '0.7rem', color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Alternar Todos</button>}
+                  <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>REDE PRIVADA</span>
+                  {!isTargeted && (
+                    <button onClick={toggleAllPrivate} style={{ fontSize: '0.65rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700 }}>
+                      Marcar/Desmarcar Todos
+                    </button>
+                  )}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {privateUnitsToShow.map(unit => (
-                    <label key={unit} style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '12px', 
-                      padding: '10px 14px', 
-                      background: selectedUnits.includes(unit) ? '#fff7ed' : '#f8fafc',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      border: `1px solid ${selectedUnits.includes(unit) ? '#fed7aa' : '#f1f5f9'}`,
-                      transition: 'all 0.2s'
-                    }}>
-                      <input 
-                        type="checkbox" 
-                        checked={selectedUnits.includes(unit)} 
-                        onChange={() => toggleUnit(unit)}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', fontFamily: 'Outfit, sans-serif' }}>{unit}</span>
-                    </label>
-                  ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {privateUnitsToShow.map(unit => {
+                    const checked = selectedUnits.includes(unit);
+                    return (
+                      <label key={unit} style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '12px', 
+                        padding: '10px 14px', 
+                        background: checked ? 'rgba(245, 158, 11, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        border: `1px solid ${checked ? 'rgba(245, 158, 11, 0.3)' : 'rgba(255, 255, 255, 0.05)'}`,
+                        transition: 'all 0.2s'
+                      }}>
+                        <input 
+                          type="checkbox" 
+                          checked={checked} 
+                          onChange={() => toggleUnit(unit)}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#f59e0b' }}
+                        />
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: checked ? '#f59e0b' : '#f1f5f9' }}>{unit}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-              <button 
-                className="btn" 
-                disabled={loading || selectedUnits.length === 0}
-                onClick={handleSend}
-                style={{ 
-                  minWidth: '220px', 
-                  height: '40px',
-                  padding: '0 1.5rem', 
-                  background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #00b4d8, #0077b6)' : '#475569', 
-                  color: 'white', 
-                  borderRadius: '10px', 
-                  fontSize: '0.85rem', 
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center', 
-                  gap: '8px',
-                  fontWeight: '800', 
-                  cursor: selectedUnits.length > 0 ? 'pointer' : 'not-allowed',
-                  border: 'none',
-                  boxShadow: '0 10px 20px -5px rgba(0, 180, 216, 0.3)',
-                  fontFamily: "'Outfit', sans-serif",
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}
-              >
-                <Send size={18} /> {loading ? 'Disparando...' : `Disparar para ${selectedUnits.length} unidades`}
-              </button>
-            </div>
+            <button 
+              disabled={loading || selectedUnits.length === 0}
+              onClick={handleSend}
+              style={{ 
+                width: '100%', 
+                height: '48px',
+                background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #38bdf8, #0284c7)' : 'rgba(255,255,255,0.05)', 
+                color: selectedUnits.length > 0 ? '#ffffff' : '#475569', 
+                borderRadius: '14px', 
+                fontSize: '0.85rem', 
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center', 
+                gap: '10px',
+                fontWeight: '800', 
+                cursor: selectedUnits.length > 0 ? 'pointer' : 'not-allowed',
+                border: 'none',
+                boxShadow: selectedUnits.length > 0 ? '0 20px 40px -10px rgba(56, 189, 248, 0.4)' : 'none',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}
+            >
+              {loading ? (
+                <>
+                  <div style={{ width: '18px', height: '18px', border: '3px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  <span>PROCESSANDO...</span>
+                </>
+              ) : (
+                <>
+                  <Send size={18} strokeWidth={2.5} /> 
+                  <span>DISPARAR PARA {selectedUnits.length} UNIDADES</span>
+                </>
+              )}
+            </button>
           </>
         ) : (
-          <div style={{ textAlign: 'center', animation: 'fadeIn 0.5s ease' }}>
-            <div style={{ color: '#10b981', marginBottom: '1rem' }}>
-              <CheckCircle2 size={48} style={{ margin: '0 auto' }} />
+          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ 
+              width: '80px', 
+              height: '80px', 
+              background: 'rgba(16, 185, 129, 0.1)', 
+              borderRadius: '24px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              margin: '0 auto 1.5rem',
+              color: '#10b981',
+              border: '1px solid rgba(16, 185, 129, 0.2)'
+            }}>
+              <CheckCircle2 size={40} strokeWidth={2.5} />
             </div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>Disparo Concluído!</h2>
-            <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
-              E-mails enviados com sucesso para as unidades selecionadas.
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Sucesso!</h2>
+            <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.5' }}>
+              As solicitações foram enviadas para as unidades NIR selecionadas.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '0.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', maxHeight: '300px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'rgba(0, 0, 0, 0.2)', borderRadius: '18px', border: '1px solid rgba(255, 255, 255, 0.05)', maxHeight: '240px', overflowY: 'auto', marginBottom: '2rem' }}>
               {selectedUnits.map(hosp => (
-                <div key={hosp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', textAlign: 'left' }}>{hosp.replace('Hospital ', '').split(' (')[0]}</span>
+                <div key={hosp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f1f5f9' }}>{hosp.replace('Hospital ', '').split(' (')[0]}</span>
                   <button 
                     onClick={() => handleZap(hosp)}
-                    style={{ background: '#dcfce7', color: '#16a34a', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 800 }}
+                    style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase' }}
                   >
                     <MessageCircle size={14} /> Zap
                   </button>
@@ -261,30 +298,34 @@ export default function MassBlastModal({
               ))}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
-              <button 
-                onClick={onClose}
-                style={{ 
-                  minWidth: '180px', 
-                  padding: '0.65rem 1.25rem', 
-                  background: '#f1f5f9', 
-                  color: '#64748b', 
-                  border: '1px solid #e2e8f0', 
-                  borderRadius: '10px', 
-                  fontWeight: 700, 
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#64748b'; }}
-              >
-                Concluir e Voltar
-              </button>
-            </div>
+            <button 
+              onClick={onClose}
+              style={{ 
+                width: '100%', 
+                padding: '0.85rem', 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                color: '#94a3b8', 
+                border: '1px solid rgba(255, 255, 255, 0.1)', 
+                borderRadius: '12px', 
+                fontWeight: 700, 
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                textTransform: 'uppercase'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.color = '#ffffff'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
+            >
+              Concluir e Voltar
+            </button>
           </div>
         )}
       </div>
+      <style jsx>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }

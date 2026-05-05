@@ -10,7 +10,7 @@ export const PRIVATE_HOSPITALS = [
   "Hospital Viver Mais",
 ];
 
-export const ALL_HOSPITALS = [...PUBLIC_HOSPITALS, ...PRIVATE_HOSPITALS];
+export const ALL_HOSPITALS = [...PUBLIC_HOSPITALS, ...PRIVATE_HOSPITALS, "Hospitais Privados (Geral)"];
 
 export const SEVERITY_LEVELS = [
   { value: "CLINICA_MEDICA", label: "Clinica Médica (Azul)", score: 0 },

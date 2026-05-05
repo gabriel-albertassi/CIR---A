@@ -38,8 +38,8 @@ export default function AttachEvolutionModal({ patientId, patientName, onClose }
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div className="card" style={{ maxWidth: '450px', width: '100%', margin: 'auto', background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', padding: '2rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(2, 6, 23, 1)', backdropFilter: 'blur(40px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div className="card" style={{ maxWidth: '480px', width: '100%', margin: 'auto', background: 'rgba(15, 23, 42, 1)', border: '1px solid rgba(56, 189, 248, 0.5)', padding: '2.5rem', boxShadow: '0 60px 120px -20px rgba(0, 0, 0, 1), 0 0 80px rgba(56, 189, 248, 0.2)', borderRadius: '32px', position: 'relative', animation: 'fadeInSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
         
         <button 
           onClick={onClose} 

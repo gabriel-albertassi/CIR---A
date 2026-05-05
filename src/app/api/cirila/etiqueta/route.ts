@@ -175,12 +175,27 @@ export async function GET(req: NextRequest) {
         ? `${absoluteUrl}&cb=${Date.now()}` 
         : `${absoluteUrl}?cb=${Date.now()}`;
 
-      console.log(`[CIRILA_ETIQUETA] Buscando anexo (Fresh): ${cacheBustedUrl}`);
+      console.log(`[CIRILA_ETIQUETA] Iniciando busca do anexo: ${absoluteUrl}`);
       
-      const response = await fetch(cacheBustedUrl, { cache: 'no-store' });
+      let response;
+      try {
+        response = await fetch(cacheBustedUrl, { 
+          cache: 'no-store',
+          headers: {
+            'Accept': '*/*',
+            'User-Agent': 'CirilaBot/1.0'
+          }
+        });
+      } catch (fetchErr: any) {
+        console.error(`[CIRILA_ETIQUETA_ERROR] Falha de rede ao buscar anexo: ${fetchErr.message}`);
+        throw new Error(`Erro de conexão ao buscar o anexo: ${fetchErr.message}`);
+      }
+
       if (!response.ok) {
-        console.error(`[CIRILA_ETIQUETA_ERROR] Falha ao baixar anexo (${response.status}): ${absoluteUrl}`);
-        throw new Error('Falha ao baixar anexo');
+        console.error(`[CIRILA_ETIQUETA_ERROR] Status de resposta inválido (${response.status}): ${absoluteUrl}`);
+        const errorText = await response.text().catch(() => 'Sem corpo de erro');
+        console.error(`[CIRILA_ETIQUETA_ERROR] Detalhes: ${errorText.substring(0, 200)}`);
+        throw new Error(`O servidor de arquivos retornou erro ${response.status}`);
       }
       
       const fileBuffer = Buffer.from(await response.arrayBuffer());
@@ -203,15 +218,27 @@ export async function GET(req: NextRequest) {
 
         const bodyMatch = labelXml.match(/<w:body[^>]*>([\s\S]*?)<\/w:body>/);
         if (bodyMatch) {
-          const labelBody = bodyMatch[1].replace(/<w:sectPr[\s\S]*?<\/w:sectPr>/, '');
+          console.log(`[CIRILA_ETIQUETA] Corpo da etiqueta extraído com sucesso (${bodyMatch[1].length} chars).`);
+          // Remove sectPr da etiqueta para não conflitar com o do template
+          const labelBody = bodyMatch[1].replace(/<w:sectPr[\s\S]*?<\/w:sectPr>/g, '');
           let mergedXml = "";
+
           if (pos === 'bottom') {
-            // Em vez de só anexar, tentamos garantir que não haja quebra de página forçada
-            mergedXml = templateXml.replace(/<\/w:body>/, `${labelBody}</w:body>`);
+            console.log(`[CIRILA_ETIQUETA] Inserindo etiqueta no final (bottom).`);
+            // Tentamos inserir antes do último sectPr para que a etiqueta herde as propriedades da página
+            const lastSectPrIndex = templateXml.lastIndexOf('<w:sectPr');
+            if (lastSectPrIndex !== -1) {
+              mergedXml = templateXml.slice(0, lastSectPrIndex) + labelBody + templateXml.slice(lastSectPrIndex);
+            } else {
+              mergedXml = templateXml.replace(/<\/w:body>/, `${labelBody}</w:body>`);
+            }
           } else {
+            console.log(`[CIRILA_ETIQUETA] Inserindo etiqueta no início (top).`);
             mergedXml = templateXml.replace(/(<w:body[^>]*>)/, `$1${labelBody}`);
           }
+
           templateZip.file("word/document.xml", mergedXml);
+          console.log(`[CIRILA_ETIQUETA] XML mesclado com sucesso. Gerando buffer final...`);
           const finalBuffer = await templateZip.generateAsync({ type: 'nodebuffer' });
 
           return new NextResponse(new Uint8Array(finalBuffer), {
@@ -220,7 +247,76 @@ export async function GET(req: NextRequest) {
               'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             },
           });
+        } else {
+          console.error(`[CIRILA_ETIQUETA_ERROR] Não foi possível extrair o corpo do XML da etiqueta.`);
+          throw new Error("Falha interna ao processar a estrutura da etiqueta.");
         }
+      } else if (isPdf) {
+        console.log(`[CIRILA_ETIQUETA] Processando PDF: ${templateUrl}`);
+        const data = await pdf(fileBuffer);
+        
+        // Limpar o texto e dividir em parágrafos curtos
+        const textLines = data.text
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .slice(0, 40); // Limite de 40 linhas para garantir que caiba em uma página
+
+        const mainContent = textLines.map(line => 
+          new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 40, after: 40 },
+            children: [
+              new TextRun({
+                text: line,
+                size: 18, // Fonte 9pt para ser compacto
+                font: { name: 'Arial' },
+                color: '000000',
+              }),
+            ],
+          })
+        );
+
+        const doc = new Document({
+          sections: [{
+            properties: { 
+              page: { 
+                margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
+              } 
+            },
+            footers: {
+              default: new Footer({
+                children: labelElements,
+              }),
+            },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 200 },
+                children: [
+                  new TextRun({
+                    text: "CONTEÚDO EXTRAÍDO DO ANEXO PDF",
+                    bold: true,
+                    size: 20,
+                    font: { name: 'Arial' },
+                    color: '666666',
+                    underline: { type: UnderlineType.SINGLE },
+                  }),
+                ],
+              }),
+              ...mainContent
+            ]
+          }]
+        });
+
+        const finalBuffer = await Packer.toBuffer(doc);
+        console.log(`[CIRILA_ETIQUETA] PDF processado e convertido para DOCX (${finalBuffer.length} bytes).`);
+        return new NextResponse(new Uint8Array(finalBuffer), {
+          headers: {
+            'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
+            'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          },
+        });
       } else if (isImage) {
         const mainContent = [
           new Paragraph({
@@ -257,6 +353,7 @@ export async function GET(req: NextRequest) {
         });
 
         const finalBuffer = await Packer.toBuffer(doc);
+        console.log(`[CIRILA_ETIQUETA] Imagem processada e inserida no DOCX (${finalBuffer.length} bytes).`);
         return new NextResponse(new Uint8Array(finalBuffer), {
           headers: {
             'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
@@ -264,7 +361,6 @@ export async function GET(req: NextRequest) {
           },
         });
       }
-
     }
 
     // --- CASO PADRÃO: SEM ANEXO (TEMPLATE VAZIO PARA COLAGEM MANUAL) ---

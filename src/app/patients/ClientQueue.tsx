@@ -10,7 +10,7 @@ import PrintButton from '@/components/PrintButton'
 import ChargeEvolutionModal from '@/components/ChargeEvolutionModal'
 import MassBlastModal from '@/components/MassBlastModal'
 import AttachEvolutionModal from '@/components/AttachEvolutionModal'
-import { ALL_HOSPITALS, PRIVATE_HOSPITALS, SEVERITY_LEVELS, HOSPITAL_CONTACTS } from '@/lib/constants'
+import { ALL_HOSPITALS, PRIVATE_HOSPITALS, PUBLIC_HOSPITALS, SEVERITY_LEVELS, HOSPITAL_CONTACTS } from '@/lib/constants'
 import styles from './ClientQueue.module.css'
 
 // We maintain the logic for the red Score tag on rows, but transfer the banner to Cirila's logic.
@@ -115,7 +115,14 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
   const [exitType, setExitType] = useState<'ALTA_MEDICA' | 'OBITO' | 'OUTRO' | ''>('');
   const [exitNote, setExitNote] = useState<string>('');
 
-  const TRANSFER_HOSPITALS = ALL_HOSPITALS.filter(h => h !== 'UPA 24H');
+  const TRANSFER_HOSPITALS = [
+    ...ALL_HOSPITALS.filter(h => 
+      h !== 'UPA 24H' && 
+      !h.toLowerCase().includes('regional') && 
+      !h.toLowerCase().includes('upa')
+    ), 
+    'Hospitais Privados (Geral)'
+  ];
 
   const [notifying, setNotifying] = useState<string | null>(null);
 
@@ -128,7 +135,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
       const { sendMassBedRequest } = await import('./communicationActions');
       
       // Determine profile based on hospital type
-      const isPrivateHosp = PRIVATE_HOSPITALS.includes(hospital);
+      const isPrivateHosp = PRIVATE_HOSPITALS.includes(hospital) || hospital === 'Hospitais Privados (Geral)';
       const profile = isPrivateHosp ? 'PRIVATE_ONLY' : 'PUBLIC_ONLY';
 
       const res = await sendMassBedRequest(patientId, profile, severity, [hospital]);
@@ -240,7 +247,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
 
   return (
     <>
-    <div className="card" style={{ overflowX: 'auto', padding: '0', backgroundColor: 'var(--surface)' }}>
+    <div className="card" style={{ padding: '0', backgroundColor: 'var(--surface)' }}>
       
       <div className={styles.queueHeader}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
@@ -327,34 +334,48 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
               
               const canOfferToHNSG = p.severity !== 'CTI' && p.severity !== 'SALA_VERMELHA';
 
-              // Filtra: hospitais já solicitados para este paciente não aparecem novamente
-              // LOGIC FIX: Também remove o hospital de origem para não permitir auto-transferência
-              const availableHospitals = ALL_HOSPITALS.filter(h => {
-                if (h === 'UPA 24H') return false; // Remover UPA da lista de solicitação
+              const hospitalsToRequest = [
+                ...PUBLIC_HOSPITALS,
+                ...PRIVATE_HOSPITALS,
+                'Hospitais Privados (Geral)'
+              ];
+
+              const availableHospitals = hospitalsToRequest.filter(h => {
+                const lowerH = h.toLowerCase();
+                if (lowerH.includes('regional') || lowerH.includes('upa') || lowerH === 'upa 24h') return false;
                 if (h === p.origin_hospital) return false;
-                if (h === 'Hospital Doutor Nelson Gonçalves (HNSG)') return canOfferToHNSG;
                 if (p.requested_hospitals && p.requested_hospitals.includes(h)) return false;
                 return true;
               });
 
-              // Filtra: hospitais já recusados não aparecem no dropdown de recusa
-              const availableRefusalHospitals = ALL_HOSPITALS.filter(h => {
-                if (h === 'UPA 24H') return false;
+              const availableRefusalHospitals = [
+                ...hospitalsToRequest,
+                "Paciente Recusou Transferencia"
+              ].filter(h => {
+                const lowerH = h.toLowerCase();
+                if (lowerH.includes('regional') || lowerH.includes('upa') || lowerH === 'upa 24h') return false;
                 if (p.refused_hospitals && p.refused_hospitals.includes(h)) return false;
                 return true;
               });
-
               return (
                 <React.Fragment key={p.id}>
-                  <tr style={{
-                    borderTop: '1px solid rgba(255,255,255,0.06)',
-                    backgroundColor: p.severity === 'SALA_VERMELHA'
-                      ? 'rgba(239,68,68,0.12)'
-                      : (p.isDelayed ? 'rgba(239,68,68,0.07)' : 'transparent'),
-                    borderLeft: p.severity === 'SALA_VERMELHA'
-                      ? '4px solid #ef4444'
-                      : (p.isDelayed ? '4px solid #f97316' : '4px solid transparent'),
-                  }}>
+                  <tr 
+                    className={
+                      (requestingId === p.id || refusingId === p.id || transferringId === p.id || cancellingId === p.id || evolvingId === p.id) 
+                      ? styles.rowActive 
+                      : ''
+                    }
+                    style={{
+                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                      backgroundColor: p.severity === 'SALA_VERMELHA'
+                        ? 'rgba(239,68,68,0.12)'
+                        : (p.isDelayed ? 'rgba(239,68,68,0.07)' : 'transparent'),
+                      borderLeft: p.severity === 'SALA_VERMELHA'
+                        ? '4px solid #ef4444'
+                        : (p.isDelayed ? '4px solid #f97316' : '4px solid transparent'),
+                      position: 'relative'
+                    }}
+                  >
                     
                     <td style={{ padding: '1rem 1.5rem' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
@@ -377,19 +398,18 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           <button 
                             onClick={() => handleTogglePrivate(p.id, p.is_private ?? false)}
                             style={{ 
-                              background: p.is_private ? 'rgba(245, 158, 11, 0.12)' : 'rgba(148, 163, 184, 0.08)', 
-                              color: p.is_private ? '#fbbf24' : '#94a3b8', 
-                              border: `1px solid ${p.is_private ? 'rgba(245, 158, 11, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
+                              background: p.is_private ? 'rgba(56, 189, 248, 0.12)' : 'rgba(245, 158, 11, 0.12)', 
+                              color: p.is_private ? '#38bdf8' : '#f59e0b', 
+                              border: `1px solid ${p.is_private ? 'rgba(56, 189, 248, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`, 
                               padding: '3px 10px', 
                               borderRadius: '7px', 
                               fontSize: '0.72rem', 
-                              fontWeight: 700, 
+                              fontWeight: 800, 
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '5px',
                               transition: 'all 0.2s',
-                              boxShadow: p.is_private ? '0 2px 10px rgba(245, 158, 11, 0.05)' : 'none',
                               whiteSpace: 'nowrap',
                               textTransform: 'uppercase',
                               letterSpacing: '0.3px',
@@ -398,23 +418,21 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado"}
                           >
                             {p.is_private ? <ShieldCheck size={12} strokeWidth={2.5} /> : <ShieldAlert size={12} strokeWidth={2.5} />}
-                            {p.is_private ? 'PERFIL PRIVADO' : 'PERFIL SUS'}
+                            {p.is_private ? 'PRIVADO' : 'SUS'}
                           </button>
                         </div>
                         {p.isDelayed && p.severity !== 'SALA_VERMELHA' && (
-                          <span style={{ color: '#f87171', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <AlertTriangle size={14} /> Fila Atrasada
+                          <span style={{ color: '#f87171', fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <AlertTriangle size={12} /> FILA ATRASADA
                           </span>
                         )}
-                        <span style={{ fontSize: '12px', color: '#fca5a5', fontWeight: 600, marginTop: '4px' }}>
+                        <span style={{ fontSize: '11px', color: '#fca5a5', fontWeight: 700, textTransform: 'uppercase' }}>
                           {p.attempts_count} recusa(s)
                         </span>
                         {p.refused_hospitals && p.refused_hospitals.length > 0 && (
-                          <ul style={{ fontSize: '11px', color: '#94a3b8', paddingLeft: '1rem', margin: 0 }}>
-                            {p.refused_hospitals.map((hosp, idx) => (
-                              <li key={idx}>{hosp}</li>
-                            ))}
-                          </ul>
+                          <div style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic', maxWidth: '180px' }}>
+                            {p.refused_hospitals.join(', ')}
+                          </div>
                         )}
                       </div>
                     </td>
@@ -430,37 +448,35 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             <button 
                               onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
                               className="btn"
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '10px', backgroundColor: 'rgba(22,163,74,0.12)', color: '#86efac', border: '1px solid rgba(22,163,74,0.2)', borderRadius: '5px', fontFamily: 'Outfit, sans-serif' }}
+                              style={{ padding: '4px 8px', fontSize: '9px', backgroundColor: 'rgba(56,189,248,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)', borderRadius: '6px', fontWeight: 800, textTransform: 'uppercase' }}
                               title="Cobrar pelo Sistema"
                             >
-                              <MessageCircle size={11} /> Cobrar NIR
+                              <MessageCircle size={10} /> COBRAR NIR
                             </button>
                         </div>
                       )}
                     </td>
 
                     <td style={{ padding: '1rem 1.5rem', minWidth: '180px' }}>
-                      <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#f1f5f9', marginBottom: '4px' }}>
                         {p.status === 'WAITING' ? 'AGUARDANDO' : 'EM SOLICITAÇÃO'}
                       </div>
-                      <small style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
-                        <Clock size={12} /> {formatHours(p.created_at)}
+                      <small style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '0.7rem' }}>
+                        <Clock size={10} /> {formatHours(p.created_at)}
                       </small>
 
                       {p.requested_hospitals && p.requested_hospitals.length > 0 && (
-                        <div style={{ padding: '0.5rem', backgroundColor: '#e0e7ff', borderRadius: '4px', marginTop: '4px' }}>
-                          <span style={{ fontSize: '11px', color: '#3730a3', fontWeight: 600 }}>Solicitado para:</span>
-                          <ul style={{ fontSize: '11px', color: '#4338ca', paddingLeft: '1rem', margin: 0 }}>
-                            {p.requested_hospitals.map((hosp, idx) => (
-                              <li key={idx} style={{ paddingBottom: '2px' }}>{hosp}</li>
-                            ))}
-                          </ul>
+                        <div style={{ padding: '0.65rem', backgroundColor: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', marginTop: '8px' }}>
+                          <span style={{ fontSize: '9px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Solicitado para:</span>
+                          <div style={{ fontSize: '10px', color: '#cbd5e1', marginTop: '4px', lineHeight: '1.4' }}>
+                            {p.requested_hospitals.join(', ')}
+                          </div>
                         </div>
                       )}
                     </td>
 
-                    <td className="no-print" style={{ padding: '1rem 1.5rem' }}>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <td className={`no-print ${styles.actionCell}`}>
+                      <div className={styles.actionPanel}>
                         
                         {requestingId === p.id ? (
                           <div className={styles.hospitalSelectWrapper}>
@@ -487,13 +503,14 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               Confirmar
                             </button>
                             <button
-                              className={styles.btnNotifyDirect}
-                              onClick={() => handleDirectNotify(p.id, targetHospital, p.severity, p.is_private)}
-                              disabled={!targetHospital || notifying === p.id}
-                              title="Disparar Notificação Direta para esta unidade"
+                               className={styles.btnNotifyDirect}
+                               onClick={() => handleDirectNotify(p.id, targetHospital, p.severity, p.is_private)}
+                               disabled={!targetHospital || notifying === p.id}
+                               title="Disparar Notificação Direta para esta unidade"
+                               style={{ minWidth: '120px' }}
                             >
-                              {notifying === p.id ? <Clock size={14} className="animate-spin" /> : <Send size={14} strokeWidth={2.5} />}
-                              NOTIFICAR
+                               {notifying === p.id ? <Clock size={14} className="animate-spin" /> : <Send size={14} strokeWidth={2.5} />}
+                               NOTIFICAR
                             </button>
                             <button 
                               className={styles.btnCancelPremium}
@@ -504,21 +521,19 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </button>
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <>
                             <button 
                               onClick={() => setAttachModal({ id: p.id, name: p.name })}
                               className={`${styles.premiumActionButton} ${styles.btnAttach}`}
                               title="Anexar Evolução Médica (PDF/Laudos)"
-                              style={{ padding: '0 0.75rem' }}
                             >
-                              <Paperclip size={14} strokeWidth={2.5} /> ANEXAR
+                              <Paperclip size={13} strokeWidth={2.5} /> ANEXAR
                             </button>
 
                             <button 
                               className={`${styles.premiumActionButton} ${styles.btnRequest}`}
                               onClick={() => setRequestingId(p.id)} 
                               disabled={loadingId === p.id}
-                              style={{ padding: '0 0.85rem' }}
                             >
                               Solicitar Leito
                             </button>
@@ -527,16 +542,15 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               className={`${styles.premiumActionButton} ${styles.btnBlast}`}
                               onClick={() => setBlastModal({ id: p.id, severity: p.severity, is_private: p.is_private })}
                               title="Disparo em Massa (E-mail)"
-                              style={{ minWidth: '36px', width: '36px', padding: '0' }}
                             >
-                              <Send size={16} strokeWidth={2.5} />
+                              <Send size={15} strokeWidth={2.5} />
                             </button>
-                          </div>
+                          </>
                         )}
 
                         {refusingId === p.id ? (
                           <div className={styles.hospitalSelectWrapper} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                               <select 
                                 className="input" 
                                 style={{ padding: '0.25rem', flex: 1, color: '#1e293b', background: '#fff' }} 
@@ -779,7 +793,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           className={`${styles.premiumActionButton} ${styles.btnEvolve}`}
                           onClick={() => fillAiSuggestion(p)} 
                           disabled={loadingAi === p.id}
-                          style={{ minWidth: '32px', width: '32px', height: '32px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', borderRadius: '8px', padding: 0 }}
+                          style={{ minWidth: '28px', width: '28px', height: '28px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', borderRadius: '6px', padding: 0 }}
                           title="Dica da Inteligência Artificial"
                         >
                           {loadingAi === p.id ? <Clock size={12} className="animate-spin" /> : <Activity size={14} strokeWidth={2.5} />}

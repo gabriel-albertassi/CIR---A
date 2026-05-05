@@ -220,6 +220,64 @@ export default function CirilaBotWidget() {
   }
 
   const handleActionClick = (payload: string) => {
+    if (payload.startsWith('DOWNLOAD_ETIQUETA_DOCX:::')) {
+      const parts = payload.split(':::');
+      const patient = parts[1] || '';
+      const exam = parts[2] || '';
+      const professional = parts[3] || '';
+      const key = parts[4] || '';
+      const templateUrl = parts[5] || '';
+      const qty = parts[6] || '1';
+      const pos = parts[7] || 'bottom';
+      const hospitalOrigin = parts[8] || '';
+      const protocolo = parts[9] || '1';
+
+      const url = `/api/cirila/etiqueta?patient=${patient}&exam=${exam}&professional=${professional}&key=${key}&templateUrl=${encodeURIComponent(templateUrl)}&qty=${qty}&pos=${pos}&hospitalOrigin=${hospitalOrigin}&protocolo=${protocolo}`;
+
+      // Abordagem robusta com fetch para capturar erros do servidor
+      setProcessingStatus('Gerando documento institucional...');
+
+      fetch(url)
+        .then(async (res) => {
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({ error: 'Erro desconhecido no servidor' }));
+            throw new Error(errData.error || 'Falha na geração do documento');
+          }
+          return res.blob();
+        })
+        .then((blob) => {
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.setAttribute('download', `Autorizacao_${patient.replace(/\s/g, '_')}.docx`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(downloadUrl);
+          setMessages(prev => [...prev, { text: `✅ **Sucesso!** O documento de **${patient}** foi gerado e o download deve ter iniciado.`, sender: 'ai' }]);
+        })
+        .catch((err) => {
+          console.error('[CIRILA_DOWNLOAD_ERROR]', err);
+          setMessages(prev => [...prev, { text: `❌ **Falha no Download:** ${err.message}`, sender: 'ai' }]);
+        })
+        .finally(() => {
+          setProcessingStatus(null);
+        });
+      return;
+    }
+
+    if (payload.startsWith('DOWNLOAD_DOCX_')) {
+      const count = payload.replace('DOWNLOAD_DOCX_', '');
+      const url = `/api/cirila/sobreaviso?count=${count}`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Mapa_Sobreaviso_${count}_chaves.docx`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
     handleSend(payload);
   };
 
@@ -244,108 +302,112 @@ export default function CirilaBotWidget() {
       top: '50%',
       left: '50%',
       transform: isMinimized ? 'translate(-50%, -50%) scale(0.95)' : 'translate(-50%, -50%) scale(1)',
-      zIndex: isMinimized ? -1 : 9999,
+      zIndex: isMinimized ? -1 : 2147483647,
       opacity: isMinimized ? 0 : 1,
       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 100vw rgba(15,23,42,0.6)',
+      boxShadow: '0 50px 100px -20px rgba(0, 0, 0, 0.8), 0 0 0 200vw rgba(2, 6, 23, 0.95)',
       pointerEvents: isMinimized ? 'none' : 'auto',
-      borderRadius: '24px',
-      border: '1px solid rgba(255,255,255,0.1)'
+      borderRadius: '32px',
+      border: '1px solid rgba(56, 189, 248, 0.3)',
+      backdropFilter: 'blur(40px)'
     }}>
       
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #020617, #0f172a)', padding: '1.25rem', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '50px', height: '50px', position: 'relative' }}>
+      <div style={{ background: 'linear-gradient(135deg, #020617, #0f172a)', padding: '1.25rem 2rem', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(56, 189, 248, 0.2)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ width: '56px', height: '56px', position: 'relative' }}>
             <CirilaAvatar expression={expression} size="100%" showAura={false} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.5px' }}>CIRILA</h3>
-              <span style={{ fontSize: '0.6rem', background: expression === 'alert' ? '#ef4444' : 'rgba(0,216,255,0.15)', color: expression === 'alert' ? 'white' : '#00d8ff', padding: '2px 8px', borderRadius: '4px', fontWeight: 800, transition: 'all 0.5s' }}>
-                {expression === 'alert' ? 'ALERTA' : 'V.2 PIXAR'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff' }}>CIRILA</h3>
+              <span style={{ fontSize: '0.6rem', background: expression === 'alert' ? 'linear-gradient(135deg, #ef4444, #b91c1c)' : 'linear-gradient(135deg, #00d8ff, #0088ff)', color: 'white', padding: '3px 10px', borderRadius: '6px', fontWeight: 900, transition: 'all 0.5s', boxShadow: '0 4px 12px rgba(0, 216, 255, 0.3)' }}>
+                {expression === 'alert' ? 'ALERTA' : 'V.2.5 PREMIUM'}
               </span>
             </div>
-            <span style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '8px', height: '8px', backgroundColor: expression === 'alert' ? '#ef4444' : '#10b981', borderRadius: '50%', display: 'inline-block', boxShadow: expression === 'alert' ? '0 0 8px #ef4444' : '0 0 8px #10b981', transition: 'all 0.5s' }}></span> 
-              {expression === 'alert' ? 'Status Crítico' : 'Ativa e Monitorando'}
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+              <span style={{ width: '10px', height: '10px', backgroundColor: expression === 'alert' ? '#ef4444' : '#10b981', borderRadius: '50%', display: 'inline-block', boxShadow: expression === 'alert' ? '0 0 12px #ef4444' : '0 0 12px #10b981', transition: 'all 0.5s' }}></span> 
+              {expression === 'alert' ? 'Status Crítico' : 'Inteligência Ativa'}
             </span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
           {notification && (
-            <div style={{ animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#dc2626', padding: '0.5rem 1rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700 }}>
-              <Bell size={14} /> ALERTA NIR
+            <div style={{ animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg, #ef4444, #991b1b)', padding: '0.6rem 1.25rem', borderRadius: '14px', fontSize: '0.8rem', fontWeight: 800, boxShadow: '0 8px 16px rgba(239, 68, 68, 0.4)' }}>
+              <Bell size={14} strokeWidth={3} /> ALERTA NIR
             </div>
           )}
           
           <button 
             onClick={() => setIsMinimized(true)}
-            style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.6rem', borderRadius: '12px', transition: 'all 0.2s' }}
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: '#ffffff', cursor: 'pointer', padding: '0.75rem', borderRadius: '14px', transition: 'all 0.2s' }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
           >
-            <ChevronDown size={22} />
+            <ChevronDown size={24} strokeWidth={2.5} />
           </button>
         </div>
       </div>
 
       {/* Chat Area */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'rgba(248, 250, 252, 0.95)', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
         {messages.map((m, idx) => (
-          <div key={idx} style={{ alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+          <div key={idx} style={{ alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', gap: '1.25rem', alignItems: 'flex-end' }}>
             
             {m.sender === 'ai' && (
-              <div style={{ width: '36px', height: '36px', flexShrink: 0, marginBottom: '4px' }}>
-                <img src="/cirila_3D_neutral.png" alt="Cirila Pixar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain', border: '2px solid #e2e8f0' }} />
+              <div style={{ width: '40px', height: '40px', flexShrink: 0, marginBottom: '4px' }}>
+                <img src="/cirila_3D_neutral.png" alt="Cirila Pixar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain', border: '2px solid rgba(56, 189, 248, 0.2)', background: 'white', padding: '2px' }} />
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ 
-                background: m.sender === 'user' ? '#0f172a' : 'white', 
+                background: m.sender === 'user' ? 'linear-gradient(135deg, #0f172a, #1e293b)' : 'white', 
                 color: m.sender === 'user' ? 'white' : '#1e293b',
-                padding: '1.25rem 1.5rem',
-                borderRadius: m.sender === 'user' ? '24px 24px 4px 24px' : '24px 24px 24px 4px',
-                border: m.sender === 'user' ? 'none' : '1px solid #e2e8f0',
-                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
-                fontSize: '1rem',
+                padding: '1.25rem 1.75rem',
+                borderRadius: m.sender === 'user' ? '28px 28px 6px 28px' : '28px 28px 28px 6px',
+                border: m.sender === 'user' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(226, 232, 240, 0.8)',
+                boxShadow: '0 12px 24px -6px rgba(0,0,0,0.08)',
+                fontSize: '0.95rem',
                 lineHeight: '1.6',
-                fontWeight: 500
+                fontWeight: 600
               }}>
                 <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                 
                 {(m as CirilaResponse).file && (
                   <div style={{ 
-                    marginTop: '0.75rem', 
-                    padding: '0.75rem', 
-                    background: m.sender === 'user' ? 'rgba(255,255,255,0.1)' : '#f1f5f9', 
-                    borderRadius: '12px',
+                    marginTop: '1rem', 
+                    padding: '1rem', 
+                    background: m.sender === 'user' ? 'rgba(255,255,255,0.1)' : 'rgba(241, 245, 249, 0.8)', 
+                    borderRadius: '16px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
-                    border: m.sender === 'user' ? '1px solid rgba(255,255,255,0.2)' : '1px solid #e2e8f0'
+                    gap: '1rem',
+                    border: m.sender === 'user' ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(226, 232, 240, 1)'
                   }}>
                     <div style={{ 
-                      width: '40px', 
-                      height: '40px', 
+                      width: '44px', 
+                      height: '44px', 
                       background: m.sender === 'user' ? 'rgba(255,255,255,0.2)' : 'white', 
-                      borderRadius: '8px',
+                      borderRadius: '10px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: m.sender === 'user' ? 'white' : '#0f172a'
+                      color: m.sender === 'user' ? 'white' : '#0f172a',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.05)'
                     }}>
-                      {m.file?.type?.includes('pdf') ? <FileText size={20} /> : <Paperclip size={20} />}
+                      {m.file?.type?.includes('pdf') ? <FileText size={22} /> : <Paperclip size={22} />}
                     </div>
                     <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {m.file?.name}
                       </div>
-                      <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                        {m.file && m.file.size ? `${(m.file.size / 1024).toFixed(1)} KB` : 'Arquivo anexado'}
+                      <div style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 600 }}>
+                        {m.file && m.file.size ? `${(m.file.size / 1024).toFixed(1)} KB` : 'Template Anexado'}
                       </div>
                     </div>
-                    <CheckCircle2 size={16} color="#10b981" />
+                    <CheckCircle2 size={18} color="#10b981" strokeWidth={3} />
                   </div>
                 )}
 
@@ -385,28 +447,29 @@ export default function CirilaBotWidget() {
               )}
 
               {m.actions && m.actions.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.75rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginTop: '0.5rem' }}>
                   {m.actions.map(act => (
                         <button 
                           key={act.label}
                           onClick={() => handleActionClick(act.payload)}
                           className="cirila-action-btn"
                           style={{ 
-                            background: '#f8fafc', 
-                            color: '#64748b', 
-                            border: '1px solid #f1f5f9', 
-                            padding: '0.35rem 0.7rem', 
-                            borderRadius: '10px', 
-                            fontSize: '0.6rem', 
-                            fontWeight: 800, 
+                            background: 'rgba(255, 255, 255, 0.8)', 
+                            color: '#1e293b', 
+                            border: '1px solid rgba(56, 189, 248, 0.3)', 
+                            padding: '0.45rem 1rem', 
+                            borderRadius: '12px', 
+                            fontSize: '0.65rem', 
+                            fontWeight: 900, 
                             cursor: 'pointer', 
                             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '5px',
-                            boxShadow: 'none',
+                            gap: '6px',
+                            boxShadow: '0 4px 12px rgba(56, 189, 248, 0.1)',
                             textTransform: 'uppercase',
-                            letterSpacing: '0.6px'
+                            letterSpacing: '0.8px',
+                            backdropFilter: 'blur(10px)'
                           }}
                         >
                           {getActionIcon(act.payload)}
@@ -446,14 +509,14 @@ export default function CirilaBotWidget() {
       </div>
 
       {/* Input Area */}
-      <div style={{ padding: '1.5rem 2rem', background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div style={{ padding: '2rem 2.5rem', background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
         <input 
           type="text" 
           placeholder="Pergunte à Cirila..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          style={{ flex: 1, padding: '1rem 1.5rem', border: '1px solid #e2e8f0', borderRadius: '999px', outline: 'none', fontSize: '1rem', backgroundColor: '#f8fafc', fontWeight: 500 }}
+          style={{ flex: 1, padding: '1.15rem 1.75rem', border: '1px solid #e2e8f0', borderRadius: '20px', outline: 'none', fontSize: '1rem', backgroundColor: '#f8fafc', fontWeight: 600, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}
         />
 
         <input 
@@ -513,18 +576,20 @@ export default function CirilaBotWidget() {
 
         <button 
           onClick={() => document.getElementById('cirila-file-upload')?.click()}
-          style={{ background: '#f1f5f9', border: 'none', color: '#64748b', width: '54px', height: '54px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.3s' }}
+          style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', color: '#0284c7', width: '56px', height: '56px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.3s' }}
           title="Anexar Pedido (PDF, Imagem ou Word)"
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'}
         >
-          <Paperclip size={22} />
+          <Paperclip size={24} />
         </button>
 
         <button 
           onClick={() => handleSend()}
           disabled={!input.trim() || loading}
-          style={{ background: input.trim() ? '#0f172a' : '#cbd5e1', border: 'none', color: 'white', width: '54px', height: '54px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.3s' }}
+          style={{ background: input.trim() ? 'linear-gradient(135deg, #0f172a, #334155)' : '#cbd5e1', border: 'none', color: 'white', width: '56px', height: '56px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.3s', boxShadow: input.trim() ? '0 10px 20px -5px rgba(15, 23, 42, 0.4)' : 'none' }}
         >
-          {loading ? <Loader2 className="animate-spin" size={22} /> : <Send size={22} />}
+          {loading ? <Loader2 className="animate-spin" size={24} /> : <Send size={24} />}
         </button>
 
       </div>
@@ -539,14 +604,14 @@ export default function CirilaBotWidget() {
         }
         .animate-spin { animation: spin 1s linear infinite; }
         .cirila-action-btn:hover {
-          background: #f8fafc !important;
-          border-color: #cbd5e1 !important;
-          color: #0f172a !important;
-          transform: translateY(-1.5px);
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+          background: linear-gradient(135deg, #ffffff, #f1f5f9) !important;
+          border-color: #38bdf8 !important;
+          color: #0284c7 !important;
+          transform: translateY(-2px) scale(1.05);
+          box-shadow: 0 10px 20px -5px rgba(56, 189, 248, 0.3) !important;
         }
         .cirila-action-btn:active {
-          transform: translateY(0) scale(0.96);
+          transform: translateY(0) scale(0.95);
           box-shadow: none !important;
         }
         @media (max-width: 768px) {

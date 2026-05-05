@@ -65,93 +65,104 @@
 }
 
 .actionCell {
-  padding: 0.5rem 1rem;
-  min-width: 240px; 
+  padding: 0.5rem 1.25rem;
+  min-width: 420px; 
+  vertical-align: middle;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.rowActive .actionCell {
+  background: rgba(56, 189, 248, 0.05);
 }
 
 .actionPanel {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 12px;
+  gap: 8px; /* Slightly more gap */
   align-items: center;
+  justify-content: flex-start;
+  min-height: 28px;
+  flex-wrap: wrap; /* Keep wrap but in a wider cell */
 }
 
 .hospitalSelectWrapper {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
-  background: rgba(15, 23, 42, 0.95);
-  padding: 0.65rem 0.85rem;
-  border-radius: 12px;
-  width: fit-content;
-  max-width: 100%;
-  border: 1px solid rgba(0, 180, 216, 0.2);
-  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5);
-  animation: slideIn 0.3s cubic-bezier(0, 0, 0.2, 1);
-  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.98);
+  padding: 0 1.25rem;
+  border-radius: 16px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  height: 52px;
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.15);
+  animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10005; /* Acima de quase tudo na tabela */
+  backdrop-filter: blur(30px);
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(-50%) scale(1); }
 }
 
 .btnCancelPremium {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1.5px solid rgba(239, 68, 68, 0.2);
-  width: 30px;
-  height: 30px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.05);
 }
 
 .btnCancelPremium:hover {
-  background: #dc2626;
+  background: #ef4444;
   color: white;
-  border-color: #dc2626;
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
 }
 
 .btnNotifyDirect {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  padding: 0.4rem 0.7rem;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0 1rem;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
   cursor: pointer;
   transition: all 0.2s;
+  height: 32px;
+  text-transform: uppercase;
+  box-shadow: 0 6px 15px rgba(14, 165, 233, 0.25);
+  font-family: 'Outfit', sans-serif;
 }
 
 .btnNotifyDirect:hover:not(:disabled) {
-  border-color: #38bdf8;
-  background: #0f172a;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
-}
-
-.btnNotifyDirect:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
+  filter: brightness(1.15);
 }
 
 .premiumActionButton {
   font-family: 'Outfit', sans-serif;
-  padding: 0 0.85rem;
-  border-radius: 8px;
-  font-size: 0.72rem;
+  height: 34px; /* Retornando para um tamanho mais equilibrado e premium */
+  padding: 0 1rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
   font-weight: 800;
   cursor: pointer;
   display: inline-flex;
@@ -160,101 +171,76 @@
   gap: 6px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  position: relative;
-  overflow: hidden;
-  height: 32px;
   white-space: nowrap;
-}
-
-.premiumActionButton::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: 0.5s;
-}
-
-.premiumActionButton:hover::after {
-  left: 100%;
+  letter-spacing: 0.03em;
 }
 
 .premiumActionButton:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02);
-  filter: brightness(1.1);
-  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 .premiumActionButton:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(0);
 }
 
-/* Cores Harmonizadas e Premium */
+/* Cores Premium com Gradientes Vibrantes */
 
 .btnRequest {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   color: #ffffff;
-  border-color: rgba(96, 165, 250, 0.3);
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .btnRefusal {
   background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
   color: #ffffff;
-  border-color: rgba(251, 191, 36, 0.3);
-  box-shadow: 0 4px 15px rgba(180, 83, 9, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
 }
 
 .btnTransfer {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
   color: #ffffff;
-  border-color: rgba(52, 211, 153, 0.3);
-  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 
 .btnEvolve {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%);
   color: #ffffff;
-  border-color: rgba(167, 139, 250, 0.3);
-  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .btnExit {
-  background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
   color: #ffffff;
-  border-color: rgba(251, 113, 133, 0.3);
-  box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
-
 .btnAttach {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(30, 41, 59, 0.8);
   color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  border: 1px solid rgba(56, 189, 248, 0.5);
   backdrop-filter: blur(8px);
 }
 
-.btnAttach:hover {
-  background: rgba(15, 23, 42, 0.8);
-  border-color: #38bdf8;
-}
-
 .btnBlast {
-  background: #0f172a;
-  color: #f1f5f9;
-  border-color: rgba(255, 255, 255, 0.1);
-  min-width: 32px;
-  width: 32px;
-  height: 32px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  backdrop-filter: blur(10px);
 }
 
-.btnBlast:hover {
-  background: #1e293b;
-  border-color: rgba(255, 255, 255, 0.3);
+.btnAi {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
 }
 
