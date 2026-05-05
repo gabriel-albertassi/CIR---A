@@ -33,7 +33,7 @@ export default function ChargeEvolutionModal({ patientId, originHospital, onClos
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(2, 6, 23, 1)', backdropFilter: 'blur(40px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999 }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(2, 6, 23, 1)', backdropFilter: 'blur(40px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2147483647 }}>
       <div className="card" style={{ width: '420px', padding: '2.5rem', position: 'relative', animation: 'fadeInSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)', border: '1px solid rgba(56, 189, 248, 0.5)', borderRadius: '32px', background: 'rgba(15, 23, 42, 1)', boxShadow: '0 60px 120px -20px rgba(0, 0, 0, 1), 0 0 80px rgba(56, 189, 248, 0.2)' }}>
         <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', cursor: 'pointer', color: '#94a3b8', width: '32px', height: '32px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
           <X size={18} strokeWidth={2.5} />

@@ -448,10 +448,24 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             <button 
                               onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
                               className="btn"
-                              style={{ padding: '4px 8px', fontSize: '9px', backgroundColor: 'rgba(56,189,248,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)', borderRadius: '6px', fontWeight: 800, textTransform: 'uppercase' }}
+                              style={{ 
+                                padding: '0.4rem 0.75rem', 
+                                fontSize: '0.75rem', 
+                                backgroundColor: 'rgba(56,189,248,0.15)', 
+                                color: '#38bdf8', 
+                                border: '1px solid rgba(56,189,248,0.3)', 
+                                borderRadius: '10px', 
+                                fontWeight: 800, 
+                                textTransform: 'uppercase',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                marginTop: '0.5rem',
+                                transition: 'all 0.2s'
+                              }}
                               title="Cobrar pelo Sistema"
                             >
-                              <MessageCircle size={10} /> COBRAR NIR
+                              <MessageCircle size={14} /> COBRAR NIR
                             </button>
                         </div>
                       )}

@@ -145,18 +145,19 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                             background: 'rgba(59, 130, 246, 0.15)', 
                             color: '#60a5fa', 
                             border: '1px solid rgba(59, 130, 246, 0.3)', 
-                            padding: '0.4rem 0.8rem', 
-                            borderRadius: '8px', 
-                            fontSize: '0.8rem', 
+                            padding: '0.75rem 1.25rem', 
+                            borderRadius: '14px', 
+                            fontSize: '0.85rem', 
                             fontWeight: 700, 
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px'
+                            gap: '8px',
+                            transition: 'all 0.2s'
                           }}
                           title="Anexar Evolução Médica (PDF/Laudos)"
                         >
-                          <Paperclip size={14} /> Anexar
+                          <Paperclip size={16} /> ANEXAR
                         </button>
 
                         <button 
@@ -165,18 +166,19 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                             background: 'rgba(34, 197, 94, 0.15)', 
                             color: '#4ade80', 
                             border: '1px solid rgba(34, 197, 94, 0.3)', 
-                            padding: '0.4rem 0.8rem', 
-                            borderRadius: '8px', 
-                            fontSize: '0.8rem', 
+                            padding: '0.75rem 1.25rem', 
+                            borderRadius: '14px', 
+                            fontSize: '0.85rem', 
                             fontWeight: 700, 
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px'
+                            gap: '8px',
+                            transition: 'all 0.2s'
                           }}
                           title="Cobrar Evolução (WhatsApp/Email)"
                         >
-                          <MessageCircle size={14} /> Cobrar
+                          <MessageCircle size={16} /> COBRAR
                         </button>
                         
                         <button 
@@ -187,19 +189,20 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                             background: canAction ? 'rgba(0, 180, 216, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
                             color: canAction ? '#00e5ff' : '#64748b', 
                             border: `1px solid ${canAction ? 'rgba(0, 180, 216, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
-                            padding: '0.4rem 0.8rem', 
-                            borderRadius: '8px', 
-                            fontSize: '0.8rem', 
+                            padding: '0.75rem 1.25rem', 
+                            borderRadius: '14px', 
+                            fontSize: '0.85rem', 
                             fontWeight: 700, 
                             cursor: canAction ? 'pointer' : 'not-allowed',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            opacity: canAction ? 1 : 0.6
+                            gap: '8px',
+                            opacity: canAction ? 1 : 0.6,
+                            transition: 'all 0.2s'
                           }}
                           title={canAction ? "Disparo (Busca de Vaga)" : "Acesso Restrito: Requer liberação do Administrador"}
                         >
-                          <Send size={14} /> Disparo
+                          <Send size={16} /> DISPARO
                         </button>
                       </div>
                     </td>

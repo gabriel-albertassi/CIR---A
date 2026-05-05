@@ -104,7 +104,7 @@ export default function MassBlastModal({
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(40px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999999 }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(40px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2147483647 }}>
       <div className="card" style={{ width: '520px', padding: '2.5rem', position: 'relative', animation: 'fadeInSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)', maxHeight: '92vh', overflowY: 'auto', border: '1px solid rgba(56, 189, 248, 0.4)', fontFamily: "'Outfit', sans-serif", background: 'rgba(15, 23, 42, 0.95)', boxShadow: '0 60px 120px -20px rgba(0, 0, 0, 1), 0 0 50px rgba(56, 189, 248, 0.15)', borderRadius: '32px', backdropFilter: 'blur(60px)' }}>
         <button 
           onClick={onClose} 
@@ -227,41 +227,62 @@ export default function MassBlastModal({
               </div>
             )}
 
-            <button 
-              disabled={loading || selectedUnits.length === 0}
-              onClick={handleSend}
-              style={{ 
-                width: '100%', 
-                height: '48px',
-                background: selectedUnits.length > 0 ? 'linear-gradient(135deg, #38bdf8, #0284c7)' : 'rgba(255,255,255,0.05)', 
-                color: selectedUnits.length > 0 ? '#ffffff' : '#475569', 
-                borderRadius: '14px', 
-                fontSize: '0.85rem', 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center', 
-                gap: '10px',
-                fontWeight: '800', 
-                cursor: selectedUnits.length > 0 ? 'pointer' : 'not-allowed',
-                border: 'none',
-                boxShadow: selectedUnits.length > 0 ? '0 20px 40px -10px rgba(56, 189, 248, 0.4)' : 'none',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
-              }}
-            >
-              {loading ? (
-                <>
-                  <div style={{ width: '18px', height: '18px', border: '3px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                  <span>PROCESSANDO...</span>
-                </>
-              ) : (
-                <>
-                  <Send size={18} strokeWidth={2.5} /> 
-                  <span>DISPARAR PARA {selectedUnits.length} UNIDADES</span>
-                </>
-              )}
-            </button>
+            <div style={{ display: 'flex', gap: '12px', marginTop: 'auto' }}>
+              <button
+                onClick={onClose}
+                style={{
+                  flex: 1,
+                  padding: '1.15rem',
+                  borderRadius: '16px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: '#94a3b8',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  fontSize: '0.9rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px'
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={loading || selectedUnits.length === 0}
+                style={{
+                  flex: 2,
+                  padding: '1.15rem',
+                  borderRadius: '16px',
+                  background: selectedUnits.length === 0 ? 'rgba(56, 189, 248, 0.1)' : 'linear-gradient(135deg, #00d8ff, #0088ff)',
+                  color: selectedUnits.length === 0 ? '#64748b' : 'white',
+                  border: 'none',
+                  fontSize: '1rem',
+                  fontWeight: 900,
+                  cursor: (loading || selectedUnits.length === 0) ? 'not-allowed' : 'pointer',
+                  boxShadow: selectedUnits.length === 0 ? 'none' : '0 10px 25px -5px rgba(0, 216, 255, 0.4)',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px'
+                }}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin" style={{ width: '22px', height: '22px', border: '3px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%' }} />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <Send size={20} />
+                    Disparar Solicitação
+                  </>
+                )}
+              </button>
+            </div>
           </>
         ) : (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>

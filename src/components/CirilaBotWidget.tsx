@@ -320,12 +320,12 @@ export default function CirilaBotWidget() {
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff' }}>CIRILA</h3>
-              <span style={{ fontSize: '0.6rem', background: expression === 'alert' ? 'linear-gradient(135deg, #ef4444, #b91c1c)' : 'linear-gradient(135deg, #00d8ff, #0088ff)', color: 'white', padding: '3px 10px', borderRadius: '6px', fontWeight: 900, transition: 'all 0.5s', boxShadow: '0 4px 12px rgba(0, 216, 255, 0.3)' }}>
+              <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 500, letterSpacing: '-0.02em', color: '#ffffff' }}>CIRILA</h3>
+              <span style={{ fontSize: '0.6rem', background: expression === 'alert' ? 'linear-gradient(135deg, #ef4444, #b91c1c)' : 'linear-gradient(135deg, #00d8ff, #0088ff)', color: 'white', padding: '3px 10px', borderRadius: '6px', fontWeight: 600, transition: 'all 0.5s', boxShadow: '0 4px 12px rgba(0, 216, 255, 0.3)' }}>
                 {expression === 'alert' ? 'ALERTA' : 'V.2.5 PREMIUM'}
               </span>
             </div>
-            <span style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 400 }}>
               <span style={{ width: '10px', height: '10px', backgroundColor: expression === 'alert' ? '#ef4444' : '#10b981', borderRadius: '50%', display: 'inline-block', boxShadow: expression === 'alert' ? '0 0 12px #ef4444' : '0 0 12px #10b981', transition: 'all 0.5s' }}></span> 
               {expression === 'alert' ? 'Status Crítico' : 'Inteligência Ativa'}
             </span>
@@ -334,7 +334,7 @@ export default function CirilaBotWidget() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
           {notification && (
-            <div style={{ animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg, #ef4444, #991b1b)', padding: '0.6rem 1.25rem', borderRadius: '14px', fontSize: '0.8rem', fontWeight: 800, boxShadow: '0 8px 16px rgba(239, 68, 68, 0.4)' }}>
+            <div style={{ animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg, #ef4444, #991b1b)', padding: '0.6rem 1.25rem', borderRadius: '14px', fontSize: '0.8rem', fontWeight: 600, boxShadow: '0 8px 16px rgba(239, 68, 68, 0.4)' }}>
               <Bell size={14} strokeWidth={3} /> ALERTA NIR
             </div>
           )}
@@ -371,9 +371,9 @@ export default function CirilaBotWidget() {
                 boxShadow: '0 12px 24px -6px rgba(0,0,0,0.08)',
                 fontSize: '0.95rem',
                 lineHeight: '1.6',
-                fontWeight: 600
+                fontWeight: 400
               }}>
-                <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<span>$1</span>') }} />
                 
                 {(m as CirilaResponse).file && (
                   <div style={{ 
@@ -400,10 +400,10 @@ export default function CirilaBotWidget() {
                       {m.file?.type?.includes('pdf') ? <FileText size={22} /> : <Paperclip size={22} />}
                     </div>
                     <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {m.file?.name}
                       </div>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 600 }}>
+                      <div style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 400 }}>
                         {m.file && m.file.size ? `${(m.file.size / 1024).toFixed(1)} KB` : 'Template Anexado'}
                       </div>
                     </div>
@@ -447,7 +447,7 @@ export default function CirilaBotWidget() {
               )}
 
               {m.actions && m.actions.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
                   {m.actions.map(act => (
                         <button 
                           key={act.label}
@@ -457,15 +457,15 @@ export default function CirilaBotWidget() {
                             background: 'rgba(255, 255, 255, 0.8)', 
                             color: '#1e293b', 
                             border: '1px solid rgba(56, 189, 248, 0.3)', 
-                            padding: '0.45rem 1rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.65rem', 
-                            fontWeight: 900, 
+                            padding: '0.65rem 1.25rem', 
+                            borderRadius: '14px', 
+                            fontSize: '0.75rem', 
+                            fontWeight: 800, 
                             cursor: 'pointer', 
                             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px',
+                            gap: '8px',
                             boxShadow: '0 4px 12px rgba(56, 189, 248, 0.1)',
                             textTransform: 'uppercase',
                             letterSpacing: '0.8px',
@@ -499,7 +499,7 @@ export default function CirilaBotWidget() {
             <div style={{ width: '36px', height: '36px' }}>
               <CirilaAvatar expression="thinking" size="100%" showAura={false} />
             </div>
-            <div style={{ background: 'white', padding: '1rem 1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background: 'white', padding: '1rem 1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.9rem', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
               <div className="spinner" style={{ width: '18px', height: '18px', border: '3px solid #f1f5f9', borderTopColor: '#00d8ff', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               Cirila está processando dados reais...
             </div>
@@ -516,7 +516,7 @@ export default function CirilaBotWidget() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          style={{ flex: 1, padding: '1.15rem 1.75rem', border: '1px solid #e2e8f0', borderRadius: '20px', outline: 'none', fontSize: '1rem', backgroundColor: '#f8fafc', fontWeight: 600, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}
+          style={{ flex: 1, padding: '1.15rem 1.75rem', border: '1px solid #e2e8f0', borderRadius: '20px', outline: 'none', fontSize: '1rem', backgroundColor: '#f8fafc', fontWeight: 400, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}
         />
 
         <input 
