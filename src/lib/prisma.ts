@@ -1,2 +1,3 @@
-// Arquivo depreciado - use db.ts
+// ESTE ARQUIVO FOI DESATIVADO PERMANENTEMENTE.
+// TODAS AS CONEXÕES COM O BANCO DEVEM USAR '@/lib/db'.
 export const deprecated = true;

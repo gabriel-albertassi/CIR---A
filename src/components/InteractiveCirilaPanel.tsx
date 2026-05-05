@@ -13,7 +13,7 @@ export default function InteractiveCirilaPanel() {
     "Rede de Volta Redonda 100% online.",
     "Tudo sob controle! Como posso ajudar?",
     "Fila de pacientes estável agora.",
-    "Bom trabalho hoje, Gabriel!",
+    "Bom trabalho hoje, Regulação!",
     "IA sincronizada com os hospitais."
   ];
 
@@ -93,10 +93,10 @@ export default function InteractiveCirilaPanel() {
     >
       {/* AVATAR PIXAR */}
       <div style={{ width: '90px', flexShrink: 0 }}>
-        <CirilaAvatar 
-          expression={expression} 
-          size="100%" 
-          showAura={expression === 'alert'} 
+        <CirilaAvatar
+          expression={expression}
+          size="100%"
+          showAura={expression === 'alert'}
         />
       </div>
 
@@ -110,7 +110,7 @@ export default function InteractiveCirilaPanel() {
             Cirila I.A
           </span>
         </div>
-        
+
         <div style={{ minHeight: '1.5rem' }}>
           <span style={{ fontSize: '1rem', color: '#f1f5f9', fontWeight: 600, lineHeight: 1.2, display: 'block' }}>
             {displayedText}

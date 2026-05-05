@@ -120,8 +120,16 @@ export default function AdminKeysPage() {
             <Download size={20} />
             Relatório Mensal
           </Link>
+          <Link
+            href="/api/admin/reports/yearly"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-medium transition-all shadow-lg shadow-slate-900/20"
+          >
+            <Calendar size={20} />
+            Relatório Anual
+          </Link>
         </div>
       </div>
+
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">

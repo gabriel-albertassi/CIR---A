@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { 
   Document, 
   Packer, 
@@ -10,17 +10,20 @@ import {
   TableCell, 
   WidthType, 
   AlignmentType, 
-  BorderStyle,
   Header,
-  Footer,
-  ImageRun
+  HeightRule
 } from 'docx';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
     const now = new Date();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
+    
+    // Parâmetros opcionais, padrão é o mês/ano atual
+    const month = parseInt(searchParams.get('month') || (now.getMonth() + 1).toString());
+    const year = parseInt(searchParams.get('year') || now.getFullYear().toString());
 
     const monthNames = [
       "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -43,7 +46,7 @@ export async function GET() {
         properties: {
           page: {
             margin: {
-              top: 720, // 0.5 inch (720 dxa)
+              top: 720,
               right: 720,
               bottom: 720,
               left: 720,
@@ -60,7 +63,8 @@ export async function GET() {
                     text: "CIRILA - SISTEMA DE REGULAÇÃO DE SAÚDE",
                     bold: true,
                     size: 24,
-                    color: "000000"
+                    color: "000000",
+                    font: "Arial"
                   }),
                 ],
               }),
@@ -71,7 +75,8 @@ export async function GET() {
                     text: `RELATÓRIO MENSAL DE AUTORIZAÇÕES - ${monthNames[month-1].toUpperCase()} / ${year}`,
                     bold: true,
                     size: 20,
-                    color: "333333"
+                    color: "333333",
+                    font: "Arial"
                   }),
                 ],
               }),
@@ -83,22 +88,22 @@ export async function GET() {
           
           new Paragraph({
             children: [
-              new TextRun({ text: "RESUMO DO PERÍODO", bold: true, underline: {} }),
+              new TextRun({ text: "RESUMO DO PERÍODO", bold: true, underline: {}, font: "Arial" }),
             ]
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `Total de Autorizações: ${keys.length}`, size: 22 }),
+              new TextRun({ text: `Total de Autorizações: ${keys.length}`, size: 22, font: "Arial" }),
             ]
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `• Tomografias (TC): ${totalTC}`, size: 22 }),
+              new TextRun({ text: `• Tomografias (TC): ${totalTC}`, size: 22, font: "Arial" }),
             ]
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `• Ressonâncias (RNM): ${totalRNM}`, size: 22 }),
+              new TextRun({ text: `• Ressonâncias (RNM): ${totalRNM}`, size: 22, font: "Arial" }),
             ]
           }),
 
@@ -108,21 +113,23 @@ export async function GET() {
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
               new TableRow({
+                tableHeader: true,
+                height: { value: 400, rule: HeightRule.ATLEAST },
                 children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "DATA", bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "CHAVE", bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "PACIENTE", bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "EXAME", bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "DESTINO", bold: true })] })] }),
+                  new TableCell({ shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DATA", bold: true, font: "Arial" })] })] }),
+                  new TableCell({ shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "CHAVE", bold: true, font: "Arial" })] })] }),
+                  new TableCell({ shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "PACIENTE", bold: true, font: "Arial" })] })] }),
+                  new TableCell({ shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "EXAME", bold: true, font: "Arial" })] })] }),
+                  new TableCell({ shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DESTINO", bold: true, font: "Arial" })] })] }),
                 ]
               }),
               ...keys.map(key => new TableRow({
                 children: [
-                  new TableCell({ children: [new Paragraph({ text: new Date(key.date).toLocaleDateString('pt-BR') })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: key.key, bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ text: key.patient })] }),
-                  new TableCell({ children: [new Paragraph({ text: key.exam })] }),
-                  new TableCell({ children: [new Paragraph({ text: key.destination })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: new Date(key.date).toLocaleDateString('pt-BR'), font: "Arial", size: 18 })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: key.key, bold: true, font: "Arial", size: 18 })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: key.patient.toUpperCase(), font: "Arial", size: 18 })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: key.exam, font: "Arial", size: 18 })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: key.destination, font: "Arial", size: 18 })] })] }),
                 ]
               }))
             ]
@@ -138,13 +145,13 @@ export async function GET() {
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
-              new TextRun({ text: "COORDENAÇÃO DE REGULAÇÃO - CIR-A", bold: true, size: 18 }),
+              new TextRun({ text: "COORDENAÇÃO DE REGULAÇÃO - CIR-A", bold: true, size: 18, font: "Arial" }),
             ]
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
-              new TextRun({ text: `Gerado em: ${new Date().toLocaleString('pt-BR')}`, size: 14, color: "666666" }),
+              new TextRun({ text: `Gerado em: ${new Date().toLocaleString('pt-BR')}`, size: 14, color: "666666", font: "Arial" }),
             ]
           }),
         ],
@@ -156,11 +163,11 @@ export async function GET() {
     return new Response(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename=relatorio_cirila_${month}_${year}.docx`,
+        'Content-Disposition': `attachment; filename=relatorio_mensal_${month}_${year}.docx`,
       },
     });
   } catch (error) {
-    console.error('[REPORT_API_ERROR]', error);
-    return NextResponse.json({ error: 'Erro ao gerar relatório' }, { status: 500 });
+    console.error('[MONTHLY_REPORT_ERROR]', error);
+    return NextResponse.json({ error: 'Erro ao gerar relatório mensal' }, { status: 500 });
   }
 }
