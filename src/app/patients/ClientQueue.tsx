@@ -263,21 +263,22 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.2rem' }}>
               <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, fontFamily: 'Outfit, sans-serif', letterSpacing: '-0.03em' }}>Fila Dinâmica</h1>
               <Link href="/patients/new" className="btn btn-primary" style={{ 
-                padding: '0.25rem 0.6rem', 
-                fontSize: '0.65rem', 
-                borderRadius: '6px', 
+                padding: '0.35rem 0.75rem', 
+                fontSize: '0.7rem', 
+                borderRadius: '8px', 
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '4px', 
-                background: 'rgba(59, 130, 246, 0.2)', 
+                background: 'rgba(59, 130, 246, 0.15)', 
                 color: '#60a5fa', 
-                border: '1.1px solid rgba(59, 130, 246, 0.3)',
-                fontWeight: 800,
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                fontWeight: 700,
                 fontFamily: 'Outfit, sans-serif',
                 textTransform: 'uppercase',
-                letterSpacing: '0.05em'
+                letterSpacing: '0.03em',
+                textDecoration: 'none !important'
               }}>
-                <Plus size={12} /> Novo
+                <Plus size={13} strokeWidth={2.5} /> NOVO
               </Link>
             </div>
             <p style={{ margin: 0, opacity: 0.6, fontSize: '0.85rem', fontWeight: 500 }}>Gestão estratégica de transferências.</p>
@@ -456,14 +457,14 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 color: '#38bdf8', 
                                 border: '1px solid rgba(56,189,248,0.25)', 
                                 borderRadius: '10px', 
-                                fontWeight: 600, 
+                                fontWeight: 700, 
                                 textTransform: 'uppercase',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
                                 marginTop: '0.5rem',
                                 transition: 'all 0.2s',
-                                textDecoration: 'none'
+                                textDecoration: 'none !important'
                               }}
                               title="Cobrar pelo Sistema"
                             >
@@ -630,7 +631,6 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             className={`${styles.premiumActionButton} ${styles.btnRefusal}`}
                             onClick={() => setRefusingId(p.id)} 
                             disabled={loadingId === p.id}
-                            style={{ padding: '0 0.85rem' }}
                           >
                             Registrar Recusa
                           </button>
@@ -680,7 +680,6 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               className={`${styles.premiumActionButton} ${styles.btnTransfer}`} 
                               onClick={() => setTransferringId(p.id)} 
                               disabled={loadingId === p.id}
-                              style={{ padding: '0 0.85rem' }}
                             >
                               Transferir
                             </button>
@@ -750,7 +749,6 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             className={`${styles.premiumActionButton} ${styles.btnExit}`}
                             onClick={() => setCancellingId(p.id)}
                             disabled={loadingId === p.id}
-                            style={{ padding: '0 0.85rem' }}
                           >
                             Saída / Alta
                           </button>
@@ -799,17 +797,15 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             onClick={() => setEvolvingId(p.id)} 
                             disabled={loadingId === p.id}
                             title="Atualizar Quadro Clínico"
-                            style={{ padding: '0 0.85rem' }}
                           >
                             <TrendingUp size={14} /> Evoluir
                           </button>
                         )}
                         
                         <button 
-                          className={`${styles.premiumActionButton} ${styles.btnEvolve}`}
+                          className={styles.btnAi}
                           onClick={() => fillAiSuggestion(p)} 
                           disabled={loadingAi === p.id}
-                          style={{ minWidth: '28px', width: '28px', height: '28px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', borderRadius: '6px', padding: 0 }}
                           title="Dica da Inteligência Artificial"
                         >
                           {loadingAi === p.id ? <Clock size={12} className="animate-spin" /> : <Activity size={14} strokeWidth={2.5} />}
