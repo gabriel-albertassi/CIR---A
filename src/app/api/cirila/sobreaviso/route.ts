@@ -38,8 +38,8 @@ function makeKeyGenerator() {
 const PAGE_W = 15398;
 
 // Proporções das colunas (devem somar 100)
-// Ajustadas para equilibrar melhor conforme o print de referência
-const COL_PCTS = [10, 24, 17, 12, 12, 11, 7, 7]; 
+// Ajustadas: CNS maior (40%), outros campos reduzidos para compensar.
+const COL_PCTS = [12, 8, 13, 4, 8, 4, 40, 11]; 
 const COL_LABELS = [
   'DATA / CHAVE',
   'CLIENTE (PACIENTE)',
@@ -73,8 +73,8 @@ const BORDERS = {
   insideVertical:   { style: BD, size: 4, color: '000000' },
 };
 
-// Altura FIXA das linhas de dados — REDUZIDA para caber mais uma linha
-const ROW_HEIGHT = 690;
+// Altura FIXA das linhas de dados — Aumentada para máximo conforto na escrita manual
+const ROW_HEIGHT = 1000;
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
@@ -84,7 +84,6 @@ export async function GET(req: NextRequest) {
     const count = Math.max(1, Math.min(300, parseInt(searchParams.get('count') || '30')));
 
     const now         = new Date();
-    const dateStr     = now.toLocaleDateString('pt-BR');
     const dateFileStr = now.toISOString().slice(0, 10).replace(/-/g, '');
 
     const nextKey = makeKeyGenerator();
@@ -139,13 +138,13 @@ export async function GET(req: NextRequest) {
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                spacing: { before: 0, after: 0 },
-                children: [new TextRun({ text: '__/__', size: 14, color: '555555', font: { name: 'Arial' } })],
+                spacing: { before: 100, after: 60 },
+                children: [new TextRun({ text: '___/___/___', bold: true, size: 18, color: '222222', font: { name: 'Arial' } })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                spacing: { before: 0, after: 0 },
-                children: [new TextRun({ text: key, bold: true, size: 16, color: '1A56DB', font: { name: 'Arial' } })],
+                spacing: { before: 40, after: 60 },
+                children: [new TextRun({ text: key, bold: true, size: 18, color: '1A56DB', font: { name: 'Arial' } })],
               }),
             ],
           }),
@@ -173,12 +172,19 @@ export async function GET(req: NextRequest) {
     const docTitle = [
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { before: 0, after: 60 },
+        spacing: { before: 0, after: 120 },
         children: [
           new TextRun({ 
-            text: 'CIR-A / REGULAÇÃO SMSVR   |   MAPA DE SUPERVISÃO - SOBREAVISO   |   DATA: ____/____/_______', 
+            text: 'CIR-A / REGULAÇÃO SMSVR   |   MAPA DE SUPERVISÃO - SOBREAVISO   |   DATA:  ', 
             bold: true, 
-            size: 16, 
+            size: 18, 
+            font: { name: 'Arial' }, 
+            color: '000000' 
+          }),
+          new TextRun({ 
+            text: ' ______ / ______ / ________ ', 
+            bold: true, 
+            size: 18, 
             font: { name: 'Arial' }, 
             color: '000000' 
           }),

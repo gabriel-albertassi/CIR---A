@@ -14,8 +14,15 @@ export default function PatientForm() {
 
     const formData = new FormData(e.currentTarget)
     
+    // Normalização: Forçar CAIXA ALTA em todos os campos de texto do cadastro
+    for (const [key, value] of Array.from(formData.entries())) {
+      if (typeof value === 'string' && key !== 'file') {
+        formData.set(key, value.toUpperCase());
+      }
+    }
+    
     // Log para depuração no frontend
-    console.log('Enviando dados para o servidor via API Route...');
+    console.log('Enviando dados para o servidor via API Route (Caixa Alta Normalizada)...');
 
     try {
       const response = await fetch('/api/patients/register', {
@@ -73,6 +80,7 @@ export default function PatientForm() {
         <label className="label">Hospital de Origem (Onde o paciente está)</label>
         <select name="hospital" required className="input">
           <option value="">Selecione...</option>
+          <option value="UPA 24H">UPA 24H</option>
           {ALL_HOSPITALS.map(h => (
             <option key={h} value={h}>{h}</option>
           ))}

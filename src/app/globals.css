@@ -146,12 +146,20 @@ input, select, textarea {
   outline: none;
   transition: all 0.3s ease;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase; /* Força visualmente a caixa alta */
 }
 
 .input:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2);
   background-color: rgba(255,255,255,0.09);
+}
+
+/* Garante que inputs e textareas nativos também sigam a regra se não usarem a classe .input */
+input[type="text"], 
+input[type="search"],
+textarea {
+  text-transform: uppercase;
 }
 
 .label {

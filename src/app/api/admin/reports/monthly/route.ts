@@ -57,9 +57,11 @@ export async function GET(request: Request) {
     const totalTC = keys.filter(k => k.type === 'TC').length;
     const totalRNM = keys.filter(k => k.type === 'RNM').length;
 
-    // ... (restante do código doc creation) ...
+    // Doc creation
     const doc = new Document({
-      // ... propriedades omitidas para brevidade na substituição, mas mantidas no arquivo real ...
+      title: `Relatório Mensal ${month}/${year}`,
+      creator: "CIRILA Bot",
+      description: `Relatório Mensal de Autorizações - ${monthNames[month-1]}/${year}`,
       sections: [{
         properties: {
           page: {
@@ -77,7 +79,7 @@ export async function GET(request: Request) {
                     bold: true,
                     size: 26,
                     color: "003366",
-                    font: "Arial"
+                    font: { name: "Arial" }
                   }),
                 ],
               }),
@@ -89,7 +91,7 @@ export async function GET(request: Request) {
                     bold: true,
                     size: 22,
                     color: "666666",
-                    font: "Arial"
+                    font: { name: "Arial" }
                   }),
                 ],
               }),
@@ -101,7 +103,7 @@ export async function GET(request: Request) {
                     bold: true,
                     size: 18,
                     color: "333333",
-                    font: "Arial"
+                    font: { name: "Arial" }
                   }),
                 ],
               }),
@@ -118,7 +120,7 @@ export async function GET(request: Request) {
                 children: [
                   new TableCell({ 
                     shading: { fill: "003366" },
-                    children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "RESUMO CONSOLIDADO", bold: true, color: "FFFFFF", font: "Arial" })] })] 
+                    children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "RESUMO CONSOLIDADO", bold: true, color: "FFFFFF", font: { name: "Arial" } })] })] 
                   }),
                 ]
               }),
@@ -129,17 +131,17 @@ export async function GET(request: Request) {
                       new Paragraph({
                         spacing: { before: 100, after: 100 },
                         children: [
-                          new TextRun({ text: `Total de Autorizações: ${keys.length}`, bold: true, size: 20, font: "Arial" }),
+                          new TextRun({ text: `Total de Autorizações: ${keys.length}`, bold: true, size: 20, font: { name: "Arial" } }),
                         ]
                       }),
                       new Paragraph({
                         children: [
-                          new TextRun({ text: `• Tomografias (TC): ${totalTC}`, size: 18, font: "Arial" }),
+                          new TextRun({ text: `• Tomografias (TC): ${totalTC}`, size: 18, font: { name: "Arial" } }),
                         ]
                       }),
                       new Paragraph({
                         children: [
-                          new TextRun({ text: `• Ressonâncias (RNM): ${totalRNM}`, size: 18, font: "Arial" }),
+                          new TextRun({ text: `• Ressonâncias (RNM): ${totalRNM}`, size: 18, font: { name: "Arial" } }),
                         ]
                       }),
                     ]
@@ -158,11 +160,11 @@ export async function GET(request: Request) {
                 tableHeader: true,
                 height: { value: 400, rule: HeightRule.ATLEAST },
                 children: [
-                  new TableCell({ width: { size: 12, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DATA", bold: true, font: "Arial", size: 18 })] })] }),
-                  new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "CHAVE", bold: true, font: "Arial", size: 18 })] })] }),
-                  new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "PACIENTE", bold: true, font: "Arial", size: 18 })] })] }),
-                  new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "TIPO", bold: true, font: "Arial", size: 18 })] })] }),
-                  new TableCell({ width: { size: 28, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DESTINO", bold: true, font: "Arial", size: 18 })] })] }),
+                  new TableCell({ width: { size: 12, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DATA", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "CHAVE", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "PACIENTE", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "TIPO", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 28, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DESTINO", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
                 ]
               }),
               ...keys.map(key => {
@@ -173,11 +175,11 @@ export async function GET(request: Request) {
                 
                 return new TableRow({
                   children: [
-                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: safeDate, font: "Arial", size: 16 })] })] }),
-                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: safeKey, bold: true, font: "Arial", size: 16 })] })] }),
-                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ children: [new TextRun({ text: safePatient, font: "Arial", size: 16 })] })] }),
-                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: key.type, font: "Arial", size: 16 })] })] }),
-                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ children: [new TextRun({ text: safeDestination, font: "Arial", size: 16 })] })] }),
+                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: safeDate, font: { name: "Arial" }, size: 16 })] })] }),
+                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: safeKey, bold: true, font: { name: "Arial" }, size: 16 })] })] }),
+                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ children: [new TextRun({ text: safePatient, font: { name: "Arial" }, size: 16 })] })] }),
+                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: key.type, font: { name: "Arial" }, size: 16 })] })] }),
+                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ children: [new TextRun({ text: safeDestination, font: { name: "Arial" }, size: 16 })] })] }),
                   ]
                 });
               })
@@ -194,13 +196,13 @@ export async function GET(request: Request) {
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
-              new TextRun({ text: "COORDENAÇÃO DE REGULAÇÃO - CIR-A", bold: true, size: 18, font: "Arial" }),
+              new TextRun({ text: "COORDENAÇÃO DE REGULAÇÃO - CIR-A", bold: true, size: 18, font: { name: "Arial" } }),
             ]
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
-              new TextRun({ text: `Gerado em: ${new Date().toLocaleString('pt-BR')}`, size: 14, color: "666666", font: "Arial" }),
+              new TextRun({ text: `Gerado em: ${new Date().toLocaleString('pt-BR')}`, size: 14, color: "666666", font: { name: "Arial" } }),
             ]
           }),
         ],

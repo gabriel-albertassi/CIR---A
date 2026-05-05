@@ -428,12 +428,32 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             <AlertTriangle size={12} /> FILA ATRASADA
                           </span>
                         )}
-                        <span style={{ fontSize: '11px', color: '#fca5a5', fontWeight: 700, textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: '11px', color: '#ff4d4d', fontWeight: 700, textTransform: 'uppercase' }}>
                           {p.attempts_count} recusa(s)
                         </span>
                         {p.refused_hospitals && p.refused_hospitals.length > 0 && (
-                          <div style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic', maxWidth: '180px' }}>
-                            {p.refused_hospitals.join(', ')}
+                          <div style={{ 
+                            fontSize: '10px', 
+                            color: '#ff8080', 
+                            fontWeight: 600,
+                            fontStyle: 'normal', 
+                            maxWidth: '220px',
+                            marginTop: '2px',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '4px'
+                          }}>
+                            {p.refused_hospitals.map((h, i) => (
+                              <span key={i} style={{ 
+                                backgroundColor: 'rgba(239, 68, 68, 0.15)', 
+                                padding: '1px 6px', 
+                                borderRadius: '4px',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                {h}
+                              </span>
+                            ))}
                           </div>
                         )}
                       </div>

@@ -417,29 +417,29 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
     
     const foundExams: string[] = [];
     for (const [kw, label] of Object.entries(examKeywords)) {
-      // Regex: captura o exame + preposição + especificação anatômica completa
-      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)\\s+(.+?))?(?=\\s+(?:${examStopWords.join('|')})\\b|$)`, 'i');
+      // Regex Flexível: captura o exame mesmo sem "DE/DO/DA" e para antes de stop-words ou nomes de hospitais
+      const regex = new RegExp(`\\b${kw}\\b(?:\\s+(?:de|do|da|dos|das)?\\s*(.+?))?(?=\\s+(?:${examStopWords.join('|')})\\b|$)`, 'i');
       const match = cleanedText.match(regex);
       if (match) {
         let fullExam = label;
         if (match[1]) {
           // Limpa a especificação: remove resíduos de stop-words no final
           let spec = match[1].trim()
-            .replace(new RegExp(`\\b(${examStopWords.join('|')})\\b.*$`, 'i'), '')
+            .replace(new RegExp(`\\s+(?:${examStopWords.join('|')})\\b.*$`, 'i'), '')
             .trim();
 
           // REGRA DE OURO: Se achar "com/sem contraste", corta tudo que vem depois
           // Isso evita que o nome do paciente seja engolido pelo exame
-          const contrastMatch = spec.match(/\b(?:com|sem|c\/|s\/)\s+(?:contraste|contr)\b/i);
+          const contrastMatch = spec.match(/\b(?:com|sem|c\/|s\/)\s+(?:contraste|contr|contrast)\b/i);
           if (contrastMatch) {
             const contrastStr = contrastMatch[0];
             const endIdx = spec.toLowerCase().indexOf(contrastStr.toLowerCase()) + contrastStr.length;
             spec = spec.substring(0, endIdx).trim();
           }
 
-          // Limita a 60 chars para segurança
-          if (spec.length > 0 && spec.length < 60) {
-            fullExam = `${label} DE ${spec.toUpperCase()}`;
+          // Limita a 80 chars para segurança
+          if (spec.length > 0 && spec.length < 80) {
+            fullExam = spec.toUpperCase().includes(label) ? spec.toUpperCase() : `${label} DE ${spec.toUpperCase()}`;
           }
         }
         if (!foundExams.includes(fullExam)) foundExams.push(fullExam);
@@ -499,8 +499,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       }
       residue = residue.trim();
       
-      if (residue.length > 2 && residue.length < 50) {
-        patient = residue.toUpperCase();
+      if (residue.length > 2) {
+        // Limpeza final para garantir que não sobrou lixo de comando
+        patient = residue.toUpperCase()
+          .replace(/\b(AUTORIZADO|AUTORIZADA|COM|SEM|CONTRASTE|CONTR|C\/|S\/|EXAME|PARA)\b/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
       }
     }
 
