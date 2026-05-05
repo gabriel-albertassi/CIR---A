@@ -401,19 +401,20 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               background: p.is_private ? 'rgba(56, 189, 248, 0.12)' : 'rgba(245, 158, 11, 0.12)', 
                               color: p.is_private ? '#38bdf8' : '#f59e0b', 
                               border: `1px solid ${p.is_private ? 'rgba(56, 189, 248, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`, 
-                              padding: '3px 10px', 
-                              borderRadius: '7px', 
+                              padding: '4px 12px', 
+                              borderRadius: '8px', 
                               fontSize: '0.72rem', 
-                              fontWeight: 800, 
+                              fontWeight: 600, 
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '5px',
+                              gap: '6px',
                               transition: 'all 0.2s',
                               whiteSpace: 'nowrap',
                               textTransform: 'uppercase',
                               letterSpacing: '0.3px',
-                              fontFamily: 'Outfit, sans-serif'
+                              fontFamily: 'Outfit, sans-serif',
+                              textDecoration: 'none'
                             }}
                             title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado"}
                           >
@@ -449,19 +450,20 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
                               className="btn"
                               style={{ 
-                                padding: '0.4rem 0.75rem', 
+                                padding: '0.45rem 0.85rem', 
                                 fontSize: '0.75rem', 
-                                backgroundColor: 'rgba(56,189,248,0.15)', 
+                                backgroundColor: 'rgba(56,189,248,0.1)', 
                                 color: '#38bdf8', 
-                                border: '1px solid rgba(56,189,248,0.3)', 
+                                border: '1px solid rgba(56,189,248,0.25)', 
                                 borderRadius: '10px', 
-                                fontWeight: 800, 
+                                fontWeight: 600, 
                                 textTransform: 'uppercase',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
                                 marginTop: '0.5rem',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                textDecoration: 'none'
                               }}
                               title="Cobrar pelo Sistema"
                             >
@@ -510,7 +512,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             </select>
                             <button 
                               className="btn btn-primary" 
-                              style={{ padding: '0.35rem 1rem', fontWeight: 700, fontSize: '0.78rem', fontFamily: 'Outfit, sans-serif' }}
+                              style={{ padding: '0.35rem 1rem', fontWeight: 600, fontSize: '0.78rem', fontFamily: 'Outfit, sans-serif', textDecoration: 'none' }}
                               onClick={() => handleAction('request', p.id)} 
                               disabled={loadingId === p.id || !targetHospital}
                             >

@@ -67,7 +67,7 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>{priorityPatients.length} pacientes</span>
-            <Link href="/patients/new" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+            <Link href="/patients/new" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)', textDecoration: 'none' }}>
               <Plus size={14} /> Nova Regulação
             </Link>
           </div>
@@ -142,18 +142,19 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                         <button 
                           onClick={() => setAttachModal({ id: p.id, name: p.name })}
                           style={{ 
-                            background: 'rgba(59, 130, 246, 0.15)', 
+                            background: 'rgba(59, 130, 246, 0.1)', 
                             color: '#60a5fa', 
-                            border: '1px solid rgba(59, 130, 246, 0.3)', 
-                            padding: '0.75rem 1.25rem', 
-                            borderRadius: '14px', 
+                            border: '1px solid rgba(59, 130, 246, 0.25)', 
+                            padding: '0.65rem 1.1rem', 
+                            borderRadius: '12px', 
                             fontSize: '0.85rem', 
-                            fontWeight: 700, 
+                            fontWeight: 600, 
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '8px',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            textDecoration: 'none'
                           }}
                           title="Anexar Evolução Médica (PDF/Laudos)"
                         >
@@ -163,18 +164,19 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                         <button 
                           onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
                           style={{ 
-                            background: 'rgba(34, 197, 94, 0.15)', 
+                            background: 'rgba(34, 197, 94, 0.1)', 
                             color: '#4ade80', 
-                            border: '1px solid rgba(34, 197, 94, 0.3)', 
-                            padding: '0.75rem 1.25rem', 
-                            borderRadius: '14px', 
+                            border: '1px solid rgba(34, 197, 94, 0.25)', 
+                            padding: '0.65rem 1.1rem', 
+                            borderRadius: '12px', 
                             fontSize: '0.85rem', 
-                            fontWeight: 700, 
+                            fontWeight: 600, 
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '8px',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            textDecoration: 'none'
                           }}
                           title="Cobrar Evolução (WhatsApp/Email)"
                         >
@@ -186,19 +188,20 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
                             if (canAction) setBlastModal({ id: p.id, severity: p.severity, is_private: p.is_private })
                           }}
                           style={{ 
-                            background: canAction ? 'rgba(0, 180, 216, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
+                            background: canAction ? 'rgba(0, 180, 216, 0.1)' : 'rgba(148, 163, 184, 0.05)', 
                             color: canAction ? '#00e5ff' : '#64748b', 
-                            border: `1px solid ${canAction ? 'rgba(0, 180, 216, 0.3)' : 'rgba(148, 163, 184, 0.2)'}`, 
-                            padding: '0.75rem 1.25rem', 
-                            borderRadius: '14px', 
+                            border: `1px solid ${canAction ? 'rgba(0, 180, 216, 0.25)' : 'rgba(148, 163, 184, 0.15)'}`, 
+                            padding: '0.65rem 1.1rem', 
+                            borderRadius: '12px', 
                             fontSize: '0.85rem', 
-                            fontWeight: 700, 
+                            fontWeight: 600, 
                             cursor: canAction ? 'pointer' : 'not-allowed',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '8px',
                             opacity: canAction ? 1 : 0.6,
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            textDecoration: 'none'
                           }}
                           title={canAction ? "Disparo (Busca de Vaga)" : "Acesso Restrito: Requer liberação do Administrador"}
                         >

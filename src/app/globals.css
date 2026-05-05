@@ -61,6 +61,10 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
+a {
+  text-decoration: none;
+}
+
 /* ════════════════════════════════════
    BACKGROUND SYSTEM CIR-A — Opção 1
    Dark Navy + Teal glow + Hex grid
@@ -175,6 +179,7 @@ input, select, textarea {
   font-family: 'Outfit', sans-serif;
   white-space: nowrap;
   color: inherit;
+  text-decoration: none;
 }
 
 .btn:active {
