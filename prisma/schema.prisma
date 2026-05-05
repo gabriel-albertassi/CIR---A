@@ -110,3 +110,27 @@ model CirilaAudit {
   @@index([exam_type])
   @@index([timestamp])
 }
+
+model AuthorizationKey {
+  id              String   @id @default(uuid())
+  created_at      DateTime @default(now())
+  date            DateTime @default(now())
+  key             String   
+  patient         String
+  exam            String
+  procedure       String?
+  origin          String
+  destination     String
+  professional    String
+  user_created    String?  // ID do usuário que gerou
+  type            String   // TC, RNM, etc
+  status          String   @default("ATIVO") // ATIVO, CANCELADO
+  month           Int
+  year            Int
+
+  @@map("authorization_keys")
+  @@index([month, year])
+  @@index([type])
+  @@index([origin])
+}
+

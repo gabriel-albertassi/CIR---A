@@ -6,6 +6,12 @@
   gap: 1rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .queueTitle h1 {
@@ -66,7 +72,7 @@
 
 .actionCell {
   padding: 0.75rem 1.25rem;
-  min-width: 480px; 
+  min-width: 520px; 
   vertical-align: middle;
   position: relative;
   transition: all 0.3s ease;
@@ -89,26 +95,28 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  padding: 0.75rem 1.25rem;
-  border-radius: 18px;
+  padding: 1rem;
+  border-radius: 16px;
   position: absolute;
-  top: 50%;
   left: 0;
   right: 0;
+  top: 50%;
   transform: translateY(-50%);
-  min-height: 64px;
+  width: calc(100% + 40px);
+  margin-left: -20px;
   height: auto;
+  min-height: 44px;
   background: rgba(15, 23, 42, 0.95);
   z-index: 100; 
-  border: 1px solid rgba(0, 180, 216, 0.5);
-  backdrop-filter: blur(25px);
-  box-shadow: 0 15px 45px rgba(0,0,0,0.9);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(56, 189, 248, 0.1);
   animation: slideIn 0.2s ease-out;
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to { opacity: 1; transform: translateY(-50%) scale(1); }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .btnCancelPremium {
@@ -144,7 +152,7 @@
   justify-content: center;
   gap: 8px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   height: 44px; 
@@ -163,11 +171,11 @@
 .premiumActionButton {
   font-family: 'Outfit', sans-serif;
   height: 44px; 
-  width: 160px; /* Standardized width reduced slightly for better fit */
+  width: 180px; /* Standardized and harmonized width */
   padding: 0 1rem;
-  border-radius: 12px; /* Standardized radius */
+  border-radius: 12px; 
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 500; /* Harmonized font weight */
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -178,7 +186,8 @@
   text-decoration: none !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
   white-space: nowrap;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
+  outline: none;
 }
 
 .btnAttach {
@@ -254,7 +263,7 @@
 .btnAi {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
-  width: 44px; /* Matches premium height */
+  width: 44px; 
   height: 44px;
   padding: 0;
   border-radius: 12px;
@@ -263,4 +272,60 @@
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.15);
+  text-decoration: none !important;
+}
+
+.confirmButton {
+  height: 44px;
+  padding: 0 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.confirmPrimary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.confirmDanger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.confirmSuccess {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.confirmWarning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+}
+
+.confirmButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }

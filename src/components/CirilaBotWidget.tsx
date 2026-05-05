@@ -38,7 +38,7 @@ function CirilaDashboard({ data, period, examType }: { data: any, period: string
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <BarChart3 size={18} color="#00d8ff" />
-          <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#0f172a', fontWeight: 700 }}>
+          <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#0f172a', fontWeight: 500 }}>
             {isFiltered ? `Relatório ${examType}` : 'Relatório Geral'}
           </h4>
         </div>
@@ -49,12 +49,12 @@ function CirilaDashboard({ data, period, examType }: { data: any, period: string
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
         <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
-          <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, marginBottom: '2px' }}>AUTORIZADOS</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>{data.total}</div>
+          <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 500, marginBottom: '2px' }}>AUTORIZADOS</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0f172a' }}>{data.total}</div>
         </div>
         <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
-          <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, marginBottom: '2px' }}>DESEMPENHO</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontSize: '1rem', fontWeight: 800 }}>
+          <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 500, marginBottom: '2px' }}>DESEMPENHO</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontSize: '1rem', fontWeight: 600 }}>
             <TrendingUp size={14} /> +12%
           </div>
         </div>
@@ -88,17 +88,17 @@ function CirilaDashboard({ data, period, examType }: { data: any, period: string
 
       {hospitalData.length > 0 && (
         <div style={{ marginTop: isFiltered ? '0.5rem' : '0' }}>
-          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 800, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Principais Origens
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {hospitalData.slice(0, 3).map((h: any, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#0f172a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800 }}>
+                <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#0f172a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 600 }}>
                   {idx + 1}
                 </div>
-                <div style={{ flex: 1, fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>{h.name}</div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#00d8ff' }}>{h.value}</div>
+                <div style={{ flex: 1, fontSize: '0.8rem', fontWeight: 400, color: '#334155' }}>{h.name}</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#00d8ff' }}>{h.value}</div>
               </div>
             ))}
           </div>
@@ -278,6 +278,33 @@ export default function CirilaBotWidget() {
       return;
     }
 
+    if (payload === 'DOWNLOAD_REPORT_MONTHLY') {
+      const url = '/api/admin/reports/monthly';
+      setProcessingStatus('Gerando relatório mensal consolidado...');
+      
+      fetch(url)
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Falha ao gerar relatório');
+          return res.blob();
+        })
+        .then((blob) => {
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.setAttribute('download', `Relatorio_Mensal_${new Date().getMonth() + 1}_${new Date().getFullYear()}.docx`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(downloadUrl);
+          setMessages(prev => [...prev, { text: `✅ **Relatório Gerado!** O arquivo Word foi enviado para o seu computador.`, sender: 'ai' }]);
+        })
+        .catch((err) => {
+          setMessages(prev => [...prev, { text: `❌ **Erro:** Não consegui gerar o relatório agora.`, sender: 'ai' }]);
+        })
+        .finally(() => setProcessingStatus(null));
+      return;
+    }
+
     handleSend(payload);
   };
 
@@ -373,7 +400,7 @@ export default function CirilaBotWidget() {
                 lineHeight: '1.6',
                 fontWeight: 400
               }}>
-                <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<span>$1</span>') }} />
+                <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<span style="color: inherit; font-weight: 500;">$1</span>') }} />
                 
                 {(m as CirilaResponse).file && (
                   <div style={{ 
@@ -460,7 +487,7 @@ export default function CirilaBotWidget() {
                             padding: '0.65rem 1.25rem', 
                             borderRadius: '14px', 
                             fontSize: '0.75rem', 
-                            fontWeight: 800, 
+                            fontWeight: 500, 
                             cursor: 'pointer', 
                             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                             display: 'flex',

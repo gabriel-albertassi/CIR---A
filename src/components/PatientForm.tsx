@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { registerPatient } from '@/app/patients/actions'
 import { ALL_HOSPITALS, SEVERITY_LEVELS } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
 
@@ -14,16 +13,37 @@ export default function PatientForm() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
+    
+    // Log para depuração no frontend
+    console.log('Enviando dados para o servidor via API Route...');
+
     try {
-      const result = await registerPatient(formData)
+      const response = await fetch('/api/patients/register', {
+        method: 'POST',
+        body: formData,
+      })
+
+      // Tentar converter para JSON independentemente do status
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonErr) {
+        console.error('Resposta não-JSON recebida:', await response.text());
+        throw new Error('O servidor retornou uma resposta inesperada (não-JSON).');
+      }
       
-      if (result.success) {
-        router.push('/patients')
+      if (response.ok && result.success) {
+        console.log('Cadastro realizado com sucesso:', result);
+        router.push('/patients');
+        router.refresh(); // Garante que a lista seja atualizada
       } else {
-        alert("Erro ao cadastrar: " + result.error)
+        const errorMsg = result.error || 'Erro desconhecido ao cadastrar.';
+        console.warn('Erro retornado pela API:', errorMsg);
+        alert("Erro ao cadastrar: " + errorMsg);
       }
     } catch (err: any) {
-      alert("Erro crítico: " + err.message)
+      console.error('Erro crítico no envio do formulário:', err);
+      alert("Erro crítico: " + err.message);
     } finally {
       setLoading(false)
     }
@@ -33,7 +53,7 @@ export default function PatientForm() {
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
         <label className="label">Nome do Paciente</label>
-        <input name="name" required className="input" placeholder="Ex: João da Silva" />
+        <input name="patient" required className="input" placeholder="Ex: João da Silva" />
       </div>
 
       <div>
@@ -51,7 +71,7 @@ export default function PatientForm() {
 
       <div>
         <label className="label">Hospital de Origem (Onde o paciente está)</label>
-        <select name="origin_hospital" required className="input">
+        <select name="hospital" required className="input">
           <option value="">Selecione...</option>
           {ALL_HOSPITALS.map(h => (
             <option key={h} value={h}>{h}</option>
@@ -73,13 +93,13 @@ export default function PatientForm() {
         <label className="label">Malote Digital (PDF, Imagens, Documentos)</label>
         <input 
           type="file" 
-          name="attachment" 
+          name="file" 
           className="input" 
           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
           style={{ padding: '8px' }}
         />
         <small style={{ color: 'var(--text-secondary)' }}>
-          Este arquivo será enviado automaticamente como anexo nas solicitações de vaga.
+          Limite de 5MB. Este arquivo será enviado automaticamente como anexo nas solicitações de vaga.
         </small>
       </div>
 

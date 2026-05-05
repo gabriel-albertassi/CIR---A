@@ -23,6 +23,7 @@ import {
   ImageRun,
   Footer,
 } from 'docx';
+import { prisma } from '@/lib/db';
 
 
 const generateKey = () => {
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
     const hospitalOrigin = searchParams.get('hospitalOrigin')?.replace(/\+/g, ' ') || 'HOSPITAL ORIGEM';
     const qty = parseInt(searchParams.get('qty') || '1');
     const protocolo = parseInt(searchParams.get('protocolo') || '1');
+    const mode = searchParams.get('mode'); // 'text' para modo simplificado
 
     const examsList = examsRaw.split(',').map(e => e.trim());
     let finalExams: string[] = [];
@@ -154,17 +156,76 @@ export async function GET(req: NextRequest) {
 
 
     const labelElements: any[] = [];
+    const generatedKeys: string[] = [];
 
     // Etiquetas Individuais
-    finalExams.forEach((examName, index) => {
+    for (const [index, examName] of finalExams.entries()) {
       const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
+      generatedKeys.push(authKey);
       const destination = getDestination(examName);
+      
+      // --- SALVAMENTO CRÍTICO NO BANCO DE DADOS ---
+      try {
+        const now = new Date();
+        const examType = examName.toUpperCase().includes('RNM') || examName.toUpperCase().includes('RESSONANCIA') ? 'RNM' : 
+                         examName.toUpperCase().includes('TC') || examName.toUpperCase().includes('TOMOGRAFIA') ? 'TC' : 'OUTRO';
+
+        if (!hospitalOrigin || hospitalOrigin === 'HOSPITAL ORIGEM') {
+          throw new Error('Hospital de Origem é obrigatório para registrar a chave.');
+        }
+
+        await prisma.authorizationKey.create({
+          data: {
+            key: authKey,
+            patient: patient.toUpperCase(),
+            exam: examName.toUpperCase(),
+            procedure: examName.toUpperCase(),
+            origin: hospitalOrigin.toUpperCase(),
+            destination: destination.toUpperCase(),
+            professional: prof.name.toUpperCase(),
+            type: examType,
+            month: now.getMonth() + 1,
+            year: now.getFullYear(),
+            date: now,
+            status: 'ATIVO'
+          }
+        });
+        console.log(`[CIRILA_DB] Chave ${authKey} registrada com sucesso para ${patient}.`);
+      } catch (dbErr: any) {
+        console.error(`[CIRILA_DB_ERROR] Falha ao registrar chave: ${dbErr.message}`);
+        throw new Error(`BLOQUEIO DE SEGURANÇA: Não foi possível registrar a autorização no banco de dados. A etiqueta não será gerada. Erro: ${dbErr.message}`);
+      }
+
       labelElements.push(createLabelTable(examName, authKey, destination, patient, hospitalOrigin));
       if (index < finalExams.length - 1) {
         // Espaço entre etiquetas múltiplas
         labelElements.push(new Paragraph({ spacing: { before: 800, after: 800 }, children: [] }));
       }
-    });
+    }
+
+    if (mode === 'text') {
+      const textLines = finalExams.map((examName, index) => {
+        const authKey = generatedKeys[index];
+        const destination = getDestination(examName);
+        return `${dateStr} : ${authKey} - ${patient.toUpperCase()} – ${hospitalOrigin.toUpperCase()} - ${examName.toUpperCase()} AUTORIZADO PARA ${destination.toUpperCase()}`;
+      });
+
+      const textDoc = new Document({
+        sections: [{
+          children: textLines.map(line => new Paragraph({
+            children: [new TextRun({ text: line, font: { name: 'Arial' }, size: 24 })]
+          }))
+        }]
+      });
+
+      const textBuffer = await Packer.toBuffer(textDoc);
+      return new NextResponse(new Uint8Array(textBuffer), {
+        headers: {
+          'Content-Disposition': `attachment; filename="Chave_${patient.replace(/\s/g, '_')}.docx"`,
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        },
+      });
+    }
 
     // --- PROCESSAMENTO COM ANEXO ---
     if (templateUrl) {

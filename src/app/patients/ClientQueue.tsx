@@ -272,11 +272,11 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                 background: 'rgba(59, 130, 246, 0.15)', 
                 color: '#60a5fa', 
                 border: '1px solid rgba(59, 130, 246, 0.25)',
-                fontWeight: 700,
+                fontWeight: 500,
                 fontFamily: 'Outfit, sans-serif',
                 textTransform: 'uppercase',
                 letterSpacing: '0.03em',
-                textDecoration: 'none !important'
+                textDecoration: 'none'
               }}>
                 <Plus size={13} strokeWidth={2.5} /> NOVO
               </Link>
@@ -405,7 +405,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               padding: '4px 12px', 
                               borderRadius: '8px', 
                               fontSize: '0.72rem', 
-                              fontWeight: 600, 
+                              fontWeight: 500, 
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
@@ -457,14 +457,14 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 color: '#38bdf8', 
                                 border: '1px solid rgba(56,189,248,0.25)', 
                                 borderRadius: '10px', 
-                                fontWeight: 700, 
+                                fontWeight: 500, 
                                 textTransform: 'uppercase',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
                                 marginTop: '0.5rem',
                                 transition: 'all 0.2s',
-                                textDecoration: 'none !important'
+                                textDecoration: 'none'
                               }}
                               title="Cobrar pelo Sistema"
                             >
@@ -512,8 +512,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               )}
                             </select>
                             <button 
-                              className="btn btn-primary" 
-                              style={{ padding: '0.35rem 1rem', fontWeight: 600, fontSize: '0.78rem', fontFamily: 'Outfit, sans-serif', textDecoration: 'none' }}
+                              className={`${styles.confirmButton} ${styles.confirmPrimary}`}
                               onClick={() => handleAction('request', p.id)} 
                               disabled={loadingId === p.id || !targetHospital}
                             >
@@ -524,7 +523,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                onClick={() => handleDirectNotify(p.id, targetHospital, p.severity, p.is_private)}
                                disabled={!targetHospital || notifying === p.id}
                                title="Disparar Notificação Direta para esta unidade"
-                               style={{ minWidth: '120px' }}
+                               style={{ width: '160px' }}
                             >
                                {notifying === p.id ? <Clock size={14} className="animate-spin" /> : <Send size={14} strokeWidth={2.5} />}
                                NOTIFICAR
@@ -533,6 +532,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               className={styles.btnCancelPremium}
                               onClick={() => { setRequestingId(null); setTargetHospital(''); }}
                               title="Cancelar"
+                              style={{ width: '44px', height: '44px' }}
                             >
                               <X size={18} strokeWidth={3} />
                             </button>
@@ -584,8 +584,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 )}
                               </select>
                               <button 
-                                className="btn btn-danger" 
-                                style={{ padding: '0.25rem 0.75rem', whiteSpace: 'nowrap', fontWeight: 700 }}
+                                className={`${styles.confirmButton} ${styles.confirmDanger}`}
                                 onClick={() => handleAction('refusal', p.id)} 
                                 disabled={loadingId === p.id || !refusalHospital || (refusalHospital === 'Paciente Recusou Transferencia' && !refusalNote.trim())}
                               >
@@ -595,6 +594,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 className={styles.btnCancelPremium}
                                 onClick={() => { setRefusingId(null); setRefusalHospital(''); setRefusalNote(''); }}
                                 title="Cancelar"
+                                style={{ width: '44px', height: '44px' }}
                               >
                                 <X size={18} strokeWidth={3} />
                               </button>
@@ -651,8 +651,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 ))}
                               </select>
                               <button 
-                                className="btn" 
-                                style={{ padding: '0.35rem 1rem', backgroundColor: '#16a34a', color: 'white', fontWeight: 700, fontSize: '0.78rem' }}
+                                className={`${styles.confirmButton} ${styles.confirmSuccess}`}
                                 onClick={() => handleAction('transfer', p.id)} 
                                 disabled={loadingId === p.id || !transferHospital}
                               >
@@ -663,6 +662,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 onClick={() => handleDirectNotify(p.id, transferHospital, p.severity, p.is_private)}
                                 disabled={!transferHospital || notifying === p.id}
                                 title="Notificar Destino da Transferência"
+                                style={{ width: '160px' }}
                               >
                                 {notifying === p.id ? <Clock size={14} className="animate-spin" /> : <Send size={14} strokeWidth={2.5} />}
                                 NOTIFICAR
@@ -671,6 +671,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 className={styles.btnCancelPremium}
                                 onClick={() => { setTransferringId(null); setTransferHospital(''); }}
                                 title="Cancelar"
+                                style={{ width: '44px', height: '44px' }}
                               >
                                 <X size={18} strokeWidth={3} />
                               </button>
@@ -695,7 +696,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                               <button
                                 className="btn"
-                                style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.78rem', border: `2px solid ${exitType === 'ALTA_MEDICA' ? '#22c55e' : 'rgba(34,197,94,0.3)'}`, background: exitType === 'ALTA_MEDICA' ? 'rgba(34,197,94,0.2)' : 'transparent', color: '#86efac', fontWeight: 700 }}
+                                style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.78rem', border: `2px solid ${exitType === 'ALTA_MEDICA' ? '#22c55e' : 'rgba(34,197,94,0.3)'}`, background: exitType === 'ALTA_MEDICA' ? 'rgba(34,197,94,0.2)' : 'transparent', color: '#86efac', fontWeight: 500 }}
                                 onClick={() => setExitType('ALTA_MEDICA')}
                               >
                                 ✅ Alta Médica
@@ -726,10 +727,10 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               />
                             )}
 
-                            <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                            <div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}>
                               <button
-                                className="btn"
-                                style={{ padding: '0.35rem 1rem', background: '#dc2626', color: 'white', fontWeight: 700, fontSize: '0.82rem', opacity: (!exitType || !exitNote.trim()) ? 0.4 : 1, minWidth: '140px' }}
+                                className={`${styles.confirmButton} ${styles.confirmDanger}`}
+                                style={{ flex: 2 }}
                                 onClick={() => handleAction('cancel', p.id)}
                                 disabled={loadingId === p.id || !exitType || !exitNote.trim()}
                               >
@@ -739,6 +740,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                                 className={styles.btnCancelPremium}
                                 onClick={() => { setCancellingId(null); setExitType(''); setExitNote(''); }}
                                 title="Cancelar"
+                                style={{ width: '44px', height: '44px' }}
                               >
                                 <X size={18} strokeWidth={3} />
                               </button>
@@ -775,21 +777,21 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                               value={newDiagnosis}
                               onChange={(e) => setNewDiagnosis(e.target.value)}
                             />
-                            <button 
-                              className="btn" 
-                              style={{ padding: '0.35rem 1rem', backgroundColor: '#f97316', color: 'white', fontWeight: 700, fontSize: '0.78rem' }}
-                              onClick={() => handleAction('evolve', p.id)} 
-                              disabled={loadingId === p.id || !newSeverity}
-                            >
-                              Confirmar
-                            </button>
-                            <button 
-                              className={styles.btnCancelPremium}
-                              onClick={() => { setEvolvingId(null); setNewSeverity(''); setNewDiagnosis(''); }}
-                              title="Cancelar"
-                            >
-                              <X size={18} strokeWidth={3} />
-                            </button>
+                             <button 
+                               className={`${styles.confirmButton} ${styles.confirmWarning}`}
+                               onClick={() => handleAction('evolve', p.id)} 
+                               disabled={loadingId === p.id || !newSeverity}
+                             >
+                               Confirmar
+                             </button>
+                             <button 
+                               className={styles.btnCancelPremium}
+                               onClick={() => { setEvolvingId(null); setNewSeverity(''); setNewDiagnosis(''); }}
+                               title="Cancelar"
+                               style={{ width: '44px', height: '44px' }}
+                             >
+                               <X size={18} strokeWidth={3} />
+                             </button>
                           </div>
                         ) : (
                           <button 

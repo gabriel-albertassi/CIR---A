@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: dateStr, size: 16, color: '555555', font: { name: 'Arial' } })],
+                children: [new TextRun({ text: '', size: 16, color: '555555', font: { name: 'Arial' } })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
@@ -186,7 +186,7 @@ export async function GET(req: NextRequest) {
         alignment: AlignmentType.RIGHT,
         spacing: { before: 0, after: 120 },
         children: [
-          new TextRun({ text: `DATA: ${dateStr}`, size: 18, font: { name: 'Arial' }, color: '000000' }),
+          new TextRun({ text: 'DATA: ', size: 18, font: { name: 'Arial' }, color: '000000' }),
         ],
       }),
     ];

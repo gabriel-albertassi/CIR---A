@@ -102,6 +102,11 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               <Users size={20} color="#00b4d8" />
               <span>Prontuário Geral</span>
             </Link>
+
+            <Link href="/admin/keys" className={`sidebar-link ${pathname.startsWith('/admin/keys') ? 'active' : ''}`}>
+              <Key size={20} color="#00b4d8" />
+              <span>Controle de Chaves</span>
+            </Link>
           </nav>
 
           {/* USER PROFILE & LOGOUT */}

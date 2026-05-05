@@ -223,40 +223,18 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   if (cleanedText.includes('relatório') || cleanedText.includes('relatorio')) {
     console.log(`[CIRILA_ACTIONS] Comando de relatório detectado: "${cleanedText}"`);
     
-    const examFilter: 'TC' | 'RNM' | undefined = isTC ? 'TC' : (isRNM ? 'RNM' : undefined);
+    const isMonthly = /\b(mensal|mês|mes)\b/i.test(cleanedText);
     const isAnnual = /\b(anual|ano|anualmente)\b/i.test(cleanedText);
-    const period: 'MENSAL' | 'ANUAL' = isAnnual ? 'ANUAL' : 'MENSAL';
     
-    console.log(`[CIRILA_ACTIONS] Filtro Identificado: ${examFilter || 'GERAL'}, Período: ${period}`);
-
-    const stats = await getCirilaStats(examFilter);
-    if (!stats) {
-      console.error('[CIRILA_ACTIONS] Falha ao obter estatísticas.');
-      return { text: "⚠️ Desculpe chefe, tive um problema técnico ao acessar os dados de auditoria para o relatório.", sender: 'ai' };
-    }
-
-    const data = period === 'ANUAL' ? stats.annual : stats.monthly;
-    
-    if (!data || data.total === 0) {
-      const typeStr = examFilter ? ` de ${examFilter}` : '';
-      return { 
-        text: `📊 **Relatório ${period}${typeStr}**\n\nChefe, não encontrei nenhum registro de auditoria para este período no banco de dados. \n\n*Dica: Os relatórios são baseados nas etiquetas oficiais geradas.*`,
-        sender: 'ai'
+    if (isMonthly || (!isAnnual && cleanedText.includes('relatorio'))) {
+      return {
+        text: `📊 **Relatório Mensal de Autorizações**\n\nCom certeza, chefe! Estou preparando o consolidado de todas as chaves geradas neste mês. \n\nO documento contém:\n• Total de autorizações (TC/RNM)\n• Lista detalhada por paciente e hospital\n• Auditoria institucional completa`,
+        sender: 'ai',
+        actions: [
+          { label: '📄 Baixar Relatório Mensal (.docx)', payload: 'DOWNLOAD_REPORT_MONTHLY' }
+        ]
       };
     }
-
-    const examLabel = examFilter ? ` de ${examFilter}` : '';
-
-    return {
-      text: `📊 **Relatório ${period}${examLabel}**\n\nAqui estão os dados consolidados da sua regulação, baseados nas etiquetas geradas:`,
-      sender: 'ai',
-      payload: {
-        type: 'CIRILA_DASHBOARD',
-        period: period,
-        examType: examFilter || 'GERAL',
-        data: data
-      }
-    } as any;
   }
 
   // --- COMANDOS DE LISTAGEM ---
@@ -576,15 +554,10 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       return `\`${dateStr} : ${k.trim()} - ${patient.trim()} – ${finalHospital.trim()} - ${finalExamOnly.trim()} AUTORIZADO PARA ${dest.trim()}\``;
     }).join('\n');
 
-    // Formato SIMPLES para chaves avulsas (chat only): DATA : CHAVE
-    const chatKeysBlock = generatedKeys.map(k => {
-      return `\`${dateStr} : ${k.trim()}\``;
-    }).join('\n');
-
     // CASO 1: CHAT ONLY (Chave / Avulsa sem etiqueta) -> NUNCA pede assinatura
     if (isChatOnly) {
       return {
-        text: `✅ **CIRILA — CHAVES GERADAS NO CHAT**\n\nAqui estão suas chaves:\n\n${chatKeysBlock}\n\n*Processo concluído com sucesso.*`,
+        text: `✅ **CIRILA — CHAVES GERADAS NO CHAT**\n\nAqui estão seus registros de auditoria:\n\n${textKeysBlock}\n\n*Processo concluído com sucesso.*`,
         sender: 'ai'
       };
     }

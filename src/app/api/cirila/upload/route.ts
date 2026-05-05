@@ -13,6 +13,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 });
     }
 
+    // Validação de tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      console.warn(`[CIRILA_UPLOAD] Arquivo muito grande: ${file.size} bytes`);
+      return NextResponse.json({ error: 'O arquivo excede o limite de 5MB.' }, { status: 413 });
+    }
+
     const supabase = await createClient();
     const fileId = crypto.randomUUID();
     const ext = path.extname(file.name) || '.bin';
@@ -52,6 +58,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error('[CIRILA_UPLOAD_ERROR]', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ 
+      success: false,
+      error: err.message || 'Erro interno no processamento do upload.' 
+    }, { status: 500 });
   }
 }
