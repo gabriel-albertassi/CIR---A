@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
     const qty = parseInt(searchParams.get('qty') || '1');
     const protocolo = parseInt(searchParams.get('protocolo') || '1');
     const mode = searchParams.get('mode'); // 'text' para modo simplificado
+    const cns = searchParams.get('cns') || '';
 
     const examsList = examsRaw.split(',').map(e => e.trim());
     let finalExams: string[] = [];
@@ -187,7 +188,8 @@ export async function GET(req: NextRequest) {
             month: now.getMonth() + 1,
             year: now.getFullYear(),
             date: now,
-            status: 'ATIVO'
+            status: 'ATIVO',
+            cns: cns
           }
         });
         console.log(`[CIRILA_DB] Chave ${authKey} registrada com sucesso para ${patient}.`);

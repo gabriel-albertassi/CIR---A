@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const patientId = searchParams.get('p');
-  const hospitalName = searchParams.get('h');
+  const hospitalName = searchParams.get('h') || 'Hospital';
 
-  if (!patientId || !hospitalName) {
+  if (!patientId) {
+    console.warn('[CONFIRMATION] Parâmetros inválidos ou ausentes.');
     return new NextResponse('Parâmetros inválidos.', { status: 400 });
   }
 

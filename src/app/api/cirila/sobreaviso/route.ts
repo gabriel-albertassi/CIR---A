@@ -38,43 +38,31 @@ function makeKeyGenerator() {
 const PAGE_W = 15398;
 
 // Proporções das colunas (devem somar 100)
-// Ajustadas: CNS maior (40%), outros campos reduzidos para compensar.
-const COL_PCTS = [12, 8, 13, 4, 8, 4, 40, 11]; 
+// DATA(7), CHAVE(7), PACIENTE(12), DIAG(10), ORIGEM(8), PROC(6), REDE(3), CNS(40), AUDITOR(7)
+const COL_PCTS = [7, 7, 12, 10, 8, 6, 3, 40, 7]; 
 const COL_LABELS = [
-  'DATA / CHAVE',
+  'DATA',
+  'CHAVE',
   'CLIENTE (PACIENTE)',
   'DIAGNÓSTICO',
   'HOSPITAL ORIGEM',
   'PROCEDIMENTO',
-  'PRESTADOR: REDE / PRIVADO',
+  'REDE/PRIV',
   'CNS',
   'AUDITOR',
 ];
 
-// Normalizar para que a soma seja PAGE_W exato
-const pctSum = COL_PCTS.reduce((a, b) => a + b, 0);
-const COL_WIDTHS = COL_PCTS.map((p, i) => {
-  if (i === COL_PCTS.length - 1) {
-    // Última coluna recebe o restante para evitar arredondamento
-    const usedSoFar = COL_PCTS.slice(0, -1).reduce((acc, pp) => acc + Math.round((pp / pctSum) * PAGE_W), 0);
-    return PAGE_W - usedSoFar;
-  }
-  return Math.round((p / pctSum) * PAGE_W);
-});
+const COL_WIDTHS = COL_PCTS.map(p => Math.floor((PAGE_W * p) / 100));
 
-// Bordas
-const BD = BorderStyle.SINGLE;
 const BORDERS = {
-  top:              { style: BD, size: 4, color: '000000' },
-  bottom:           { style: BD, size: 4, color: '000000' },
-  left:             { style: BD, size: 4, color: '000000' },
-  right:            { style: BD, size: 4, color: '000000' },
-  insideHorizontal: { style: BD, size: 4, color: '000000' },
-  insideVertical:   { style: BD, size: 4, color: '000000' },
+  top: { style: BorderStyle.SINGLE, size: 2, color: 'E2E8F0' },
+  bottom: { style: BorderStyle.SINGLE, size: 2, color: 'E2E8F0' },
+  left: { style: BorderStyle.SINGLE, size: 2, color: 'E2E8F0' },
+  right: { style: BorderStyle.SINGLE, size: 2, color: 'E2E8F0' },
 };
 
 // Altura FIXA das linhas de dados — Aumentada para máximo conforto na escrita manual
-const ROW_HEIGHT = 1000;
+const ROW_HEIGHT = 1800;
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
@@ -92,19 +80,19 @@ export async function GET(req: NextRequest) {
     const headerRow = new TableRow({
       tableHeader: true,
       cantSplit:   true,
-      height: { value: 500, rule: HeightRule.ATLEAST },
+      height: { value: 600, rule: HeightRule.ATLEAST },
       children: COL_LABELS.map((label, i) =>
         new TableCell({
           width: { size: COL_WIDTHS[i], type: WidthType.DXA },
           shading: { fill: '000000', color: '000000', type: 'solid' },
           verticalAlign: VerticalAlign.CENTER,
-          margins: { top: 20, bottom: 20, left: 80, right: 80 },
+          margins: { top: 40, bottom: 40, left: 80, right: 80 },
           children: [
             new Paragraph({
               alignment: AlignmentType.CENTER,
               spacing: { before: 0, after: 0 },
               children: [
-                new TextRun({ text: label, bold: true, size: 15, color: 'FFFFFF', font: { name: 'Arial' } }),
+                new TextRun({ text: label, bold: true, size: 14, color: 'FFFFFF', font: { name: 'Arial' } }),
               ],
             }),
           ],
@@ -115,46 +103,43 @@ export async function GET(req: NextRequest) {
     // ── Linhas de dados ────────────────────────────────────────────────────────
     const dataRows = Array.from({ length: count }, (_, i) => {
       const key  = nextKey();
-      const fill = i % 2 === 0 ? 'FFFFFF' : 'EBF5FF';
+      const fill = i % 2 === 0 ? 'FFFFFF' : 'F8FAFC'; // Azul muito suave
 
-      const emptyCell = (colIndex: number) =>
+      const emptyCell = (colIndex: number, text: string = '') =>
         new TableCell({
           width: { size: COL_WIDTHS[colIndex], type: WidthType.DXA },
           shading: { fill, color: fill, type: 'solid' },
           verticalAlign: VerticalAlign.CENTER,
-          children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [new TextRun({ text: '' })] })],
+          children: [
+            new Paragraph({ 
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 0, after: 0 }, 
+              children: [
+                new TextRun({ 
+                  text, 
+                  bold: true, 
+                  size: 22, 
+                  color: colIndex === 1 ? '1A56DB' : '000000', 
+                  font: { name: 'Arial' } 
+                })
+              ] 
+            })
+          ],
         });
 
       return new TableRow({
         cantSplit: true,
         height: { value: ROW_HEIGHT, rule: HeightRule.ATLEAST },
         children: [
-          // DATA / CHAVE — data cinza em cima, chave azul em baixo
-          new TableCell({
-            width: { size: COL_WIDTHS[0], type: WidthType.DXA },
-            shading: { fill, color: fill, type: 'solid' },
-            verticalAlign: VerticalAlign.CENTER,
-            margins: { top: 20, bottom: 20, left: 60, right: 60 },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { before: 100, after: 60 },
-                children: [new TextRun({ text: '___/___/___', bold: true, size: 18, color: '222222', font: { name: 'Arial' } })],
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { before: 40, after: 60 },
-                children: [new TextRun({ text: key, bold: true, size: 18, color: '1A56DB', font: { name: 'Arial' } })],
-              }),
-            ],
-          }),
-          emptyCell(1), // CLIENTE (PACIENTE)
-          emptyCell(2), // DIAGNÓSTICO
-          emptyCell(3), // HOSPITAL ORIGEM
-          emptyCell(4), // PROCEDIMENTO
-          emptyCell(5), // PRESTADOR / REDE
-          emptyCell(6), // CNS
-          emptyCell(7), // AUDITOR
+          emptyCell(0, '___/___/___'), // DATA
+          emptyCell(1, key),           // CHAVE
+          emptyCell(2),                // CLIENTE
+          emptyCell(3),                // DIAGNÓSTICO
+          emptyCell(4),                // HOSPITAL ORIGEM
+          emptyCell(5),                // PROCEDIMENTO
+          emptyCell(6),                // REDE/PRIV
+          emptyCell(7),                // CNS
+          emptyCell(8),                // AUDITOR
         ],
       });
     });

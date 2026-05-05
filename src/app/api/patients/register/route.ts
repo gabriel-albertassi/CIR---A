@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     const severity = formData.get('severity') as string;
     const observations = formData.get('observations') as string || null;
     const is_private = formData.get('is_private') === 'on' || formData.get('is_private') === 'true';
+    const cns = formData.get('cns') as string || null;
     const file = formData.get('file') as File | null;
 
     console.log(`[REGISTRATION][${requestId}] Dados extraídos: ${name}, ${origin_hospital}, ${severity}`);
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
         severity,
         observations,
         is_private,
+        cns,
         attachment_url,
         attachment_name,
         status: 'WAITING',

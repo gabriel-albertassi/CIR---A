@@ -40,6 +40,8 @@ interface AuthKey {
   destination: string;
   professional: string;
   type: string;
+  status: string;
+  cns?: string;
 }
 
 export default function AdminKeysPage() {
@@ -96,7 +98,7 @@ export default function AdminKeysPage() {
 
   const formatLogString = (item: AuthKey) => {
     const date = new Date(item.date).toLocaleDateString('pt-BR');
-    return `${date} : ${item.key} - ${item.patient} – ${item.origin} - ${item.exam} ${item.procedure ? `(${item.procedure}) ` : ''}AUTORIZADO PARA ${item.destination}`;
+    return `${date} : ${item.key} - ${item.patient} ${item.cns ? `(CNS: ${item.cns}) ` : ''}– ${item.origin} - ${item.exam} ${item.procedure ? `(${item.procedure}) ` : ''}AUTORIZADO PARA ${item.destination}`;
   };
 
   const copyToClipboard = (text: string) => {
@@ -281,14 +283,17 @@ export default function AdminKeysPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50/30 border-b border-slate-50">
-                  <th className="px-8 py-6 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">Registro</th>
+                  <th className="px-8 py-6 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] w-[15%]">Data / Chave</th>
+                  <th className="px-8 py-6 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] w-[35%]">Paciente / Origem</th>
+                  <th className="px-8 py-6 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] w-[10%]">Modalidade</th>
+                  <th className="px-8 py-6 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] w-[40%]">CNS / Identificação</th>
                   <th className="px-8 py-6 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">Ação</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {keys.length === 0 && !loading ? (
                   <tr>
-                    <td colSpan={2} className="py-20 text-center">
+                    <td colSpan={5} className="py-20 text-center">
                       <p className="text-sm font-bold text-slate-300 uppercase tracking-widest">Nenhum Registro Encontrado</p>
                     </td>
                   </tr>
@@ -296,30 +301,43 @@ export default function AdminKeysPage() {
                   keys.map((item) => (
                     <tr key={item.id} className="hover:bg-blue-50/20 transition-all group">
                       <td className="px-8 py-6">
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-center gap-3">
-                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${
-                              item.type === 'TC' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-                            }`}>
-                              {item.type}
-                            </span>
-                            <span className="font-mono text-[9px] text-slate-400">#{item.id.substring(0, 8).toUpperCase()}</span>
-                            <div className="bg-[#020617] text-white px-3 py-1 rounded-lg font-black text-xs tracking-widest">{item.key}</div>
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <h4 className="text-lg font-black text-[#0F172A] uppercase tracking-tight leading-none">
-                              {item.patient}
-                            </h4>
-                            <p className="text-[10px] font-bold text-slate-500">
-                              {item.origin} <ChevronRight size={10} className="inline mx-1 text-blue-400" /> {item.destination}
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                            <span className="flex items-center gap-2"><Calendar size={12} className="text-blue-500/50" /> {new Date(item.created_at).toLocaleString('pt-BR')}</span>
-                            <span className="flex items-center gap-2"><Activity size={12} className="text-blue-500/50" /> {item.exam}</span>
-                          </div>
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                            {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                          </p>
+                          <div className="bg-[#020617] text-white px-3 py-1 rounded-lg font-black text-xs tracking-widest inline-block">{item.key}</div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="space-y-1">
+                          <h4 className="text-lg font-black text-[#0F172A] uppercase tracking-tight leading-none">
+                            {item.patient}
+                          </h4>
+                          <p className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                            {item.origin} <ChevronRight size={10} className="text-blue-400" /> {item.destination}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col gap-1">
+                          <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider inline-block text-center ${
+                            item.type === 'TC' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                          }`}>
+                            {item.type}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col gap-2">
+                          {item.cns ? (
+                            <div className="flex items-center gap-3 px-4 py-2 bg-slate-100 rounded-xl border border-slate-200 group-hover:bg-white transition-all">
+                              <ShieldCheck size={14} className="text-emerald-500" />
+                              <span className="font-mono text-sm font-black text-[#0F172A] tracking-wider">{item.cns}</span>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] font-bold text-slate-300 italic">Não Informado</span>
+                          )}
+                          <span className="font-mono text-[8px] text-slate-400 uppercase">ID: {item.id.substring(0, 8)}</span>
                         </div>
                       </td>
                       <td className="px-8 py-6 text-right align-middle">

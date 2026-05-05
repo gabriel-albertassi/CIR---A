@@ -160,11 +160,12 @@ export async function GET(request: Request) {
                 tableHeader: true,
                 height: { value: 400, rule: HeightRule.ATLEAST },
                 children: [
-                  new TableCell({ width: { size: 12, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DATA", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
-                  new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "CHAVE", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
-                  new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "PACIENTE", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
-                  new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "TIPO", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
-                  new TableCell({ width: { size: 28, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DESTINO", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DATA", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "CHAVE", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "PACIENTE", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "TIPO", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 40, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "CNS", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
+                  new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, shading: { fill: "F2F2F2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DESTINO", bold: true, font: { name: "Arial" }, size: 18 })] })] }),
                 ]
               }),
               ...keys.map(key => {
@@ -172,6 +173,7 @@ export async function GET(request: Request) {
                 const safeDate = key.date ? new Date(key.date).toLocaleDateString('pt-BR') : 'N/A';
                 const safeKey = String(key.key || '');
                 const safeDestination = String(key.destination || '');
+                const safeCNS = String((key as any).cns || '-');
                 
                 return new TableRow({
                   children: [
@@ -179,6 +181,7 @@ export async function GET(request: Request) {
                     new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: safeKey, bold: true, font: { name: "Arial" }, size: 16 })] })] }),
                     new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ children: [new TextRun({ text: safePatient, font: { name: "Arial" }, size: 16 })] })] }),
                     new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: key.type, font: { name: "Arial" }, size: 16 })] })] }),
+                    new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: safeCNS, font: { name: "Arial" }, size: 16 })] })] }),
                     new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ children: [new TextRun({ text: safeDestination, font: { name: "Arial" }, size: 16 })] })] }),
                   ]
                 });

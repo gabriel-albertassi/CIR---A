@@ -33,9 +33,10 @@ export async function updateSession(request: NextRequest) {
   // Redirecionamento de segurança:
   // Se não estiver logado e NÃO estiver na rota de login ou auth, manda pro login.
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/auth')
+  const isPublicApi = request.nextUrl.pathname.startsWith('/api/confirm-receipt')
   const isStatic = request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|ico|css|js)$/)
 
-  if (!user && !isAuthRoute && !isStatic) {
+  if (!user && !isAuthRoute && !isStatic && !isPublicApi) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

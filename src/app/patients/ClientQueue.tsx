@@ -434,8 +434,8 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                         {p.refused_hospitals && p.refused_hospitals.length > 0 && (
                           <div style={{ 
                             fontSize: '10px', 
-                            color: '#ff8080', 
-                            fontWeight: 600,
+                            color: '#ef4444', 
+                            fontWeight: 800,
                             fontStyle: 'normal', 
                             maxWidth: '220px',
                             marginTop: '2px',
@@ -445,11 +445,13 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
                           }}>
                             {p.refused_hospitals.map((h, i) => (
                               <span key={i} style={{ 
-                                backgroundColor: 'rgba(239, 68, 68, 0.15)', 
-                                padding: '1px 6px', 
-                                borderRadius: '4px',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                whiteSpace: 'nowrap'
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                                color: '#ef4444',
+                                padding: '2px 8px', 
+                                borderRadius: '6px',
+                                border: '1px solid rgba(239, 68, 68, 0.4)',
+                                whiteSpace: 'nowrap',
+                                fontWeight: 900
                               }}>
                                 {h}
                               </span>

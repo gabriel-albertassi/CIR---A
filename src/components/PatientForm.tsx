@@ -60,7 +60,12 @@ export default function PatientForm() {
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
         <label className="label">Nome do Paciente</label>
-        <input name="patient" required className="input" placeholder="Ex: João da Silva" />
+        <input name="patient" required className="input" placeholder="Ex: JOÃO DA SILVA" style={{ textTransform: 'uppercase' }} />
+      </div>
+
+      <div>
+        <label className="label">CNS (Cartão Nacional de Saúde)</label>
+        <input name="cns" className="input" placeholder="000 0000 0000 0000" style={{ textTransform: 'uppercase' }} />
       </div>
 
       <div>
@@ -81,7 +86,7 @@ export default function PatientForm() {
         <select name="hospital" required className="input">
           <option value="">Selecione...</option>
           <option value="UPA 24H">UPA 24H</option>
-          {ALL_HOSPITALS.map(h => (
+          {ALL_HOSPITALS.filter(h => h !== 'UPA 24H').map(h => (
             <option key={h} value={h}>{h}</option>
           ))}
         </select>
@@ -89,12 +94,12 @@ export default function PatientForm() {
 
       <div>
         <label className="label">Diagnóstico Inicial</label>
-        <input name="diagnosis" required className="input" placeholder="Ex: Pneumonia aspirativa" />
+        <input name="diagnosis" required className="input" placeholder="Ex: Pneumonia aspirativa" style={{ textTransform: 'uppercase' }} />
       </div>
       
       <div>
         <label className="label">Observações Clínicas / Pedido</label>
-        <textarea name="observations" className="input" rows={3} placeholder="Detalhes secundários..." />
+        <textarea name="observations" className="input" rows={3} placeholder="Detalhes secundários..." style={{ textTransform: 'uppercase' }} />
       </div>
 
       <div>
