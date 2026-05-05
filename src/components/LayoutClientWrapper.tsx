@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Menu, X, LayoutDashboard, ListTodo, Layers, CheckCircle, Building2, Users, Info, HeartPulse, LogOut, User as UserIcon, ShieldAlert, Settings } from 'lucide-react'
+import { Menu, X, LayoutDashboard, ListTodo, Layers, CheckCircle, Building2, Users, Info, HeartPulse, LogOut, User as UserIcon, ShieldAlert, Settings, Key } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
