@@ -305,6 +305,16 @@ export default function CirilaBotWidget() {
       return;
     }
 
+    if (payload === 'NAVIGATE_KEYS') {
+      router.push('/admin/keys');
+      return;
+    }
+
+    if (payload === 'NAVIGATE_SOBREAVISO') {
+      router.push('/admin/sobreaviso');
+      return;
+    }
+
     handleSend(payload);
   };
 
@@ -494,8 +504,7 @@ export default function CirilaBotWidget() {
                             alignItems: 'center',
                             gap: '8px',
                             boxShadow: '0 4px 12px rgba(56, 189, 248, 0.1)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.8px',
+                            letterSpacing: '0.2px',
                             backdropFilter: 'blur(10px)'
                           }}
                         >
@@ -539,6 +548,7 @@ export default function CirilaBotWidget() {
       <div style={{ padding: '2rem 2.5rem', background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
         <input 
           type="text" 
+          className="chat-input"
           placeholder="Pergunte à Cirila..."
           value={input}
           onChange={(e) => setInput(e.target.value)}

@@ -138,13 +138,26 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // 6. Resposta Padrão
+    // 6. Criação de Chaves
+    if (lowerQuery.includes('chave') || lowerQuery.includes('gerar chave')) {
+      const novaChave = `AUTH-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      return {
+        text: `Gerada uma nova Chave de Autorização provisória:\n\n**${novaChave}**\n\nEssa chave fica gravada no histórico. Para um controle mais completo das regulações, recomendo acessar o Painel de Auditoria de Chaves.`,
+        sender: 'ai',
+        actions: [
+          { label: 'Ir para Painel de Chaves', payload: 'NAVIGATE_KEYS' }
+        ]
+      };
+    }
+
+    // 7. Resposta Padrão
     return {
-      text: "Olá! Eu sou a **Cirila**, sua assistente de regulação. Posso ajudar você a encontrar pacientes, gerar etiquetas de autorização ou disparar e-mails para a rede hospitalar. \n\n**O que você precisa agora?**",
+      text: "Olá! Eu sou a **Cirila**, sua assistente de regulação. Posso ajudar você a encontrar pacientes, gerar etiquetas de autorização, disparar e-mails para a rede hospitalar ou gerenciar o fluxo de chaves. \n\n**O que você precisa agora?**",
       sender: 'ai',
       actions: [
         { label: 'Relatório Geral', payload: 'REPORT_GENERAL' },
-        { label: 'Mapa de Sobreaviso', payload: 'SOBREAVISO_MAP' }
+        { label: 'Mapa de Sobreaviso', payload: 'SOBREAVISO_MAP' },
+        { label: 'Auditoria de Chaves', payload: 'NAVIGATE_KEYS' }
       ]
     };
 

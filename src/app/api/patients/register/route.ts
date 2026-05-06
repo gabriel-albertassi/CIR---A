@@ -55,9 +55,12 @@ export async function POST(req: NextRequest) {
         const fileName = `${Date.now()}-${crypto.randomUUID().substring(0, 5)}.${fileExt}`;
         const filePath = `malotes-pacientes/${fileName}`;
 
+        const buffer = Buffer.from(await file.arrayBuffer());
+
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('malotes-pacientes')
-          .upload(fileName, file, {
+          .upload(fileName, buffer, {
+            contentType: file.type,
             cacheControl: '3600',
             upsert: false
           });

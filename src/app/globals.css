@@ -155,10 +155,10 @@ input, select, textarea {
   background-color: rgba(255,255,255,0.09);
 }
 
-/* Garante que inputs e textareas nativos também sigam a regra se não usarem a classe .input */
-input[type="text"], 
-input[type="search"],
-textarea {
+/* Garante que inputs e textareas nativos sigam a regra se não usarem a classe .input, mas não o chat */
+input[type="text"]:not(.chat-input), 
+input[type="search"]:not(.chat-input),
+textarea:not(.chat-input) {
   text-transform: uppercase;
 }
 

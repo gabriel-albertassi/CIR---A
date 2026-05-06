@@ -5,51 +5,33 @@ import { dispararAcao, type ApiResponse } from "@/app/actions/dispararAcao";
 
 export default function DispararButton() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const handleClick = async () => {
     setLoading(true);
-    setError(null);
+    setMessage(null);
 
-    const res: ApiResponse = await dispararAcao({
-      exemplo: "teste",
-    });
+    const result = await dispararAcao({ exemplo: "Teste de disparo" });
 
-    setLoading(false);
-
-    // 🔥 TRATAMENTO CORRETO (SEM ERRO)
-    if (!res.success) {
-      setError(res.error);
-      return;
+    if (result.success) {
+      setMessage("✅ Ação disparada com sucesso!");
+    } else {
+      setMessage(`❌ Erro: ${result.error}`);
     }
 
-    alert("Disparado com sucesso!");
+    setLoading(false);
   };
 
   return (
-    <div>
-      <button 
-        onClick={handleClick} 
+    <div className="flex flex-col items-center gap-2">
+      <button
+        onClick={handleClick}
         disabled={loading}
-        style={{
-          padding: '0.5rem 1rem',
-          background: 'linear-gradient(135deg, #00d8ff, #0088ff)',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          fontWeight: 700,
-          cursor: loading ? 'not-allowed' : 'pointer',
-          opacity: loading ? 0.7 : 1
-        }}
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all font-semibold shadow-sm"
       >
-        {loading ? "Enviando..." : "Disparar"}
+        {loading ? "Processando..." : "Disparar Ação"}
       </button>
-
-      {error && (
-        <p style={{ color: "red", marginTop: 10, fontSize: '0.8rem', fontWeight: 600 }}>
-          {error}
-        </p>
-      )}
+      {message && <span className="text-sm font-medium">{message}</span>}
     </div>
   );
 }
