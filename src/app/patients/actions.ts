@@ -4,7 +4,9 @@ import { prisma } from '../../lib/db'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/sb-server'
 
-export async function requestBed(patientId: string, targetHospital: string) {
+import { ActionResult } from '@/lib/action-types'
+
+export async function requestBed(patientId: string, targetHospital: string): Promise<ActionResult> {
   try {
     return await prisma.$transaction(async (tx) => {
       const patient = await tx.patient.findUnique({ where: { id: patientId } });
@@ -36,7 +38,7 @@ export async function requestBed(patientId: string, targetHospital: string) {
   }
 }
 
-export async function registerRefusal(patientId: string, refusingHospital: string, refusalNote?: string) {
+export async function registerRefusal(patientId: string, refusingHospital: string, refusalNote?: string): Promise<ActionResult> {
   try {
     return await prisma.$transaction(async (tx) => {
       const patient = await tx.patient.findUnique({ where: { id: patientId } });
@@ -72,7 +74,7 @@ export async function registerRefusal(patientId: string, refusingHospital: strin
   }
 }
 
-export async function transferPatient(patientId: string, destination_hospital: string) {
+export async function transferPatient(patientId: string, destination_hospital: string): Promise<ActionResult> {
   try {
     return await prisma.$transaction(async (tx) => {
       await tx.patient.update({
@@ -101,7 +103,7 @@ export async function transferPatient(patientId: string, destination_hospital: s
   }
 }
 
-export async function cancelPatient(patientId: string, reason: string, exitType: 'ALTA_MEDICA' | 'OBITO' | 'OUTRO' = 'OUTRO') {
+export async function cancelPatient(patientId: string, reason: string, exitType: 'ALTA_MEDICA' | 'OBITO' | 'OUTRO' = 'OUTRO'): Promise<ActionResult> {
   try {
     if (!reason || reason.trim() === "") throw new Error("Motivo é obrigatório.");
 
@@ -140,7 +142,7 @@ export async function cancelPatient(patientId: string, reason: string, exitType:
 // registerPatient foi movido para API Route /api/patients/register para maior robustez com anexos.
 
 
-export async function evolvePatient(patientId: string, newSeverity: string, newDiagnosis?: string) {
+export async function evolvePatient(patientId: string, newSeverity: string, newDiagnosis?: string): Promise<ActionResult> {
   try {
     return await prisma.$transaction(async (tx) => {
       const patient = await tx.patient.findUnique({ where: { id: patientId } })
@@ -181,7 +183,7 @@ export async function evolvePatient(patientId: string, newSeverity: string, newD
   }
 }
 
-export async function attachMedicalEvolution(formData: FormData) {
+export async function attachMedicalEvolution(formData: FormData): Promise<ActionResult> {
   const patientId = formData.get('patientId') as string;
   const file = formData.get('file') as File;
 
@@ -251,7 +253,7 @@ export async function attachMedicalEvolution(formData: FormData) {
   }
 }
 
-export async function togglePatientPrivateProfile(patientId: string, currentStatus: boolean) {
+export async function togglePatientPrivateProfile(patientId: string, currentStatus: boolean): Promise<ActionResult> {
   try {
     return await prisma.$transaction(async (tx) => {
       await tx.patient.update({

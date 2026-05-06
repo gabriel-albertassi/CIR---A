@@ -82,16 +82,16 @@ function LoginForm() {
     
     if (isLogin) {
       const res = await login(formData)
-      if (res?.error) {
-        setError(res.error)
+      if (res && !res.success) {
+        setError(res.error || "Erro ao fazer login.")
         setExpression('alert')
         setLoading(false)
         setTimeout(() => setExpression('neutral'), 5000)
       }
     } else {
       const res = await signup(formData)
-      if (res?.error) {
-        setError(res.error)
+      if (res && !res.success) {
+        setError(res.error || "Erro ao criar conta.")
         setExpression('alert')
       } else {
         setMsg('Conta criada com sucesso! Seja bem-vindo ao CIR-A.')

@@ -21,7 +21,7 @@ export default function DeletePatientButton({ patientId, patientName }: DeletePa
     try {
       const result = await deletePatientAction(patientId)
       if (!result.success) {
-        alert(`Erro ao deletar: ${result.error}`)
+        alert(`Erro ao deletar: ${result.error || 'Erro desconhecido'}`)
       }
     } catch (error) {
       alert('Ocorreu um erro inesperado ao tentar deletar o registro.')

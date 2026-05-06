@@ -20,8 +20,8 @@ export default function ForgotPasswordPage() {
 
     const res = await sendPasswordResetAction(email)
     
-    if (res?.error) {
-      setError(res.error)
+    if (res && !res.success) {
+      setError(res.error || "Ocorreu um erro.")
       setLoading(false)
     } else {
       setSuccess(true)

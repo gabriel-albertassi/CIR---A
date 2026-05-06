@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
         attachment_url,
         attachment_name,
         status: 'WAITING',
-      }
+      } as any
     });
 
     // 6. LOG DE AUDITORIA

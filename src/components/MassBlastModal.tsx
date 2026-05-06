@@ -85,7 +85,7 @@ export default function MassBlastModal({
     const res = await sendMassBedRequest(patientId, profile, severity, selectedUnits);
     setLoading(false);
     
-    if (res.error) {
+    if (!res.success) {
       alert(res.error);
     } else {
       setIsSent(true);

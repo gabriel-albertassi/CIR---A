@@ -64,12 +64,12 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
 
     // Server Action
     const result = await togglePatientPrivateProfile(id, current);
-    if (result.error) {
+    if (!result.success) {
       // Rollback on error
       setLocalPatients(prev => prev.map(p => 
         p.id === id ? { ...p, is_private: current } : p
       ));
-      alert("Erro ao atualizar perfil: " + result.error);
+      alert("Erro ao atualizar perfil: " + (result.error || 'Erro desconhecido'));
     }
   };
 
@@ -139,8 +139,8 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
       const profile = isPrivateHosp ? 'PRIVATE_ONLY' : 'PUBLIC_ONLY';
 
       const res = await sendMassBedRequest(patientId, profile, severity, [hospital]);
-      if (res.error) {
-        alert("Erro no disparo: " + res.error);
+      if (!res.success) {
+        alert("Erro no disparo: " + (res.error || 'Erro desconhecido'));
       } else {
         alert("Notificação enviada com sucesso para " + hospital);
       }
@@ -159,7 +159,9 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
           alert('Selecione o hospital para qual o leito foi solicitado.');
           return;
         }
-        await requestBed(id, targetHospital);
+        const res = await requestBed(id, targetHospital);
+        if (!res.success) throw new Error(res.error || 'Falha ao solicitar vaga');
+        
         setRequestingId(null);
         setTargetHospital('');
       } else if (action === 'refusal') {
@@ -171,7 +173,9 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
           alert('Por favor, informe o motivo da recusa do paciente.');
           return;
         }
-        await registerRefusal(id, refusalHospital, refusalNote.trim() || undefined);
+        const res = await registerRefusal(id, refusalHospital, refusalNote.trim() || undefined);
+        if (!res.success) throw new Error(res.error || 'Falha ao registrar recusa');
+
         setRefusingId(null);
         setRefusalHospital('');
         setRefusalNote('');
@@ -180,7 +184,9 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
           alert('Selecione o hospital de destino para finalizar a transferência.');
           return;
         }
-        await transferPatient(id, transferHospital);
+        const res = await transferPatient(id, transferHospital);
+        if (!res.success) throw new Error(res.error || 'Falha ao finalizar transferência');
+
         setTransferringId(null);
         setTransferHospital('');
       } else if (action === 'evolve') {
@@ -189,8 +195,8 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
           return;
         }
         const res = await evolvePatient(id, newSeverity, newDiagnosis);
-        if (res && res.error) {
-          throw new Error(res.error);
+        if (!res.success) {
+          throw new Error(res.error || 'Falha ao evoluir paciente');
         }
         setEvolvingId(null);
         setNewSeverity('');
@@ -204,7 +210,9 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
           alert('Informe o motivo da saída.');
           return;
         }
-        await cancelPatient(id, exitNote.trim(), exitType as 'ALTA_MEDICA' | 'OBITO' | 'OUTRO');
+        const res = await cancelPatient(id, exitNote.trim(), exitType as 'ALTA_MEDICA' | 'OBITO' | 'OUTRO');
+        if (!res.success) throw new Error(res.error || 'Falha ao processar saída');
+
         setCancellingId(null);
         setExitType('');
         setExitNote('');
@@ -215,6 +223,7 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
       setLoadingId(null);
     }
   }
+
 
   async function fillAiSuggestion(p: PatientData) {
     setLoadingAi(p.id);

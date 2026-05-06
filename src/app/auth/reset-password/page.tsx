@@ -18,8 +18,8 @@ export default function ResetPasswordPage() {
     const formData = new FormData(e.currentTarget)
     const res = await updatePasswordAction(formData)
     
-    if (res?.error) {
-      setError(res.error)
+    if (res && !res.success) {
+      setError(res.error || "Ocorreu um erro ao redefinir a senha.")
       setLoading(false)
     } else {
       setSuccess(true)

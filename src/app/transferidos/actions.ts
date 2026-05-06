@@ -3,7 +3,9 @@
 import { prisma } from '../../lib/db'
 import { revalidatePath } from 'next/cache'
 
-export async function updateFinalStatus(patientId: string, newStatus: string) {
+import { ActionResult } from '@/lib/action-types'
+
+export async function updateFinalStatus(patientId: string, newStatus: string): Promise<ActionResult> {
   try {
     const validStatuses = ['ALTA', 'FALECIMENTO'];
     if (!validStatuses.includes(newStatus)) {
@@ -45,7 +47,7 @@ export async function updateFinalStatus(patientId: string, newStatus: string) {
   }
 }
 
-export async function returnToQueue(patientId: string) {
+export async function returnToQueue(patientId: string): Promise<ActionResult> {
   try {
     return await prisma.$transaction(async (tx) => {
       const patient = await tx.patient.findUnique({ where: { id: patientId } });

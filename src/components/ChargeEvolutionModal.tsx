@@ -12,11 +12,11 @@ export default function ChargeEvolutionModal({ patientId, originHospital, onClos
     const res = await sendEvolutionCharge(patientId, originHospital, method);
     setLoading(false);
 
-    if (res.error) {
+    if (!res.success) {
       alert(res.error);
     } else {
-      if (method === 'WHATSAPP' && (res as any).whatsappUrl) {
-        window.open((res as any).whatsappUrl, '_blank');
+      if (method === 'WHATSAPP' && res.data?.whatsappUrl) {
+        window.open(res.data.whatsappUrl, '_blank');
       }
 
       alert(`Cobrança registrada com sucesso via ${method}!\n(O log foi gerado no prontuário do paciente)`);

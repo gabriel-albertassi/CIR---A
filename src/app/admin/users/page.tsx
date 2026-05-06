@@ -14,20 +14,22 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     async function init() {
-      const data = await getAllUsers()
-      if (data.length === 0) {
-        // If empty data but not loading, might mean access denied (returned [] in action)
-        // Check if there is a way to distinguish, but for now redirect.
+      const res = await getAllUsers()
+      if (res.success) {
+        setUsers(res.data || [])
+      } else {
+        console.error(res.error)
       }
-      setUsers(data)
       setLoading(false)
     }
     init()
   }, [])
 
   async function fetchUsers() {
-    const data = await getAllUsers()
-    setUsers(data)
+    const res = await getAllUsers()
+    if (res.success) {
+      setUsers(res.data || [])
+    }
     setLoading(false)
   }
 

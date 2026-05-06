@@ -18,8 +18,8 @@ export default function ReturnAction({ patientId, currentStatus }: { patientId: 
     setLoading(true);
     try {
       const res = await returnToQueue(patientId);
-      if (res.error) {
-        alert(res.error);
+      if (!res.success) {
+        alert(res.error || 'Erro ao retornar paciente para a fila');
       } else {
         // Recarregar a página para refletir a mudança (ou confiar no revalidatePath da action)
         window.location.reload();

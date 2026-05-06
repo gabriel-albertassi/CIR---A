@@ -4,14 +4,15 @@ import { prisma } from '../../lib/db'
 import { HOSPITAL_CONTACTS, PRIVATE_HOSPITALS } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
 import { sendHospitalNotification } from '@/lib/mail'
+import { ActionResult } from '@/lib/action-types'
 
-export async function sendEvolutionCharge(patientId: string, originHospital: string, method: 'WHATSAPP' | 'EMAIL') {
+export async function sendEvolutionCharge(patientId: string, originHospital: string, method: 'WHATSAPP' | 'EMAIL'): Promise<ActionResult<{ whatsappUrl?: string }>> {
   try {
     const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { name: true } });
-    if (!patient) return { error: 'Paciente não encontrado.' };
+    if (!patient) return { success: false, error: 'Paciente não encontrado.' };
 
     const contact = HOSPITAL_CONTACTS[originHospital];
-    if (!contact) return { error: 'Contato do hospital não cadastrado.' };
+    if (!contact) return { success: false, error: 'Contato do hospital não cadastrado.' };
 
     await new Promise(resolve => setTimeout(resolve, 500)); // Sim delay
 
@@ -33,9 +34,9 @@ export async function sendEvolutionCharge(patientId: string, originHospital: str
 
     revalidatePath('/');
     revalidatePath('/patients');
-    return { success: true, whatsappUrl };
+    return { success: true, data: { whatsappUrl } };
   } catch (error: any) {
-    return { error: error.message };
+    return { success: false, error: error.message || 'Erro ao enviar cobrança' };
   }
 }
 
@@ -44,10 +45,10 @@ export async function sendMassBedRequest(
   profile: 'PUBLIC_ONLY' | 'PUBLIC_AND_PRIVATE' | 'PRIVATE_ONLY', 
   severity: string,
   targetHospitals?: string[]
-) {
+): Promise<ActionResult> {
   try {
     const patient = await prisma.patient.findUnique({ where: { id: patientId } });
-    if (!patient) return { error: 'Paciente não encontrado.' };
+    if (!patient) return { success: false, error: 'Paciente não encontrado.' };
 
     const toEmails: string[] = [];
     const bccEmails: string[] = [];
@@ -83,15 +84,15 @@ export async function sendMassBedRequest(
     }
 
     // Preparar Anexos (Malote + Evolução)
-    const attachments = [];
+    const massBedRequestAttachments: { filename: string; path: string }[] = [];
     if (patient.attachment_url) {
-      attachments.push({
+      massBedRequestAttachments.push({
         filename: patient.attachment_name || 'MALOTE_PACIENTE.pdf',
         path: patient.attachment_url
       });
     }
     if (patient.evolution_url) {
-      attachments.push({
+      massBedRequestAttachments.push({
         filename: patient.evolution_name || 'EVOLUCAO_MEDICA.pdf',
         path: patient.evolution_url
       });
@@ -105,7 +106,7 @@ export async function sendMassBedRequest(
       severity: patient.severity,
       originHospital: patient.origin_hospital,
       diagnosis: patient.diagnosis,
-      attachments: attachments.length > 0 ? attachments : undefined
+      attachments: massBedRequestAttachments.length > 0 ? massBedRequestAttachments : undefined
     });
 
     await new Promise(resolve => setTimeout(resolve, 1500)); // API delay
@@ -122,7 +123,7 @@ export async function sendMassBedRequest(
     revalidatePath('/patients');
     return { success: true };
   } catch (error: any) {
-    return { error: error.message };
+    return { success: false, error: error.message || 'Erro no disparo em massa' };
   }
 }
 

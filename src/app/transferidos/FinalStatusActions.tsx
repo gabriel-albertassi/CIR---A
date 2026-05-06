@@ -14,8 +14,8 @@ export default function FinalStatusActions({ patientId, currentStatus }: { patie
     setLoading(true);
     try {
       const res = await updateFinalStatus(patientId, action);
-      if (res.error) {
-        alert(res.error);
+      if (!res.success) {
+        alert(res.error || 'Erro ao atualizar status final');
       }
     } catch (e) {
       alert('Erro inesperado');
@@ -30,8 +30,8 @@ export default function FinalStatusActions({ patientId, currentStatus }: { patie
     setLoading(true);
     try {
       const res = await returnToQueue(patientId);
-      if (res.error) {
-        alert(res.error);
+      if (!res.success) {
+        alert(res.error || 'Erro ao retornar paciente para a fila');
       }
     } catch (e) {
       alert('Erro inesperado');

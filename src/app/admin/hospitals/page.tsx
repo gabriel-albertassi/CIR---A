@@ -27,8 +27,12 @@ export default function AdminHospitalsPage() {
 
   async function fetchHospitals() {
     setLoading(true)
-    const data = await getAllHospitals()
-    setHospitals(data)
+    const res = await getAllHospitals()
+    if (res.success) {
+      setHospitals(res.data || [])
+    } else {
+      console.error(res.error)
+    }
     setLoading(false)
   }
 

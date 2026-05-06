@@ -175,7 +175,7 @@ export async function GET(req: NextRequest) {
           throw new Error('Hospital de Origem é obrigatório para registrar a chave.');
         }
 
-        await prisma.authorizationKey.create({
+        await (prisma.authorizationKey as any).create({
           data: {
             key: authKey,
             patient: patient.toUpperCase(),

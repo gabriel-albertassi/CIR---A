@@ -17,12 +17,13 @@ async function checkAdmin() {
 export async function getAllHospitals() {
   try {
     await checkAdmin()
-    return await prisma.hospital.findMany({
+    const hospitals = await prisma.hospital.findMany({
       orderBy: { name: 'asc' }
     })
-  } catch (error) {
+    return { success: true, data: hospitals }
+  } catch (error: any) {
     console.error('Error fetching hospitals:', error)
-    return []
+    return { success: false, error: error.message || 'Erro ao buscar hospitais' }
   }
 }
 

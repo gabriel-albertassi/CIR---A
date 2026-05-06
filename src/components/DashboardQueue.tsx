@@ -45,12 +45,12 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
 
     // Server Action
     const result = await togglePatientPrivateProfile(id, current);
-    if (result.error) {
+    if (!result.success) {
       // Rollback on error
       setLocalPatients(prev => prev.map(p => 
         p.id === id ? { ...p, is_private: current } : p
       ));
-      alert("Erro ao atualizar perfil: " + result.error);
+      alert("Erro ao atualizar perfil: " + (result as any).error);
     }
   };
 

@@ -26,16 +26,22 @@ export default function VagasForm({ hospitalName, initialData }: Props) {
   async function handleSave() {
     try {
       setLoading(true);
-      await saveBedAvailability(hospitalName, {
+      const res = await saveBedAvailability(hospitalName, {
         cti_masc: semVagas ? 0 : ctiMasc,
         cti_fem: semVagas ? 0 : ctiFem,
         clinica_masc: semVagas ? 0 : clinicaMasc,
         clinica_fem: semVagas ? 0 : clinicaFem,
         sem_vagas: semVagas
       });
+      
+      if (!res.success) {
+        alert('Erro: ' + res.error);
+        return;
+      }
+      
       alert('Censo atualizado com sucesso!');
     } catch (e: any) {
-      alert('Erro: ' + e.message);
+      alert('Erro inesperado: ' + e.message);
     } finally {
       setLoading(false);
     }
