@@ -53,14 +53,14 @@ export async function POST(req: NextRequest) {
         const supabase = await createClient();
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${crypto.randomUUID().substring(0, 5)}.${fileExt}`;
-        const filePath = `malotes-pacientes/${fileName}`;
+        const filePath = `cadastros/${fileName}`;
 
         const buffer = Buffer.from(await file.arrayBuffer());
 
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('malotes-pacientes')
-          .upload(fileName, buffer, {
-            contentType: file.type,
+          .upload(filePath, buffer, {
+            contentType: file.type || 'application/octet-stream',
             cacheControl: '3600',
             upsert: false
           });
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
 
         const { data: { publicUrl } } = supabase.storage
           .from('malotes-pacientes')
-          .getPublicUrl(fileName);
+          .getPublicUrl(filePath);
 
         attachment_url = publicUrl;
         attachment_name = file.name;

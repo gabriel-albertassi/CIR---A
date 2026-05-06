@@ -215,8 +215,12 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         text: "O sistema de sobreaviso está pronto para uso. Lembre-se que o layout (Corpo Limpo + Rodapé Fixo) é o padrão institucional imutável.",
         sender: 'ai',
         actions: [
-          { label: 'Mapa 3 Chaves', payload: 'DOWNLOAD_DOCX_3' },
           { label: 'Mapa 10 Chaves', payload: 'DOWNLOAD_DOCX_10' },
+          { label: 'Mapa 15 Chaves', payload: 'DOWNLOAD_DOCX_15' },
+          { label: 'Mapa 20 Chaves', payload: 'DOWNLOAD_DOCX_20' },
+          { label: 'Mapa 30 Chaves', payload: 'DOWNLOAD_DOCX_30' },
+          { label: 'Mapa 50 Chaves', payload: 'DOWNLOAD_DOCX_50' },
+          { label: 'Mapa 100 Chaves', payload: 'DOWNLOAD_DOCX_100' },
           { label: 'Ver Escala', payload: 'NAVIGATE_SOBREAVISO' }
         ]
       };

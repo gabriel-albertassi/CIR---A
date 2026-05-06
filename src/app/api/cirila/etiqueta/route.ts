@@ -21,6 +21,7 @@ import {
   TableLayoutType,
   ImageRun,
   Footer,
+  UnderlineType,
 } from 'docx';
 import sharp from 'sharp';
 import { prisma } from '@/lib/db';

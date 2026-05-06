@@ -206,11 +206,15 @@ export async function attachMedicalEvolution(formData: FormData): Promise<Action
 
     console.log(`[ATTACH_EVOLUTION] Iniciando upload: ${fileName} (${file.size} bytes)`);
 
+    // Converte File para Buffer para garantir compatibilidade no ambiente Node.js do servidor
+    const buffer = Buffer.from(await file.arrayBuffer());
+
     const { error: uploadError } = await supabase.storage
       .from('malotes-pacientes')
-      .upload(filePath, file, {
+      .upload(filePath, buffer, {
         cacheControl: '3600',
-        upsert: false
+        upsert: false,
+        contentType: file.type || 'application/octet-stream'
       });
 
     if (uploadError) {

@@ -15,6 +15,8 @@ import {
   TableLayoutType,
   HeightRule,
 } from 'docx';
+import { prisma } from '@/lib/db';
+import { createClient } from '@/lib/supabase/sb-server';
 
 // ─── Gerador de chaves únicas ────────────────────────────────────────────────
 
@@ -60,8 +62,8 @@ const BORDERS = {
   right: { style: BorderStyle.SINGLE, size: 2, color: 'E2E8F0' },
 };
 
-// Altura FIXA das linhas de dados — Aumentada para máximo conforto na escrita manual
-const ROW_HEIGHT = 1800;
+// Altura das linhas de dados — Ajustada para caberem 8 a 10 por página
+const ROW_HEIGHT = 900;
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
@@ -99,10 +101,34 @@ export async function GET(req: NextRequest) {
       ),
     });
 
-    // ── Linhas de dados ────────────────────────────────────────────────────────
-    const dataRows = Array.from({ length: count }, (_, i) => {
-      const key  = nextKey();
-      const fill = i % 2 === 0 ? 'FFFFFF' : 'F8FAFC'; // Azul muito suave
+    // ── Linhas de dados e Persistência ─────────────────────────────────────────
+    // Obter usuário atual para auditoria
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || 'CIRILA_SYSTEM';
+
+    const dataRows = [];
+    
+    for (let i = 0; i < count; i++) {
+      const key = nextKey();
+      const fill = i % 2 === 0 ? 'FFFFFF' : 'F8FAFC';
+
+      // Persistir no banco de dados
+      await prisma.authorizationKey.create({
+        data: {
+          key,
+          patient: 'AVULSA - SOBREAVISO',
+          exam: 'NÃO DEFINIDO',
+          origin: 'NIR SMSVR',
+          destination: 'SOBREAVISO',
+          professional: 'CIRILA AUTO',
+          type: 'SOBREAVISO',
+          user_created: userId,
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+          status: 'ATIVO'
+        }
+      });
 
       const emptyCell = (colIndex: number, text: string = '') =>
         new TableCell({
@@ -115,9 +141,9 @@ export async function GET(req: NextRequest) {
               spacing: { before: 0, after: 0 }, 
               children: [
                 new TextRun({ 
-                  text, 
+                  text: text.toUpperCase(), 
                   bold: true, 
-                  size: 22, 
+                  size: 20, 
                   color: colIndex === 1 ? '1A56DB' : '000000', 
                   font: { name: 'Arial' } 
                 })
@@ -126,11 +152,11 @@ export async function GET(req: NextRequest) {
           ],
         });
 
-      return new TableRow({
+      dataRows.push(new TableRow({
         cantSplit: true,
         height: { value: ROW_HEIGHT, rule: HeightRule.ATLEAST },
         children: [
-          emptyCell(0, `___/___/___ \n ${key}`), // DATA / CHAVE
+          emptyCell(0, `${now.toLocaleDateString('pt-BR')} \n ${key}`), // DATA / CHAVE
           emptyCell(1),                         // CLIENTE
           emptyCell(2),                         // DIAGNÓSTICO
           emptyCell(3),                         // HOSPITAL ORIGEM
@@ -139,8 +165,8 @@ export async function GET(req: NextRequest) {
           emptyCell(6),                         // CNS
           emptyCell(7),                         // AUDITOR
         ],
-      });
-    });
+      }));
+    }
 
     // ── Tabela principal ───────────────────────────────────────────────────────
     const table = new Table({
