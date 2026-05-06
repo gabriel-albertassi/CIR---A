@@ -5,104 +5,136 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/sb-server'
 
 export async function requestBed(patientId: string, targetHospital: string) {
-  const patient = await prisma.patient.findUnique({ where: { id: patientId } });
-  if (!patient) throw new Error("Paciente não encontrado");
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const patient = await tx.patient.findUnique({ where: { id: patientId } });
+      if (!patient) throw new Error("Paciente não encontrado");
 
-  await prisma.patient.update({
-    where: { id: patientId },
-    data: {
-      status: 'OFFERED',
-      last_offer_date: new Date()
-    }
-  });
+      await tx.patient.update({
+        where: { id: patientId },
+        data: {
+          status: 'OFFERED',
+          last_offer_date: new Date()
+        }
+      });
 
-  await prisma.log.create({
-    data: {
-      patient_id: patientId,
-      action: 'REQUEST',
-      details: targetHospital
-    }
-  });
+      await tx.log.create({
+        data: {
+          patient_id: patientId,
+          action: 'REQUEST',
+          details: targetHospital
+        }
+      });
 
-  revalidatePath('/patients')
-  revalidatePath('/')
+      revalidatePath('/patients')
+      revalidatePath('/')
+      return { success: true }
+    });
+  } catch (error: any) {
+    console.error('[REQUEST_BED_ERROR]', error)
+    return { success: false, error: error.message || 'Erro ao solicitar vaga' }
+  }
 }
 
 export async function registerRefusal(patientId: string, refusingHospital: string, refusalNote?: string) {
-  const patient = await prisma.patient.findUnique({ where: { id: patientId } });
-  if (!patient) throw new Error("Paciente não encontrado");
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const patient = await tx.patient.findUnique({ where: { id: patientId } });
+      if (!patient) throw new Error("Paciente não encontrado");
 
-  await prisma.patient.update({
-    where: { id: patientId },
-    data: {
-      attempts_count: { increment: 1 }
-    }
-  });
+      await tx.patient.update({
+        where: { id: patientId },
+        data: {
+          attempts_count: { increment: 1 }
+        }
+      });
 
-  let details = refusingHospital;
-  if (refusalNote && refusalNote.trim() !== '') {
-    details = `${refusingHospital} — Motivo: ${refusalNote.trim()}`;
+      let details = refusingHospital;
+      if (refusalNote && refusalNote.trim() !== '') {
+        details = `${refusingHospital} — Motivo: ${refusalNote.trim()}`;
+      }
+
+      await tx.log.create({
+        data: {
+          patient_id: patientId,
+          action: 'REFUSAL',
+          details
+        }
+      });
+
+      revalidatePath('/patients')
+      revalidatePath('/')
+      return { success: true }
+    });
+  } catch (error: any) {
+    console.error('[REGISTER_REFUSAL_ERROR]', error)
+    return { success: false, error: error.message || 'Erro ao registrar recusa' }
   }
-
-  await prisma.log.create({
-    data: {
-      patient_id: patientId,
-      action: 'REFUSAL',
-      details
-    }
-  });
-
-  revalidatePath('/patients')
-  revalidatePath('/')
 }
 
 export async function transferPatient(patientId: string, destination_hospital: string) {
-  await prisma.patient.update({
-    where: { id: patientId },
-    data: { 
-      status: 'TRANSFERRED',
-      transfer_date: new Date()
-    }
-  });
+  try {
+    return await prisma.$transaction(async (tx) => {
+      await tx.patient.update({
+        where: { id: patientId },
+        data: { 
+          status: 'TRANSFERRED',
+          transfer_date: new Date()
+        }
+      });
 
-  await prisma.log.create({
-    data: {
-      patient_id: patientId,
-      action: 'TRANSFER',
-      details: destination_hospital
-    }
-  });
+      await tx.log.create({
+        data: {
+          patient_id: patientId,
+          action: 'TRANSFER',
+          details: destination_hospital
+        }
+      });
 
-  revalidatePath('/patients')
-  revalidatePath('/')
+      revalidatePath('/patients')
+      revalidatePath('/')
+      return { success: true }
+    });
+  } catch (error: any) {
+    console.error('[TRANSFER_PATIENT_ERROR]', error)
+    return { success: false, error: error.message || 'Erro ao transferir paciente' }
+  }
 }
 
 export async function cancelPatient(patientId: string, reason: string, exitType: 'ALTA_MEDICA' | 'OBITO' | 'OUTRO' = 'OUTRO') {
-  if (!reason || reason.trim() === "") throw new Error("Motivo é obrigatório.");
+  try {
+    if (!reason || reason.trim() === "") throw new Error("Motivo é obrigatório.");
 
-  const now = new Date();
-  const dateStr = now.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    return await prisma.$transaction(async (tx) => {
+      const now = new Date();
+      const dateStr = now.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
-  await prisma.patient.update({
-    where: { id: patientId },
-    data: { 
-      status: 'CANCELLED',
-      outcome_date: now,
-    }
-  });
+      await tx.patient.update({
+        where: { id: patientId },
+        data: { 
+          status: 'CANCELLED',
+          outcome_date: now,
+        }
+      });
 
-  const exitLabel = exitType === 'ALTA_MEDICA' ? '✅ Alta Médica' : exitType === 'OBITO' ? '☠️ Óbito' : 'Outro';
+      const exitLabel = exitType === 'ALTA_MEDICA' ? '✅ Alta Médica' : exitType === 'OBITO' ? '☠️ Óbito' : 'Outro';
 
-  await prisma.log.create({
-    data: {
-      patient_id: patientId,
-      action: 'CANCEL',
-      details: `${exitLabel} em ${dateStr}. Motivo: ${reason.trim()}`
-    }
-  });
+      await tx.log.create({
+        data: {
+          patient_id: patientId,
+          action: 'CANCEL',
+          details: `${exitLabel} em ${dateStr}. Motivo: ${reason.trim()}`
+        }
+      });
 
-  revalidatePath('/patients')
-  revalidatePath('/')
+      revalidatePath('/patients')
+      revalidatePath('/')
+      return { success: true }
+    });
+  } catch (error: any) {
+    console.error('[CANCEL_PATIENT_ERROR]', error)
+    return { success: false, error: error.message || 'Erro ao cancelar paciente' }
+  }
 }
 
 // registerPatient foi movido para API Route /api/patients/register para maior robustez com anexos.
@@ -110,39 +142,42 @@ export async function cancelPatient(patientId: string, reason: string, exitType:
 
 export async function evolvePatient(patientId: string, newSeverity: string, newDiagnosis?: string) {
   try {
-    const patient = await prisma.patient.findUnique({ where: { id: patientId } })
-    if (!patient) return { error: 'Paciente não encontrado' }
+    return await prisma.$transaction(async (tx) => {
+      const patient = await tx.patient.findUnique({ where: { id: patientId } })
+      if (!patient) throw new Error('Paciente não encontrado')
 
-    const oldSeverity = patient.severity
-    const updateData: any = { severity: newSeverity }
-    
-    if (newDiagnosis && newDiagnosis.trim() !== '') {
-      updateData.diagnosis = newDiagnosis.trim()
-    }
-
-    await prisma.patient.update({
-      where: { id: patientId },
-      data: updateData
-    })
-
-    let details = `Gravidade alterada de ${oldSeverity} para ${newSeverity}.`;
-    if (newDiagnosis && newDiagnosis.trim() !== '') {
-      details += ` Diagnóstico atualizado: ${newDiagnosis.trim()}.`;
-    }
-
-    await prisma.log.create({
-      data: {
-        patient_id: patientId,
-        action: 'EVOLVE',
-        details
+      const oldSeverity = patient.severity
+      const updateData: any = { severity: newSeverity }
+      
+      if (newDiagnosis && newDiagnosis.trim() !== '') {
+        updateData.diagnosis = newDiagnosis.trim()
       }
-    });
 
-    revalidatePath('/patients')
-    revalidatePath('/')
-    return { success: true }
+      await tx.patient.update({
+        where: { id: patientId },
+        data: updateData
+      })
+
+      let details = `Gravidade alterada de ${oldSeverity} para ${newSeverity}.`;
+      if (newDiagnosis && newDiagnosis.trim() !== '') {
+        details += ` Diagnóstico atualizado: ${newDiagnosis.trim()}.`;
+      }
+
+      await tx.log.create({
+        data: {
+          patient_id: patientId,
+          action: 'EVOLVE',
+          details
+        }
+      });
+
+      revalidatePath('/patients')
+      revalidatePath('/')
+      return { success: true }
+    });
   } catch (e: any) {
-    return { error: e.message }
+    console.error('[EVOLVE_PATIENT_ERROR]', e)
+    return { success: false, error: e.message || 'Erro ao evoluir paciente' }
   }
 }
 
@@ -151,12 +186,12 @@ export async function attachMedicalEvolution(formData: FormData) {
   const file = formData.get('file') as File;
 
   if (!patientId || !file) {
-    return { error: 'Dados incompletos para o anexo.' };
+    return { success: false, error: 'Dados incompletos para o anexo.' };
   }
 
   // Validação de tamanho (5MB)
   if (file.size > 5 * 1024 * 1024) {
-    return { error: 'O arquivo excede o limite de 5MB.' };
+    return { success: false, error: 'O arquivo excede o limite de 5MB.' };
   }
 
   try {
@@ -185,54 +220,59 @@ export async function attachMedicalEvolution(formData: FormData) {
       .from('malotes-pacientes')
       .getPublicUrl(filePath);
 
-    // 2. Atualizar o paciente com o novo anexo de evolução
-    await prisma.patient.update({
-      where: { id: patientId },
-      data: {
-        evolution_url: publicUrl,
-        evolution_name: file.name
-      }
+    return await prisma.$transaction(async (tx) => {
+      // 2. Atualizar o paciente com o novo anexo de evolução
+      await tx.patient.update({
+        where: { id: patientId },
+        data: {
+          evolution_url: publicUrl,
+          evolution_name: file.name
+        }
+      });
+
+      // 3. Registrar no histórico do paciente
+      await tx.log.create({
+        data: {
+          patient_id: patientId,
+          action: 'STATUS_UPDATE',
+          details: `📄 Nova evolução médica anexada: ${file.name}`
+        }
+      });
+
+      console.log(`[ATTACH_EVOLUTION] Sucesso para o paciente ${patientId}: ${publicUrl}`);
+
+      revalidatePath('/patients');
+      revalidatePath('/');
+      return { success: true };
     });
-
-    // 3. Registrar no histórico do paciente
-    await prisma.log.create({
-      data: {
-        patient_id: patientId,
-        action: 'STATUS_UPDATE',
-        details: `📄 Nova evolução médica anexada: ${file.name}`
-      }
-    });
-
-    console.log(`[ATTACH_EVOLUTION] Sucesso para o paciente ${patientId}: ${publicUrl}`);
-
-    revalidatePath('/patients');
-    revalidatePath('/');
-    return { success: true };
   } catch (err: any) {
     console.error('[ATTACH_EVOLUTION] Erro crítico:', err);
-    return { error: err.message || 'Erro interno ao processar anexo.' };
+    return { success: false, error: err.message || 'Erro interno ao processar anexo.' };
   }
 }
 
 export async function togglePatientPrivateProfile(patientId: string, currentStatus: boolean) {
   try {
-    await prisma.patient.update({
-      where: { id: patientId },
-      data: { is_private: !currentStatus }
-    });
+    return await prisma.$transaction(async (tx) => {
+      await tx.patient.update({
+        where: { id: patientId },
+        data: { is_private: !currentStatus }
+      });
 
-    await prisma.log.create({
-      data: {
-        patient_id: patientId,
-        action: 'STATUS_UPDATE',
-        details: `Perfil de atendimento alterado para: ${!currentStatus ? '💎 PRIVADO/CONVÊNIO' : '🏥 REDE PÚBLICA (SUS)'}`
-      }
-    });
+      await tx.log.create({
+        data: {
+          patient_id: patientId,
+          action: 'STATUS_UPDATE',
+          details: `Perfil de atendimento alterado para: ${!currentStatus ? '💎 PRIVADO/CONVÊNIO' : '🏥 REDE PÚBLICA (SUS)'}`
+        }
+      });
 
-    revalidatePath('/patients');
-    revalidatePath('/');
-    return { success: true };
+      revalidatePath('/patients');
+      revalidatePath('/');
+      return { success: true };
+    });
   } catch (err: any) {
-    return { error: err.message };
+    console.error('[TOGGLE_PRIVATE_PROFILE_ERROR]', err)
+    return { success: false, error: err.message || 'Erro ao alterar perfil do paciente' };
   }
 }

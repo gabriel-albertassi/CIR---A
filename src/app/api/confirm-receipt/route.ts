@@ -15,6 +15,45 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Verificar se o paciente existe antes de tentar criar o log
+    const patient = await prisma.patient.findUnique({
+      where: { id: patientId },
+      select: { id: true, name: true }
+    });
+
+    if (!patient) {
+      console.warn(`[CONFIRMATION] Tentativa de confirmação para paciente inexistente: ${patientId}`);
+      // Mesmo que o paciente não exista (talvez deletado), mostramos uma mensagem de sucesso 
+      // para o hospital não achar que falhou o processo deles, mas não tentamos criar o log.
+      return new NextResponse(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Confirmado - CIRA</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; background: #020617; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+            .card { background: rgba(255,255,255,0.05); padding: 3rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); max-width: 400px; }
+            h1 { color: #00d8ff; margin-bottom: 1rem; }
+            p { color: #94a3b8; line-height: 1.6; }
+            .icon { font-size: 4rem; margin-bottom: 1rem; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="icon">✅</div>
+            <h1>Recebimento Confirmado!</h1>
+            <p>Obrigado! A Central Inteligente de Regulação Automatizada (CIRA) já registrou que sua unidade recebeu os dados.</p>
+            <p style="font-size: 0.8rem; margin-top: 2rem; opacity: 0.5;">Equipe de Regulação SMSVR</p>
+          </div>
+        </body>
+        </html>
+      `, {
+        headers: { 'Content-Type': 'text/html' }
+      });
+    }
+
     // Registrar o log de confirmação
     await prisma.log.create({
       data: {
@@ -44,7 +83,7 @@ export async function GET(request: Request) {
         <div class="card">
           <div class="icon">✅</div>
           <h1>Recebimento Confirmado!</h1>
-          <p>Obrigado! A Central Inteligente de Regulação Automatizada (CIRA) já registrou que sua unidade recebeu o malote do paciente.</p>
+          <p>Obrigado! A Central Inteligente de Regulação Automatizada (CIRA) já registrou que sua unidade recebeu o malote do paciente <strong>${patient.name}</strong>.</p>
           <p style="font-size: 0.8rem; margin-top: 2rem; opacity: 0.5;">Equipe de Regulação SMSVR</p>
         </div>
       </body>
@@ -53,6 +92,8 @@ export async function GET(request: Request) {
       headers: { 'Content-Type': 'text/html' }
     });
   } catch (err) {
-    return new NextResponse('Erro ao registrar confirmação.', { status: 500 });
+    console.error('[CONFIRMATION ERROR]', err);
+    return new NextResponse('Erro interno ao processar a confirmação. Por favor, tente novamente mais tarde.', { status: 500 });
   }
 }
+

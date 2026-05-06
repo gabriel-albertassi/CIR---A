@@ -74,18 +74,31 @@ export async function executeEmailDispatch(patientId: string, targetType: string
       });
     }
 
-    await sendHospitalNotification({
-      to: emails,
-      patientName: patient.name,
-      patientId: patient.id,
-      severity: patient.severity,
-      originHospital: patient.origin_hospital,
-      diagnosis: patient.diagnosis,
-      attachments: attachments.length > 0 ? attachments : undefined
+    // Executar envio e auditoria em transação
+    await prisma.$transaction(async (tx) => {
+      await sendHospitalNotification({
+        to: emails,
+        patientName: patient.name,
+        patientId: patient.id,
+        severity: patient.severity,
+        originHospital: patient.origin_hospital,
+        diagnosis: patient.diagnosis,
+        attachments: attachments.length > 0 ? attachments : undefined
+      });
+
+      // Registrar Auditoria do Sistema (Cirila)
+      await tx.log.create({
+        data: {
+          patient_id: patient.id,
+          action: 'NOTIFICACAO_EMAIL',
+          details: `E-mail disparado para ${emails.length} hospitais via Cirila. Destinos: ${targets.map(h => h.name).join(', ')}`
+        }
+      });
     });
 
     return { success: true, count: emails.length, targetNames: targets.map(h => h.name) };
   } catch (err: any) {
+    console.error('[CIRILA_DISPATCH] Erro:', err);
     return { success: false, error: err.message };
   }
 }

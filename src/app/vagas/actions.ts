@@ -10,15 +10,21 @@ export async function saveBedAvailability(hospital_name: string, data: {
     clinica_fem: number
     sem_vagas: boolean
 }) {
-    await prisma.bedAvailability.upsert({
-        where: { hospital_name },
-        update: data,
-        create: {
-            hospital_name,
-            ...data
-        }
-    });
+    try {
+        await prisma.bedAvailability.upsert({
+            where: { hospital_name },
+            update: data,
+            create: {
+                hospital_name,
+                ...data
+            }
+        });
 
-    revalidatePath('/vagas')
-    revalidatePath('/')
+        revalidatePath('/vagas')
+        revalidatePath('/')
+        return { success: true }
+    } catch (error: any) {
+        console.error('[SAVE_BED_AVAILABILITY_ERROR]', error)
+        return { success: false, error: error.message || 'Erro ao salvar disponibilidade de vagas' }
+    }
 }

@@ -83,15 +83,6 @@ Por favor, utilize o botão "Confirmar Recebimento" no e-mail em formato HTML pa
             </div>
             
             <div style="margin-top: 30px; text-align: center;">
-              <div style="margin-bottom: 20px;">
-                ${attachments && attachments.length > 0 ? attachments.map(att => `
-                  <a href="${att.path}" target="_blank" download="${att.filename}"
-                     style="background-color: #ffffff; color: #0f172a; text-decoration: none; padding: 10px 15px; border-radius: 10px; font-weight: 700; font-size: 12px; border: 1.5px solid #e2e8f0; display: inline-block; margin: 5px;">
-                     📄 ${att.filename.length > 25 ? att.filename.substring(0, 22) + '...' : att.filename}
-                  </a>
-                `).join('') : ''}
-              </div>
-
               <div style="margin-top: 20px;">
                 <a href="${confirmUrl}" target="_blank"
                    style="background-color: #2563eb; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 800; font-size: 15px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -102,12 +93,12 @@ Por favor, utilize o botão "Confirmar Recebimento" no e-mail em formato HTML pa
           </div>
           
           <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #f1f5f9;">
-            Esta é uma notificação da Secretaria Municipal de Saúde de Volta Redonda (SMSVR).
-            <br>© 2026 CIR-A System • Inteligência Automatizada
+            Secretaria Municipal de Saúde de Volta Redonda (SMSVR)
           </div>
         </div>
       `,
     });
+
 
     console.log('Email enviado com sucesso:', info.messageId);
     return { success: true, messageId: info.messageId };

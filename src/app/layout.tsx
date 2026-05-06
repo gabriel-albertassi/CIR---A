@@ -25,20 +25,21 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
   let dbUser = null
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
     if (user) {
       dbUser = await prisma.user.findUnique({
         where: { id: user.id }
       })
     }
   } catch (error) {
-    console.error("Database not ready in layout:", error)
-    // Se o banco falhar (ex: tabelas não existem), dbUser continua null
+    console.error("Layout Initialization Error:", error)
+    // Se o banco ou supabase falhar, dbUser continua null, permitindo que a UI carregue
   }
+
 
   return (
     <html lang="pt-br">

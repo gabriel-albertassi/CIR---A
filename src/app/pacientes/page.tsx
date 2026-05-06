@@ -7,29 +7,30 @@ import ReturnAction from './ReturnAction'
 export const dynamic = 'force-dynamic'
 
 export default async function PacientesTodosPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  let isAdmin = false
-  if (user) {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id }
-    })
-    isAdmin = dbUser?.role === 'ADMIN'
-  }
-
-  const patients = await prisma.patient.findMany({
-    orderBy: {
-      created_at: 'desc'
-    },
-    include: {
-      logs: {
-        where: { action: { in: ['CANCEL', 'REGISTER', 'TRANSFER'] } },
-        orderBy: { timestamp: 'desc' },
-        take: 1
-      }
+    let isAdmin = false
+    if (user) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id }
+      })
+      isAdmin = dbUser?.role === 'ADMIN'
     }
-  })
+
+    const patients = await prisma.patient.findMany({
+      orderBy: {
+        created_at: 'desc'
+      },
+      include: {
+        logs: {
+          where: { action: { in: ['CANCEL', 'REGISTER', 'TRANSFER'] } },
+          orderBy: { timestamp: 'desc' },
+          take: 1
+        }
+      }
+    })
 
   return (
     <>
@@ -158,5 +159,14 @@ export default async function PacientesTodosPage() {
         </div>
       </div>
     </>
-  );
+    );
+  } catch (error) {
+    console.error('[PACIENTES_PAGE_ERROR]', error);
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <h1 style={{ color: '#ef4444' }}>Erro ao carregar pacientes</h1>
+        <p style={{ color: '#94a3b8' }}>Por favor, recarregue a página ou verifique sua conexão.</p>
+      </div>
+    );
+  }
 }

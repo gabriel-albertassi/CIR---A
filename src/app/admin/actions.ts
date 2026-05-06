@@ -9,18 +9,18 @@ export async function updateUserPermissions(userId: string, data: {
   canCancelPatient?: boolean,
   canPrintReports?: boolean
 }) {
-  const supabase = await createClient()
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
-
-  if (!currentUser) return { error: 'Não autenticado.' }
-
-  const admin = await prisma.user.findUnique({
-    where: { id: currentUser.id }
-  })
-
-  if (admin?.role !== 'ADMIN') return { error: 'Acesso negado. Apenas administradores podem gerenciar usuários.' }
-
   try {
+    const supabase = await createClient()
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+
+    if (!currentUser) return { error: 'Não autenticado.' }
+
+    const admin = await prisma.user.findUnique({
+      where: { id: currentUser.id }
+    })
+
+    if (admin?.role !== 'ADMIN') return { error: 'Acesso negado. Apenas administradores podem gerenciar usuários.' }
+
     await prisma.user.update({
       where: { id: userId },
       data
@@ -28,48 +28,54 @@ export async function updateUserPermissions(userId: string, data: {
     revalidatePath('/admin/users')
     return { success: true }
   } catch (error: any) {
-    return { error: error.message }
+    console.error('[UPDATE_PERMISSIONS_ERROR]', error)
+    return { error: error.message || 'Erro ao atualizar permissões' }
   }
 }
 
 export async function getAllUsers() {
-  const supabase = await createClient()
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
 
-  if (!currentUser) return []
+    if (!currentUser) return []
 
-  const admin = await prisma.user.findUnique({
-    where: { id: currentUser.id }
-  })
+    const admin = await prisma.user.findUnique({
+      where: { id: currentUser.id }
+    })
 
-  if (admin?.role !== 'ADMIN') return []
+    if (admin?.role !== 'ADMIN') return []
 
-  return await prisma.user.findMany({
-    orderBy: { createdAt: 'desc' }
-  })
+    return await prisma.user.findMany({
+      orderBy: { createdAt: 'desc' }
+    })
+  } catch (error) {
+    console.error('[GET_ALL_USERS_ERROR]', error)
+    return []
+  }
 }
 
 export async function deleteUserAction(userId: string) {
-  const supabase = await createClient()
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
-
-  if (!currentUser) return { error: 'Não autenticado.' }
-
-  // 1. Verificar se quem executa é ADMIN
-  const admin = await prisma.user.findUnique({
-    where: { id: currentUser.id }
-  })
-
-  if (admin?.role !== 'ADMIN') {
-    return { error: 'Acesso negado. Apenas administradores podem excluir usuários.' }
-  }
-
-  // 2. Impedir que o admin se exclua
-  if (userId === currentUser.id) {
-    return { error: 'Você não pode excluir sua própria conta administrativa.' }
-  }
-
   try {
+    const supabase = await createClient()
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+
+    if (!currentUser) return { error: 'Não autenticado.' }
+
+    // 1. Verificar se quem executa é ADMIN
+    const admin = await prisma.user.findUnique({
+      where: { id: currentUser.id }
+    })
+
+    if (admin?.role !== 'ADMIN') {
+      return { error: 'Acesso negado. Apenas administradores podem excluir usuários.' }
+    }
+
+    // 2. Impedir que o admin se exclua
+    if (userId === currentUser.id) {
+      return { error: 'Você não pode excluir sua própria conta administrativa.' }
+    }
+
     // 3. Remover do Prisma (o Auth do Supabase precisará ser removido no painel se não houver service key)
     await prisma.user.delete({
       where: { id: userId }
@@ -78,6 +84,7 @@ export async function deleteUserAction(userId: string) {
     revalidatePath('/admin/users')
     return { success: true }
   } catch (error: any) {
-    return { error: `Erro ao remover usuário: ${error.message}` }
+    console.error('[DELETE_USER_ERROR]', error)
+    return { error: `Erro ao remover usuário: ${error.message || 'Erro interno'}` }
   }
 }

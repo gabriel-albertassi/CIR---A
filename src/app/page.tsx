@@ -16,15 +16,15 @@ export const dynamic = 'force-dynamic'
 // Force Deploy Timestamp: 2026-04-17-02-05
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  
-  // 1. Pegamos o usuário do Supabase primeiro (necessário para o ID)
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
   try {
+    const supabase = await createClient()
+    
+    // 1. Pegamos o usuário do Supabase primeiro (necessário para o ID)
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+
     // 2. Disparamos TODAS as outras consultas em paralelo
     const [
       dbUser,
