@@ -94,13 +94,13 @@ export async function GET(req: NextRequest) {
                 bold: true,
                 size: 28,
                 font: "Arial",
-                underline: { type: UnderlineType.SINGLE },
+                underline: { type: "single" },
               }),
             ],
           }),
 
           new Paragraph({
-            text: "1. INDICADORES DE DESEMPENHO",
+            children: [new TextRun({ text: "1. INDICADORES DE DESEMPENHO", bold: true })],
             heading: HeadingLevel.HEADING_2,
             spacing: { before: 400, after: 200 },
           }),
@@ -109,33 +109,33 @@ export async function GET(req: NextRequest) {
             rows: [
               new TableRow({
                 children: [
-                  new TableCell({ children: [new Paragraph({ text: "MÉTRICA", bold: true })], shading: { fill: "F2F2F2" } }),
-                  new TableCell({ children: [new Paragraph({ text: "VALOR", bold: true })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "MÉTRICA", bold: true })] })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "VALOR", bold: true })] })], shading: { fill: "F2F2F2" } }),
                 ],
               }),
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph("Total de Regulações Realizadas")] }),
-                  new TableCell({ children: [new Paragraph({ text: `${patients.length}`, bold: true })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${patients.length}`, bold: true })] })] }),
                 ],
               }),
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph("Total de Chaves de Autorização")] }),
-                  new TableCell({ children: [new Paragraph({ text: `${keys.length}`, bold: true })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${keys.length}`, bold: true })] })] }),
                 ],
               }),
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph("Transferências Efetivadas")] }),
-                  new TableCell({ children: [new Paragraph({ text: `${transferred}`, bold: true })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${transferred}`, bold: true })] })] }),
                 ],
               }),
             ],
           }),
 
           new Paragraph({
-            text: "2. DISTRIBUIÇÃO POR TIPO DE PROCEDIMENTO",
+            children: [new TextRun({ text: "2. DISTRIBUIÇÃO POR TIPO DE PROCEDIMENTO", bold: true })],
             heading: HeadingLevel.HEADING_2,
             spacing: { before: 600, after: 200 },
           }),
@@ -144,9 +144,9 @@ export async function GET(req: NextRequest) {
             rows: [
               new TableRow({
                 children: [
-                  new TableCell({ children: [new Paragraph({ text: "PROCEDIMENTO", bold: true })], shading: { fill: "F2F2F2" } }),
-                  new TableCell({ children: [new Paragraph({ text: "QTD", bold: true })], shading: { fill: "F2F2F2" } }),
-                  new TableCell({ children: [new Paragraph({ text: "%", bold: true })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "PROCEDIMENTO", bold: true })] })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "QTD", bold: true })] })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "%", bold: true })] })], shading: { fill: "F2F2F2" } }),
                 ],
               }),
               new TableRow({
@@ -174,7 +174,7 @@ export async function GET(req: NextRequest) {
           }),
 
           new Paragraph({
-            text: "3. LOG DE AUDITORIA E RASTREABILIDADE",
+            children: [new TextRun({ text: "3. LOG DE AUDITORIA E RASTREABILIDADE", bold: true })],
             heading: HeadingLevel.HEADING_2,
             spacing: { before: 600, after: 200 },
           }),
@@ -183,29 +183,38 @@ export async function GET(req: NextRequest) {
             rows: [
               new TableRow({
                 children: [
-                  new TableCell({ children: [new Paragraph({ text: "DATA", bold: true })], shading: { fill: "F2F2F2" } }),
-                  new TableCell({ children: [new Paragraph({ text: "CHAVE", bold: true })], shading: { fill: "F2F2F2" } }),
-                  new TableCell({ children: [new Paragraph({ text: "PACIENTE / ORIGEM", bold: true })], shading: { fill: "F2F2F2" } }),
-                  new TableCell({ children: [new Paragraph({ text: "USUÁRIO", bold: true })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "DATA", bold: true })] })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "CHAVE", bold: true })] })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "PACIENTE / ORIGEM", bold: true })] })], shading: { fill: "F2F2F2" } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "USUÁRIO", bold: true })] })], shading: { fill: "F2F2F2" } }),
                 ],
               }),
               ...keys.slice(0, 100).map(k => new TableRow({
                 children: [
-                  new TableCell({ children: [new Paragraph({ text: k.created_at.toLocaleDateString('pt-BR'), size: 16 })] }),
-                  new TableCell({ children: [new Paragraph({ text: k.key, bold: true, size: 16 })] }),
-                  new TableCell({ children: [new Paragraph({ text: `${k.patient.substring(0, 20)}... / ${k.origin}`, size: 16 })] }),
-                  new TableCell({ children: [new Paragraph({ text: k.user_created ? (userMap[k.user_created] || 'SISTEMA') : 'CIRILA', size: 16 })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: k.created_at.toLocaleDateString('pt-BR'), size: 16 })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: k.key, bold: true, size: 16 })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${k.patient.substring(0, 20)}... / ${k.origin}`, size: 16 })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: k.user_created ? (userMap[k.user_created] || 'SISTEMA') : 'CIRILA', size: 16 })] })] }),
                 ],
               })),
             ],
           }),
 
           new Paragraph({
-            text: `\nEste documento constitui relatório oficial do sistema de regulação CIRILA. \nGerado em: ${now.toLocaleString('pt-BR')}`,
             alignment: AlignmentType.RIGHT,
             spacing: { before: 1000 },
             children: [
-              new TextRun({ text: "\nDCRAA - SMSVR | Inteligência de Dados", italics: true, size: 16, color: "666666" }),
+              new TextRun({ 
+                text: `Este documento constitui relatório oficial do sistema de regulação CIRILA. \nGerado em: ${now.toLocaleString('pt-BR')}`,
+                size: 16 
+              }),
+              new TextRun({ 
+                text: "\nDCRAA - SMSVR | Inteligência de Dados", 
+                italics: true, 
+                size: 16, 
+                color: "666666",
+                break: 1
+              }),
             ]
           })
         ],

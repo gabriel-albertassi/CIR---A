@@ -12,7 +12,6 @@ import {
   TableRow,
   WidthType,
   TextRun,
-  UnderlineType,
   BorderStyle,
   AlignmentType,
   Header,
