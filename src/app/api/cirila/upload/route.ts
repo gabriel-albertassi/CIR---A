@@ -27,12 +27,16 @@ export async function POST(req: NextRequest) {
 
     console.log(`[CIRILA_UPLOAD] Iniciando upload para Supabase: ${filePath}`);
 
+    // Converte File para Buffer para garantir compatibilidade no ambiente Node.js
+    const buffer = Buffer.from(await file.arrayBuffer());
+
     // Upload para o bucket 'malotes-pacientes'
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('malotes-pacientes')
-      .upload(filePath, file, {
-        cacheControl: '0', // Sem cache para evitar o problema de arquivos obsoletos
-        upsert: false
+      .upload(filePath, buffer, {
+        cacheControl: '0',
+        upsert: false,
+        contentType: file.type || 'application/octet-stream'
       });
 
     if (uploadError) {

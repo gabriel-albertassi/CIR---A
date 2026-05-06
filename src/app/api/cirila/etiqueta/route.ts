@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import JSZip from 'jszip';
-import pdf from 'pdf-parse';
+
 import {
   Document,
   Packer,
@@ -23,28 +23,49 @@ import {
   ImageRun,
   Footer,
 } from 'docx';
+import sharp from 'sharp';
 import { prisma } from '@/lib/db';
 
 
-const generateKey = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  return Array.from({ length: 5 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
-};
+import { sanitizeCirila } from '@/lib/sanitization';
+
+/**
+ * Gera uma chave única com retry em caso de colisão no banco
+ */
+async function generateSecureKey(attempts: number = 3): Promise<string> {
+  for (let i = 0; i < attempts; i++) {
+    const key = Math.random().toString(36).substring(2, 7).toUpperCase();
+    
+    // Verificar se já existe no banco (tanto em AuthorizationKey quanto CirilaAudit)
+    const exists = await prisma.authorizationKey.findFirst({ where: { key } });
+    const existsAudit = await prisma.cirilaAudit.findFirst({ where: { key } });
+    
+    if (!exists && !existsAudit) return key;
+  }
+  return Math.random().toString(36).substring(2, 9).toUpperCase();
+}
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const patient = searchParams.get('patient')?.replace(/\+/g, ' ') || 'PACIENTE';
+    const patient = sanitizeCirila(searchParams.get('patient')?.replace(/\+/g, ' ') || 'PACIENTE');
     const professionalKey = searchParams.get('professional')?.toLowerCase() || 'paola';
     const templateUrl = searchParams.get('templateUrl');
     const providedKey = searchParams.get('key');
-    const pos = searchParams.get('pos') || 'top';
-    const examsRaw = searchParams.get('exam')?.replace(/\+/g, ' ') || 'EXAME';
-    const hospitalOrigin = searchParams.get('hospitalOrigin')?.replace(/\+/g, ' ') || 'HOSPITAL ORIGEM';
+    const examsRaw = sanitizeCirila(searchParams.get('exam')?.replace(/\+/g, ' ') || 'EXAME');
+    const hospitalOrigin = sanitizeCirila(searchParams.get('hospitalOrigin')?.replace(/\+/g, ' ') || 'HOSPITAL ORIGEM');
     const qty = parseInt(searchParams.get('qty') || '1');
     const protocolo = parseInt(searchParams.get('protocolo') || '1');
-    const mode = searchParams.get('mode'); // 'text' para modo simplificado
+    const mode = searchParams.get('mode'); 
     const cns = searchParams.get('cns') || '';
+    const userId = searchParams.get('userId') || 'SISTEMA_CIRILA';
+
+    // VALIDAÇÃO CRÍTICA: Hospital de Origem é obrigatório
+    if (!hospitalOrigin || hospitalOrigin === 'HOSPITAL ORIGEM' || hospitalOrigin.trim() === '') {
+      return new NextResponse(JSON.stringify({ 
+        error: 'O Hospital de Origem é obrigatório para a geração de etiquetas oficiais.' 
+      }), { status: 400 });
+    }
 
     const examsList = examsRaw.split(',').map(e => e.trim());
     let finalExams: string[] = [];
@@ -72,78 +93,55 @@ export async function GET(req: NextRequest) {
     const dateStr = new Date().toLocaleDateString('pt-BR');
 
     const getDestination = (exam: string) => {
-      const e = exam.toUpperCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const e = exam.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       if (e.includes('ANGIOTC') || e.includes('ANGIO')) return 'HMMR';
       if (e.includes('COLANGIO')) return 'RADIO VIDA';
-      if (e.includes('RNM') || e.includes('RMN') ||
-        e.includes('RESSONANCIA') || e.includes('RESSON')) return 'RADIO VIDA';
-      // PROTOCOLO 2: TC vai para HMMR em vez de HSJB
+      if (e.includes('RNM') || e.includes('RMN') || e.includes('RESSONANCIA')) return 'RADIO VIDA';
       if (e.includes('TC') || e.includes('TOMOGRAFIA')) return protocolo === 2 ? 'HMMR' : 'HSJB';
-      if (e.includes('ECO') || e.includes('ECOGRAFIA') ||
-        e.includes('ECOCARDIOGRAMA')) return 'HSJB';
-      if (e.includes('ENDOSCOPIA') || e.includes('COLONOSCOPIA')) return 'HSJB';
-      if (e.includes('PET') || e.includes('CINTILOGRAFIA') ||
-        e.includes('MAMOGRAFIA') || e.includes('DENSITOMETRIA')) return 'RADIO VIDA';
-      return 'HSJB'; // Default institucional
+      if (e.includes('ECO') || e.includes('ECOCARDIOGRAMA')) return 'HSJB';
+      return 'HSJB';
     };
 
-    // --- ETIQUETA INSTITUCIONAL (FORMATO EXATO DO MODELO) ---
-    // Formato: bordas pretas, texto esquerda, 3 linhas fixas
     const createLabelTable = (examName: string, authKey: string, destination: string, pName: string, hOrigin: string) => {
-      const isAvulsa = examName.toUpperCase().includes('AVULSA');
-      const finalExam = isAvulsa ? 'EXAME' : examName.toUpperCase();
-      const finalPatient = (isAvulsa ? 'PACIENTE' : pName.toUpperCase()).trim();
-      const finalHospital = (isAvulsa ? 'HOSPITAL ORIGEM' : hOrigin.toUpperCase()).trim();
-      const labelBorder = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
-
+      const labelBorder = { style: BorderStyle.SINGLE, size: 6, color: '000000' };
       return new Table({
-        width: { size: 8500, type: WidthType.DXA }, // Ajuste moderado
+        width: { size: 9000, type: WidthType.DXA },
         alignment: AlignmentType.CENTER,
-        layout: TableLayoutType.FIXED,
         borders: {
           top: labelBorder, bottom: labelBorder, left: labelBorder, right: labelBorder,
-          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-          insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+          insideHorizontal: labelBorder, insideVertical: labelBorder,
         },
         rows: [
           new TableRow({
             children: [
               new TableCell({
-                margins: { top: 120, bottom: 120, left: 250, right: 250 }, // Margens moderadas
+                margins: { top: 100, bottom: 100, left: 100, right: 100 },
                 children: [
-                  // LINHA 1: Nome – Registro – Cargo
-                  ...(!isAvulsa ? [
-                    new Paragraph({
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 120 }, 
-                      children: [
-                        new TextRun({
-                          text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                          bold: true, size: 24, font: { name: 'Arial' }, color: '000000', // Fonte 12pt
-                        }),
-                      ],
-                    }),
-                    // LINHA 2: Departamento
-                    new Paragraph({
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 120 },
-                      children: [
-                        new TextRun({
-                          text: 'DEPARTAMENTO, CONTROLE, REGULAÇÃO – AVALIAÇÃO E AUDITORIA – DCRAA – SMSVR',
-                          bold: true, size: 20, font: { name: 'Arial' }, color: '000000', // Fonte 10pt
-                        }),
-                      ],
-                    }),
-                  ] : []),
-                  // LINHA 3: [DATA] : [CHAVE] - [PACIENTE] ...
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
-                    spacing: { before: 0 },
                     children: [
                       new TextRun({
-                        text: `${dateStr} : ${authKey.trim()} - ${finalPatient.trim()} – ${finalHospital.trim()} - ${finalExam.trim()} AUTORIZADO PARA ${destination.toUpperCase().trim()}`,
-                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000', // Fonte 12pt
+                        text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
+                        bold: true, size: 20, font: { name: 'Arial' }, color: '000000',
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.LEFT,
+                    children: [
+                      new TextRun({
+                        text: 'DCRAA – SMSVR – DEPARTAMENTO DE CONTROLE E REGULAÇÃO',
+                        bold: true, size: 16, font: { name: 'Arial' }, color: '000000',
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.LEFT,
+                    spacing: { before: 100 },
+                    children: [
+                      new TextRun({
+                        text: `${dateStr} : ${authKey} - ${pName.toUpperCase()} – ${hOrigin.toUpperCase()} - ${examName.toUpperCase()} AUTORIZADO PARA ${destination.toUpperCase()}`,
+                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
                   }),
@@ -155,27 +153,19 @@ export async function GET(req: NextRequest) {
       });
     };
 
-
     const labelElements: any[] = [];
     const generatedKeys: string[] = [];
 
-    // Etiquetas Individuais
     for (const [index, examName] of finalExams.entries()) {
-      const authKey = (index === 0 && providedKey) ? providedKey : generateKey();
+      const authKey = (index === 0 && providedKey) ? providedKey : await generateSecureKey();
       generatedKeys.push(authKey);
       const destination = getDestination(examName);
       
-      // --- SALVAMENTO CRÍTICO NO BANCO DE DADOS ---
+      const now = new Date();
+      const examType = examName.toUpperCase().includes('RNM') ? 'RNM' : examName.toUpperCase().includes('TC') ? 'TC' : 'OUTRO';
+
       try {
-        const now = new Date();
-        const examType = examName.toUpperCase().includes('RNM') || examName.toUpperCase().includes('RESSONANCIA') ? 'RNM' : 
-                         examName.toUpperCase().includes('TC') || examName.toUpperCase().includes('TOMOGRAFIA') ? 'TC' : 'OUTRO';
-
-        if (!hospitalOrigin || hospitalOrigin === 'HOSPITAL ORIGEM') {
-          throw new Error('Hospital de Origem é obrigatório para registrar a chave.');
-        }
-
-        await (prisma.authorizationKey as any).create({
+        await prisma.authorizationKey.create({
           data: {
             key: authKey,
             patient: patient.toUpperCase(),
@@ -184,6 +174,7 @@ export async function GET(req: NextRequest) {
             origin: hospitalOrigin.toUpperCase(),
             destination: destination.toUpperCase(),
             professional: prof.name.toUpperCase(),
+            user_created: userId, // Auditoria NIR
             type: examType,
             month: now.getMonth() + 1,
             year: now.getFullYear(),
@@ -192,88 +183,113 @@ export async function GET(req: NextRequest) {
             cns: cns
           }
         });
-        console.log(`[CIRILA_DB] Chave ${authKey} registrada com sucesso para ${patient}.`);
-      } catch (dbErr: any) {
-        console.error(`[CIRILA_DB_ERROR] Falha ao registrar chave: ${dbErr.message}`);
-        throw new Error(`BLOQUEIO DE SEGURANÇA: Não foi possível registrar a autorização no banco de dados. A etiqueta não será gerada. Erro: ${dbErr.message}`);
+      } catch (err) {
+        // Retry em caso de colisão de chave (mesmo com o check prévio)
+        const retryKey = await generateSecureKey();
+        await prisma.authorizationKey.create({
+          data: {
+            key: retryKey,
+            patient: patient.toUpperCase(),
+            exam: examName.toUpperCase(),
+            procedure: examName.toUpperCase(),
+            origin: hospitalOrigin.toUpperCase(),
+            destination: destination.toUpperCase(),
+            professional: prof.name.toUpperCase(),
+            user_created: userId, // Auditoria NIR
+            type: examType,
+            month: now.getMonth() + 1,
+            year: now.getFullYear(),
+            date: now,
+            status: 'ATIVO',
+            cns: cns
+          }
+        });
       }
 
       labelElements.push(createLabelTable(examName, authKey, destination, patient, hospitalOrigin));
       if (index < finalExams.length - 1) {
-        // Espaço entre etiquetas múltiplas
-        labelElements.push(new Paragraph({ spacing: { before: 800, after: 800 }, children: [] }));
+        labelElements.push(new Paragraph({ spacing: { before: 400, after: 400 } }));
       }
     }
 
-    if (mode === 'text') {
-      const textLines = finalExams.map((examName, index) => {
-        const authKey = generatedKeys[index];
-        const destination = getDestination(examName);
-        return `${dateStr} : ${authKey} - ${patient.toUpperCase()} – ${hospitalOrigin.toUpperCase()} - ${examName.toUpperCase()} AUTORIZADO PARA ${destination.toUpperCase()}`;
-      });
+    // CONFIGURAÇÃO DE ALTURA USÁVEL (A4 com margem 720 DXA)
+    // Altura total A4: 16838. Margens: 720+720 = 1440. Altura útil: ~15398 DXA
+    const USABLE_HEIGHT = 15300; 
 
-      const textDoc = new Document({
+    const createFinalDocument = (contentElements: any[], labels: any[]) => {
+      return new Document({
         sections: [{
-          children: textLines.map(line => new Paragraph({
-            children: [new TextRun({ text: line, font: { name: 'Arial' }, size: 24 })]
-          }))
-        }]
+          properties: { 
+            page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } 
+          },
+          children: [
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              layout: TableLayoutType.FIXED,
+              borders: {
+                top: { style: BorderStyle.NONE },
+                bottom: { style: BorderStyle.NONE },
+                left: { style: BorderStyle.NONE },
+                right: { style: BorderStyle.NONE },
+                insideHorizontal: { style: BorderStyle.NONE },
+                insideVertical: { style: BorderStyle.NONE },
+              },
+              rows: [
+                // LINHA 1: CONTEÚDO (Imagem ou Texto) - BLINDAGEM: ALTURA FIXA E EXACTA
+                new TableRow({
+                  height: { value: USABLE_HEIGHT - 2500, rule: HeightRule.EXACT },
+                  children: [
+                    new TableCell({
+                      verticalAlign: VerticalAlign.TOP,
+                      margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                      children: contentElements.length > 0 ? contentElements : [new Paragraph("")],
+                    }),
+                  ],
+                }),
+                // LINHA 2: ETIQUETA (Sempre no final) - BLINDAGEM: ALTURA FIXA E EXACTA
+                new TableRow({
+                  height: { value: 2500, rule: HeightRule.EXACT },
+                  children: [
+                    new TableCell({
+                      verticalAlign: VerticalAlign.BOTTOM,
+                      margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                      children: labels,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }],
       });
+    };
 
-      const textBuffer = await Packer.toBuffer(textDoc);
-      return new NextResponse(new Uint8Array(textBuffer), {
+    if (mode === 'text') {
+      const doc = createFinalDocument([new Paragraph({ spacing: { before: 2000 }, children: [new TextRun({ text: "CORPO DO DOCUMENTO LIMPO PARA COLAGEM MANUAL", bold: true, color: "CCCCCC" })] })], labelElements);
+      const buffer = await Packer.toBuffer(doc);
+      return new NextResponse(new Uint8Array(buffer), {
         headers: {
-          'Content-Disposition': `attachment; filename="Chave_${patient.replace(/\s/g, '_')}.docx"`,
+          'Content-Disposition': `attachment; filename="Etiqueta_${patient.replace(/\s/g, '_')}.docx"`,
           'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         },
       });
     }
 
-    // --- PROCESSAMENTO COM ANEXO ---
     if (templateUrl) {
-      const absoluteUrl = templateUrl.startsWith('http') ? templateUrl : `${req.nextUrl.origin}${templateUrl}`;
-      
-      // Cache buster for the template fetch
-      const cacheBustedUrl = absoluteUrl.includes('?') 
-        ? `${absoluteUrl}&cb=${Date.now()}` 
-        : `${absoluteUrl}?cb=${Date.now()}`;
-
-      console.log(`[CIRILA_ETIQUETA] Iniciando busca do anexo: ${absoluteUrl}`);
-      
-      let response;
-      try {
-        response = await fetch(cacheBustedUrl, { 
-          cache: 'no-store',
-          headers: {
-            'Accept': '*/*',
-            'User-Agent': 'CirilaBot/1.0'
-          }
-        });
-      } catch (fetchErr: any) {
-        console.error(`[CIRILA_ETIQUETA_ERROR] Falha de rede ao buscar anexo: ${fetchErr.message}`);
-        throw new Error(`Erro de conexão ao buscar o anexo: ${fetchErr.message}`);
-      }
-
-      if (!response.ok) {
-        console.error(`[CIRILA_ETIQUETA_ERROR] Status de resposta inválido (${response.status}): ${absoluteUrl}`);
-        const errorText = await response.text().catch(() => 'Sem corpo de erro');
-        console.error(`[CIRILA_ETIQUETA_ERROR] Detalhes: ${errorText.substring(0, 200)}`);
-        throw new Error(`O servidor de arquivos retornou erro ${response.status}`);
-      }
+      const response = await fetch(templateUrl);
+      if (!response.ok) throw new Error('Falha ao baixar o anexo.');
       
       const fileBuffer = Buffer.from(await response.arrayBuffer());
       const contentType = response.headers.get('content-type') || '';
-      console.log(`[CIRILA_ETIQUETA] Anexo baixado. Tipo: ${contentType}, Tamanho: ${fileBuffer.length} bytes`);
-
-      const isDocx = contentType.includes('officedocument.wordprocessingml') || templateUrl.toLowerCase().endsWith('.docx');
-      const isPdf = contentType.includes('application/pdf') || templateUrl.toLowerCase().endsWith('.pdf');
-      const isImage = contentType.includes('image/') || templateUrl.toLowerCase().endsWith('.jpg') || templateUrl.toLowerCase().endsWith('.jpeg') || templateUrl.toLowerCase().endsWith('.png');
+      
+      const isDocx = contentType.includes('officedocument') || templateUrl.endsWith('.docx');
+      const isPdf = contentType.includes('pdf') || templateUrl.endsWith('.pdf');
+      const isImage = contentType.includes('image/') || /\.(jpg|jpeg|png)$/i.test(templateUrl);
 
       if (isDocx) {
         const templateZip = await JSZip.loadAsync(fileBuffer);
         const templateXml = await templateZip.file("word/document.xml")?.async("string") || "";
 
-        // Gerar XML da etiqueta flutuante
         const tempDoc = new Document({ sections: [{ children: labelElements }] });
         const tempBuffer = await Packer.toBuffer(tempDoc);
         const tempZip = await JSZip.loadAsync(tempBuffer);
@@ -281,183 +297,88 @@ export async function GET(req: NextRequest) {
 
         const bodyMatch = labelXml.match(/<w:body[^>]*>([\s\S]*?)<\/w:body>/);
         if (bodyMatch) {
-          console.log(`[CIRILA_ETIQUETA] Corpo da etiqueta extraído com sucesso (${bodyMatch[1].length} chars).`);
-          // Remove sectPr da etiqueta para não conflitar com o do template
           const labelBody = bodyMatch[1].replace(/<w:sectPr[\s\S]*?<\/w:sectPr>/g, '');
-          let mergedXml = "";
+          const lastSectPrIndex = templateXml.lastIndexOf('<w:sectPr');
+          
+          // Estrutura de tabela via XML para garantir o posicionamento no DOCX legado
+          const spacerXml = `<w:tbl>
+            <w:tblPr><w:tblW w:w="5000" w:type="pct"/></w:tblPr>
+            <w:tr>
+              <w:trPr><w:trHeight w:val="12000" w:hRule="exact"/></w:trPr>
+              <w:tc><w:p/></w:tc>
+            </w:tr>
+            <w:tr>
+              <w:trPr><w:trHeight w:val="2500" w:hRule="exact"/></w:trPr>
+              <w:tc><w:vAlign w:val="bottom"/>${labelBody}</w:tc>
+            </w:tr>
+          </w:tbl>`;
 
-          if (pos === 'bottom') {
-            console.log(`[CIRILA_ETIQUETA] Inserindo etiqueta no final (bottom).`);
-            // Tentamos inserir antes do último sectPr para que a etiqueta herde as propriedades da página
-            const lastSectPrIndex = templateXml.lastIndexOf('<w:sectPr');
-            if (lastSectPrIndex !== -1) {
-              mergedXml = templateXml.slice(0, lastSectPrIndex) + labelBody + templateXml.slice(lastSectPrIndex);
-            } else {
-              mergedXml = templateXml.replace(/<\/w:body>/, `${labelBody}</w:body>`);
-            }
-          } else {
-            console.log(`[CIRILA_ETIQUETA] Inserindo etiqueta no início (top).`);
-            mergedXml = templateXml.replace(/(<w:body[^>]*>)/, `$1${labelBody}`);
-          }
+          let mergedXml = lastSectPrIndex !== -1 
+            ? templateXml.slice(0, lastSectPrIndex) + spacerXml + templateXml.slice(lastSectPrIndex)
+            : templateXml.replace(/<\/w:body>/, `${spacerXml}</w:body>`);
 
           templateZip.file("word/document.xml", mergedXml);
-          console.log(`[CIRILA_ETIQUETA] XML mesclado com sucesso. Gerando buffer final...`);
           const finalBuffer = await templateZip.generateAsync({ type: 'nodebuffer' });
 
           return new NextResponse(new Uint8Array(finalBuffer), {
             headers: {
-              'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
+              'Content-Disposition': `attachment; filename="Autorizacao_${patient.replace(/\s/g, '_')}.docx"`,
               'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             },
           });
-        } else {
-          console.error(`[CIRILA_ETIQUETA_ERROR] Não foi possível extrair o corpo do XML da etiqueta.`);
-          throw new Error("Falha interna ao processar a estrutura da etiqueta.");
         }
       } else if (isPdf) {
-        console.log(`[CIRILA_ETIQUETA] Processando PDF: ${templateUrl}`);
-        const data = await pdf(fileBuffer);
-        
-        // Limpar o texto e dividir em parágrafos curtos
-        const textLines = data.text
-          .split('\n')
-          .map(line => line.trim())
-          .filter(line => line.length > 0)
-          .slice(0, 40); // Limite de 40 linhas para garantir que caiba em uma página
-
-        const mainContent = textLines.map(line => 
-          new Paragraph({
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 40, after: 40 },
-            children: [
-              new TextRun({
-                text: line,
-                size: 18, // Fonte 9pt para ser compacto
-                font: { name: 'Arial' },
-                color: '000000',
-              }),
-            ],
-          })
-        );
-
-        const doc = new Document({
-          sections: [{
-            properties: { 
-              page: { 
-                margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
-              } 
-            },
-            footers: {
-              default: new Footer({
-                children: labelElements,
-              }),
-            },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { after: 200 },
-                children: [
-                  new TextRun({
-                    text: "CONTEÚDO EXTRAÍDO DO ANEXO PDF",
-                    bold: true,
-                    size: 20,
-                    font: { name: 'Arial' },
-                    color: '666666',
-                    underline: { type: UnderlineType.SINGLE },
-                  }),
-                ],
-              }),
-              ...mainContent
-            ]
-          }]
-        });
-
-        const finalBuffer = await Packer.toBuffer(doc);
-        console.log(`[CIRILA_ETIQUETA] PDF processado e convertido para DOCX (${finalBuffer.length} bytes).`);
-        return new NextResponse(new Uint8Array(finalBuffer), {
-          headers: {
-            'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
-            'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          },
+        return new NextResponse(JSON.stringify({ 
+          success: false,
+          error: 'CONVERSÃO DE PDF BLOQUEADA',
+          message: 'Para garantir a integridade do layout institucional (etiqueta no rodapé e centralização de anexo), o sistema CIR-A exige que documentos sejam enviados como IMAGEM (JPG ou PNG).',
+          instruction: 'Por favor, converta seu PDF para imagem ou envie uma foto/print do pedido médico.'
+        }), { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
         });
       } else if (isImage) {
-        const mainContent = [
+        // Recalcular proporção para garantir altura máxima absoluta de 500px (Blindagem Final)
+        const metadata = await sharp(fileBuffer).metadata();
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 500;
+
+        let width = metadata.width || MAX_WIDTH;
+        let height = metadata.height || MAX_HEIGHT;
+
+        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+        const finalWidth = Math.round(width * ratio);
+        const finalHeight = Math.round(height * ratio);
+
+        const processedImageBuffer = await sharp(fileBuffer)
+          .resize(finalWidth, finalHeight)
+          .toFormat('png')
+          .toBuffer();
+
+        const content = [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { after: 200 },
             children: [
               new ImageRun({
-                data: fileBuffer,
-                transformation: {
-                  width: 400, // Reduzido
-                  height: 550, // Reduzido
-                },
+                data: processedImageBuffer,
+                transformation: { width: finalWidth, height: finalHeight },
               } as any),
             ],
-          }),
+          })
         ];
 
-        const doc = new Document({
-          sections: [{
-            properties: { 
-              page: { 
-                margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
-              } 
-            },
-            footers: {
-              default: new Footer({
-                children: labelElements,
-              }),
-            },
-            children: [
-              ...mainContent,
-            ]
-          }]
-        });
-
+        const doc = createFinalDocument(content, labelElements);
         const finalBuffer = await Packer.toBuffer(doc);
-        console.log(`[CIRILA_ETIQUETA] Imagem processada e inserida no DOCX (${finalBuffer.length} bytes).`);
         return new NextResponse(new Uint8Array(finalBuffer), {
           headers: {
-            'Content-Disposition': `attachment; filename="Autorizacao_Cirila_${patient.replace(/\s/g, '_')}.docx"`,
+            'Content-Disposition': `attachment; filename="Autorizacao_${patient.replace(/\s/g, '_')}.docx"`,
             'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
           },
         });
       }
     }
 
-    // --- CASO PADRÃO: SEM ANEXO (TEMPLATE VAZIO PARA COLAGEM MANUAL) ---
-    // Página 100% limpa conforme solicitado, apenas com a etiqueta no rodapé.
-    const emptyParagraphs = [
-      new Paragraph({ children: [] })
-    ];
-
-
-    const finalDoc = new Document({
-      title: "Etiqueta Cirila",
-      creator: "Cirila Bot",
-      description: "Etiqueta de Autorização de Exame",
-      sections: [{
-        properties: {
-          page: {
-            margin: {
-              top: 720,
-              right: 720,
-              bottom: 720,
-              left: 720
-            }
-          },
-        },
-        footers: {
-          default: new Footer({
-            children: labelElements,
-          }),
-        },
-        children: [...emptyParagraphs]
-      }]
-    });
-
-
+    const finalDoc = createFinalDocument([], labelElements);
     const buffer = await Packer.toBuffer(finalDoc);
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
@@ -470,7 +391,18 @@ export async function GET(req: NextRequest) {
     });
 
   } catch (err: any) {
-    console.error('[CIRILA_ETIQUETA_ERROR]', err);
-    return new NextResponse(JSON.stringify({ error: err.message }), { status: 500 });
+    console.error('[CIRILA_ETIQUETA_CRITICAL_ERROR]', {
+      error: err.message,
+      stack: err.stack,
+      timestamp: new Date().toISOString()
+    });
+    return new NextResponse(JSON.stringify({ 
+      success: false,
+      error: 'Erro crítico na geração de etiqueta. Verifique os dados e tente novamente.',
+      details: err.message 
+    }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

@@ -2,7 +2,8 @@
 
 import { prisma } from '@/lib/db'
 import { sendHospitalNotification } from '@/lib/mail'
-import { getUnreadNotifications } from '@/lib/notifications'
+import { sanitizeCirila } from '@/lib/sanitization'
+import { createClient } from '@/lib/supabase/sb-server'
 
 export type CirilaResponse = {
   text: string;
@@ -18,11 +19,34 @@ export type CirilaResponse = {
 };
 
 /**
+ * Gera uma chave alfanumérica curta e única com retry em caso de colisão
+ */
+async function generateUniqueKey(attempts: number = 3): Promise<string> {
+  for (let i = 0; i < attempts; i++) {
+    const key = Math.random().toString(36).substring(2, 7).toUpperCase();
+    
+    // Verificar se já existe no banco (tanto em AuthorizationKey quanto CirilaAudit)
+    const exists = await prisma.authorizationKey.findFirst({ where: { key } });
+    const existsAudit = await prisma.cirilaAudit.findFirst({ where: { key } });
+    
+    if (!exists && !existsAudit) return key;
+  }
+  // Se falhar após 3 tentativas (improvável para 5 caracteres), aumenta o tamanho
+  return Math.random().toString(36).substring(2, 9).toUpperCase();
+}
+
+/**
  * Função principal da Cirila (IA) para processar queries e documentos
  */
 export async function askCirila(query: string): Promise<CirilaResponse> {
-  const lowerQuery = query.toLowerCase();
+  const sanitizedQuery = query.trim();
+  const lowerQuery = sanitizedQuery.toLowerCase();
   
+  // Obter usuário atual para auditoria NIR
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id || 'CIRILA_SYSTEM';
+
   try {
     // 0. Lógica de Dispatch de Email (Invocada por botões)
     if (lowerQuery.startsWith('ask_email_dispatch:::')) {
@@ -45,74 +69,199 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       }
     }
 
-    // 1. Lógica de Dashboards / Relatórios
-    if (lowerQuery.includes('relatório') || lowerQuery.includes('dashboard') || lowerQuery.includes('estatística')) {
-      const patients = await prisma.patient.findMany();
-      const tc = patients.filter(p => p.diagnosis.toUpperCase().includes('TC')).length;
-      const rnm = patients.filter(p => p.diagnosis.toUpperCase().includes('RNM')).length;
-      
+    // 1. Lógica de "Gerar X Chaves" (Limite 50) - REQUISITO PRIORITÁRIO
+    const keyGenMatch = lowerQuery.match(/(?:gerar|criar|me de|faz)\s+(\d+)\s+chaves?/i);
+    if (keyGenMatch) {
+      const requestedCount = parseInt(keyGenMatch[1]);
+      const count = Math.min(requestedCount, 50); // Limite de 50
+      const generatedKeys: string[] = [];
+      const now = new Date();
+
+      for (let i = 0; i < count; i++) {
+        const newKey = await generateUniqueKey();
+        
+        try {
+          await prisma.authorizationKey.create({
+            data: {
+              key: newKey,
+              patient: 'AVULSA - AGUARDANDO',
+              exam: 'NÃO DEFINIDO',
+              origin: 'NIR SMSVR',
+              destination: 'PENDENTE',
+              professional: 'CIRILA AUTO',
+              type: 'AVULSA',
+              user_created: userId, // Auditoria NIR
+              month: now.getMonth() + 1,
+              year: now.getFullYear(),
+              status: 'ATIVO'
+            }
+          });
+          generatedKeys.push(newKey);
+        } catch (dbErr) {
+          // Retry automático em caso de colisão rara não detectada pelo generateUniqueKey
+          const retryKey = await generateUniqueKey();
+          await prisma.authorizationKey.create({
+            data: {
+              key: retryKey,
+              patient: 'AVULSA - AGUARDANDO',
+              exam: 'NÃO DEFINIDO',
+              origin: 'NIR SMSVR',
+              destination: 'PENDENTE',
+              professional: 'CIRILA AUTO',
+              type: 'AVULSA',
+              user_created: userId, // Auditoria NIR
+              month: now.getMonth() + 1,
+              year: now.getFullYear(),
+              status: 'ATIVO'
+            }
+          });
+          generatedKeys.push(retryKey);
+        }
+      }
+
+      let text = `✅ **Lote de Chaves Gerado!**\n\nGerrei **${count} chaves** avulsas para uso imediato:\n\n${generatedKeys.map(k => `- **${k}**`).join('\n')}`;
+      if (requestedCount > 50) {
+        text += `\n\n*Nota: O limite máximo por execução é de 50 chaves para estabilidade do sistema.*`;
+      }
+
       return {
-        text: "Com certeza! Aqui está o **relatório consolidado** das regulações recentes. O volume de solicitações de TC e RNM segue estável nesta semana.",
+        text: text + `\n\n*As chaves foram persistidas no banco de dados para auditoria.*`,
         sender: 'ai',
-        payload: {
-          type: 'CIRILA_DASHBOARD',
-          data: {
-            total: patients.length,
-            tc,
-            rnm,
-            others: Math.max(0, patients.length - tc - rnm),
-            byHospital: {}
-          },
-          period: 'Maio 2026',
-          examType: 'GERAL'
-        },
         actions: [
-          { label: 'Baixar Relatório Word', payload: 'DOWNLOAD_REPORT_MONTHLY' }
+          { label: 'Ver no Dashboard', payload: 'NAVIGATE_KEYS' }
         ]
       };
     }
 
-    // 2. Lógica de Sobreaviso
-    if (lowerQuery.includes('sobreaviso') || lowerQuery.includes('mapa')) {
-      return {
-        text: "O sistema de sobreaviso está configurado. Quantas chaves (vagas) você deseja mapear para o relatório de hoje?",
-        sender: 'ai',
-        actions: [
-          { label: 'Mapa 3 Chaves', payload: 'DOWNLOAD_DOCX_3' },
-          { label: 'Mapa 5 Chaves', payload: 'DOWNLOAD_DOCX_5' },
-          { label: 'Configurar Escala', payload: 'NAVIGATE_SOBREAVISO' }
-        ]
-      };
-    }
+    // 2. Lógica de Etiqueta com Parsing Robusto e Fluxo Assistido
+    const etiquetaMatch = lowerQuery.match(/(?:etiqueta|autorizar|autoriza|gera etiqueta|faz etiqueta)\s+(?:para\s+)?(.*?)(?:\s+(?:do|no)\s+hospital\s+(.*?))?$/i);
+    if (etiquetaMatch && !lowerQuery.includes('chave')) {
+      const patientName = sanitizeCirila(etiquetaMatch[1]);
+      const hospitalName = sanitizeCirila(etiquetaMatch[2] || '');
 
-    // 3. Notificações
-    if (lowerQuery.includes('notificação') || lowerQuery.includes('novidade') || lowerQuery.includes('recebi')) {
-      const unread = await getUnreadNotifications();
-      if (unread.length > 0) {
+      if (!patientName || patientName.length < 3) {
         return {
-          text: `Você tem **${unread.length}** notificações pendentes. A maioria são respostas de e-mails dos hospitais.`,
-          sender: 'ai',
-          actions: [
-            { label: 'Ver Notificações', payload: 'SHOW_NOTIFICATIONS' }
-          ]
+          text: "Para gerar a etiqueta, eu preciso do **nome do paciente**. Pode me informar?",
+          sender: 'ai'
         };
-      } else {
+      }
+
+      if (!hospitalName) {
+        // Busca paciente no banco para tentar inferir hospital
+        const possiblePatient = await prisma.patient.findFirst({
+          where: { name: { contains: patientName, mode: 'insensitive' } },
+          orderBy: { created_at: 'desc' }
+        });
+
+        if (possiblePatient) {
+          const sanName = sanitizeCirila(possiblePatient.name);
+          const sanDiag = sanitizeCirila(possiblePatient.diagnosis);
+          const sanHosp = sanitizeCirila(possiblePatient.origin_hospital);
+
+          return {
+            text: `Localizei **${sanName}** no hospital **${sanHosp}**. Deseja gerar a etiqueta com esses dados?`,
+            sender: 'ai',
+            actions: [
+              { label: 'Sim, Gerar Etiqueta', payload: `DOWNLOAD_ETIQUETA_DOCX:::${sanName}:::${sanDiag}:::Dr. Plantonista:::${possiblePatient.id}::::::1:::bottom:::${sanHosp}:::1` },
+              { label: 'Não, informar outro', payload: 'ASK_MANUAL_ETIQUETA' }
+            ]
+          };
+        }
+
         return {
-          text: "Não há novas notificações no momento. Tudo sob controle!",
+          text: `Entendido. Vou preparar a etiqueta para **${patientName}**. Qual é o **Hospital de Origem**? (Obrigatório para o layout institucional)`,
           sender: 'ai'
         };
       }
     }
 
-    // 4. Busca de Paciente para Etiqueta / Email
+    // 3. Lógica de Dashboards / Relatórios (Expandida)
+    if (lowerQuery.includes('relatório') || lowerQuery.includes('dashboard') || lowerQuery.includes('estatística') || lowerQuery.includes('nir')) {
+      const now = new Date();
+      const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const [patientsMonth, totalKeys] = await Promise.all([
+        prisma.patient.findMany({ where: { created_at: { gte: firstDayMonth } } }),
+        prisma.authorizationKey.count()
+      ]);
+
+      const tc = patientsMonth.filter(p => p.diagnosis.toUpperCase().includes('TC')).length;
+      const rnm = patientsMonth.filter(p => p.diagnosis.toUpperCase().includes('RNM')).length;
+      
+      return {
+        text: `📊 **Dashboard NIR - ${now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}**\n\nNeste mês, já realizamos **${patientsMonth.length}** regulações.\n\n- 🖥️ **TC:** ${tc}\n- 🧲 **RNM:** ${rnm}\n- 🔑 **Chaves Totais:** ${totalKeys}\n\nO que deseja analisar agora?`,
+        sender: 'ai',
+        payload: {
+          type: 'CIRILA_DASHBOARD',
+          data: {
+            total: patientsMonth.length,
+            tc,
+            rnm,
+            others: Math.max(0, patientsMonth.length - tc - rnm),
+          },
+          period: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        },
+        actions: [
+          { label: 'Relatório Mensal (DOCX)', payload: 'DOWNLOAD_REPORT_MONTHLY' },
+          { label: 'Relatório Anual', payload: 'DOWNLOAD_REPORT_ANNUAL' },
+          { label: 'Ver Auditoria', payload: 'NAVIGATE_KEYS' }
+        ]
+      };
+    }
+
+    // 4. Lógica de Sobreaviso (Imutável conforme AGENTS.md)
+    if (lowerQuery.includes('sobreaviso') || lowerQuery.includes('mapa') || lowerQuery.includes('planilha')) {
+      return {
+        text: "O sistema de sobreaviso está pronto para uso. Lembre-se que o layout (Corpo Limpo + Rodapé Fixo) é o padrão institucional imutável.",
+        sender: 'ai',
+        actions: [
+          { label: 'Mapa 3 Chaves', payload: 'DOWNLOAD_DOCX_3' },
+          { label: 'Mapa 10 Chaves', payload: 'DOWNLOAD_DOCX_10' },
+          { label: 'Ver Escala', payload: 'NAVIGATE_SOBREAVISO' }
+        ]
+      };
+    }
+
+    // 5. Criação de Chave Única
+    if (lowerQuery.includes('gerar chave') || (lowerQuery.includes('chave') && (lowerQuery.includes('nova') || lowerQuery.includes('uma')))) {
+      const novaChave = await generateUniqueKey();
+      const now = new Date();
+      
+      await prisma.authorizationKey.create({
+        data: {
+          key: novaChave,
+          patient: 'AGUARDANDO IDENTIFICAÇÃO',
+          exam: 'NÃO ESPECIFICADO',
+          origin: 'NÃO ESPECIFICADO',
+          destination: 'NÃO ESPECIFICADO',
+          professional: 'CIRILA BOT',
+          type: 'GERAL',
+          user_created: userId, // Auditoria NIR
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+          status: 'ATIVO'
+        }
+      });
+
+      return {
+        text: `✅ **Chave Gerada!**\n\nSua nova chave é: **${novaChave}**\n\nEla já foi registrada no sistema.`,
+        sender: 'ai',
+        actions: [
+          { label: 'Ver Minhas Chaves', payload: 'NAVIGATE_KEYS' }
+        ]
+      };
+    }
+
+    // 6. Busca de Paciente para Etiqueta / Email
     const patientsInDB = await prisma.patient.findMany({
-      take: 20,
+      take: 50,
       orderBy: { created_at: 'desc' }
     });
 
+    const searchTerms = lowerQuery.split(' ').filter(t => t.length > 2);
     const matchedPatient = patientsInDB.find(p => {
-      const firstName = p.name.split(' ')[0].toLowerCase();
-      return lowerQuery.includes(firstName) || lowerQuery.includes(p.id.substring(0, 8));
+      const patientName = p.name.toLowerCase();
+      return searchTerms.some(term => patientName.includes(term)) || lowerQuery.includes(p.id.substring(0, 8));
     });
 
     if (matchedPatient) {
@@ -120,52 +269,49 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       const fileUrl = fileUrlMatch ? fileUrlMatch[1] : '';
 
       return {
-        text: `Identifiquei o paciente **${matchedPatient.name}**. \n\nO quadro clínico indica: **${matchedPatient.diagnosis}** (${matchedPatient.severity}).\n\nComo deseja proceder com a regulação deste caso?`,
+        text: `Localizei a ficha de **${matchedPatient.name.toUpperCase()}**. \n\nDiagnóstico: **${matchedPatient.diagnosis}** \nHospital: **${matchedPatient.origin_hospital}**\n\nO que deseja fazer?`,
         sender: 'ai',
         actions: [
-          { label: 'Gerar Etiqueta', payload: `DOWNLOAD_ETIQUETA_DOCX:::${matchedPatient.name}:::${matchedPatient.diagnosis}:::Dr. Plantonista:::${matchedPatient.id}:::${fileUrl}:::1:::bottom:::${matchedPatient.origin_hospital}:::1` },
-          { label: 'Disparar para Rede Pública', payload: `ASK_EMAIL_DISPATCH:::${matchedPatient.id}:::PUBLIC` },
-          { label: 'Disparar Tudo (Triagem)', payload: `ASK_EMAIL_DISPATCH:::${matchedPatient.id}:::ALL` }
+          { label: 'Gerar Etiqueta', payload: `DOWNLOAD_ETIQUETA_DOCX:::${sanitizeCirila(matchedPatient.name)}:::${sanitizeCirila(matchedPatient.diagnosis)}:::Dr. Plantonista:::${matchedPatient.id}:::${fileUrl}:::1:::bottom:::${sanitizeCirila(matchedPatient.origin_hospital)}:::1:::${userId}` },
+          { label: 'Disparar E-mails', payload: `ASK_EMAIL_DISPATCH:::${matchedPatient.id}:::ALL` },
+          { label: 'Ver Prontuário', payload: `NAVIGATE_PATIENT:::${matchedPatient.id}` }
         ]
       };
     }
 
-    // 5. Fallback Contextual
+    // 7. Fallback Contextual para arquivos
     if (query.includes('[file_url:')) {
       return {
-        text: "Recebi o documento! Ele parece ser um **Template de Autorização**. \n\nPara que eu possa preenchê-lo, por favor, me diga o **nome do paciente** ou o **ID da solicitação**.",
+        text: "Documento recebido! 📄 \n\nPara vincular esse arquivo e gerar a etiqueta, por favor me informe o **nome do paciente**.",
         sender: 'ai'
       };
     }
 
-    // 6. Criação de Chaves
-    if (lowerQuery.includes('chave') || lowerQuery.includes('gerar chave')) {
-      const novaChave = `AUTH-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      return {
-        text: `Gerada uma nova Chave de Autorização provisória:\n\n**${novaChave}**\n\nEssa chave fica gravada no histórico. Para um controle mais completo das regulações, recomendo acessar o Painel de Auditoria de Chaves.`,
-        sender: 'ai',
-        actions: [
-          { label: 'Ir para Painel de Chaves', payload: 'NAVIGATE_KEYS' }
-        ]
-      };
-    }
-
-    // 7. Resposta Padrão
+    // 8. Resposta Padrão (Menu Inicial)
     return {
-      text: "Olá! Eu sou a **Cirila**, sua assistente de regulação. Posso ajudar você a encontrar pacientes, gerar etiquetas de autorização, disparar e-mails para a rede hospitalar ou gerenciar o fluxo de chaves. \n\n**O que você precisa agora?**",
+      text: "Olá! Eu sou a **Cirila**, assistente inteligente da regulação. \n\nComo posso ajudar?\n\n* 📄 **Etiquetas:** 'Gerar etiqueta para [Nome]'\n* 📊 **Relatórios:** 'Dashboard' ou 'Estatísticas'\n* 🔑 **Chaves:** 'Gerar 10 chaves'\n* 📅 **Sobreaviso:** 'Mapa de sobreaviso'",
       sender: 'ai',
       actions: [
-        { label: 'Relatório Geral', payload: 'REPORT_GENERAL' },
-        { label: 'Mapa de Sobreaviso', payload: 'SOBREAVISO_MAP' },
-        { label: 'Auditoria de Chaves', payload: 'NAVIGATE_KEYS' }
+        { label: 'Gerar Chave', payload: 'GENERATE_KEY' },
+        { label: 'Dashboard NIR', payload: 'REPORT_GENERAL' }
       ]
     };
 
-  } catch (error) {
-    console.error('Erro no askCirila:', error);
+  } catch (error: any) {
+    console.error('CRITICAL BACKEND ERROR [askCirila]:', {
+      query: query.substring(0, 100),
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
     return {
-      text: "Desculpe, tive um problema técnico ao processar sua solicitação. Por favor, tente novamente.",
-      sender: 'ai'
+      text: "🚨 **Erro de Estabilidade:** Tive um problema interno ao processar sua solicitação. O erro foi registrado com contexto completo para auditoria técnica.",
+      sender: 'ai',
+      payload: { 
+        error: error.message,
+        timestamp: new Date().toISOString()
+      }
     };
   }
 }

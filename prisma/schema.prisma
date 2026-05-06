@@ -116,7 +116,7 @@ model AuthorizationKey {
   id              String   @id @default(uuid())
   created_at      DateTime @default(now())
   date            DateTime @default(now())
-  key             String   
+  key             String   @unique
   patient         String
   exam            String
   procedure       String?

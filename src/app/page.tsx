@@ -160,6 +160,14 @@ export default async function DashboardPage() {
             <Link href="/patients/new" className="btn btn-primary no-print" style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem', borderRadius: '8px' }}>
               + Nova Regulação
             </Link>
+            <div className="no-print" style={{ display: 'flex', gap: '8px' }}>
+              <a href="/api/cirila/relatorio?type=MONTHLY" className="btn no-print" style={{ padding: '0.6rem 1rem', fontSize: '0.85rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#e2e8f0' }}>
+                Relatório Mensal
+              </a>
+              <a href="/api/cirila/relatorio?type=ANNUAL" className="btn no-print" style={{ padding: '0.6rem 1rem', fontSize: '0.85rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#e2e8f0' }}>
+                Anual
+              </a>
+            </div>
             <PrintButton user={dbUser} />
           </div>
         </div>

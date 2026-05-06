@@ -38,16 +38,15 @@ function makeKeyGenerator() {
 const PAGE_W = 15398;
 
 // Proporções das colunas (devem somar 100)
-// DATA(7), CHAVE(7), PACIENTE(12), DIAG(10), ORIGEM(8), PROC(6), REDE(3), CNS(40), AUDITOR(7)
-const COL_PCTS = [7, 7, 12, 10, 8, 6, 3, 40, 7]; 
+// DATA/CHAVE(12), PACIENTE(18), DIAG(13), ORIGEM(13), PROC(10), REDE(8), CNS(16), AUDITOR(10)
+const COL_PCTS = [12, 18, 13, 13, 10, 8, 16, 10]; 
 const COL_LABELS = [
-  'DATA',
-  'CHAVE',
+  'DATA / CHAVE',
   'CLIENTE (PACIENTE)',
   'DIAGNÓSTICO',
   'HOSPITAL ORIGEM',
   'PROCEDIMENTO',
-  'REDE/PRIV',
+  'PRESTADOR / REDE',
   'CNS',
   'AUDITOR',
 ];
@@ -84,7 +83,7 @@ export async function GET(req: NextRequest) {
       children: COL_LABELS.map((label, i) =>
         new TableCell({
           width: { size: COL_WIDTHS[i], type: WidthType.DXA },
-          shading: { fill: '000000', color: '000000', type: 'solid' },
+          shading: { fill: '1e3a8a', color: '1e3a8a', type: 'solid' },
           verticalAlign: VerticalAlign.CENTER,
           margins: { top: 40, bottom: 40, left: 80, right: 80 },
           children: [
@@ -131,15 +130,14 @@ export async function GET(req: NextRequest) {
         cantSplit: true,
         height: { value: ROW_HEIGHT, rule: HeightRule.ATLEAST },
         children: [
-          emptyCell(0, '___/___/___'), // DATA
-          emptyCell(1, key),           // CHAVE
-          emptyCell(2),                // CLIENTE
-          emptyCell(3),                // DIAGNÓSTICO
-          emptyCell(4),                // HOSPITAL ORIGEM
-          emptyCell(5),                // PROCEDIMENTO
-          emptyCell(6),                // REDE/PRIV
-          emptyCell(7),                // CNS
-          emptyCell(8),                // AUDITOR
+          emptyCell(0, `___/___/___ \n ${key}`), // DATA / CHAVE
+          emptyCell(1),                         // CLIENTE
+          emptyCell(2),                         // DIAGNÓSTICO
+          emptyCell(3),                         // HOSPITAL ORIGEM
+          emptyCell(4),                         // PROCEDIMENTO
+          emptyCell(5),                         // PRESTADOR / REDE
+          emptyCell(6),                         // CNS
+          emptyCell(7),                         // AUDITOR
         ],
       });
     });
