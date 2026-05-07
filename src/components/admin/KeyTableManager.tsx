@@ -36,10 +36,11 @@ interface KeyTableManagerProps {
   fixedType?: string;
   title: string;
   subtitle: string;
-  icon: any;
+  icon?: any;
 }
 
-export default function KeyTableManager({ fixedType, title, subtitle, icon: Icon }: KeyTableManagerProps) {
+export default function KeyTableManager({ fixedType, title, subtitle, icon: PassedIcon }: KeyTableManagerProps) {
+  const Icon = PassedIcon || (fixedType === 'RNM' ? Fingerprint : fixedType === 'TC' ? Zap : Database);
   const [keys, setKeys] = useState<AuthKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);

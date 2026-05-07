@@ -14,8 +14,8 @@ export default function TCKeysPage() {
         fixedType="TC" 
         title="Auditoria de Tomografias" 
         subtitle="Controle de chaves e autorizações de TC" 
-        icon={Zap}
       />
+
     </div>
   );
 }
