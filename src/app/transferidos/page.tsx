@@ -176,6 +176,3 @@ export default async function TransferidosPage() {
     );
   }
 }
-   );
-  }
-}

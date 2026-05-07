@@ -123,7 +123,9 @@ export default async function DashboardPage() {
 
     const avgWaitHours = patientsWithLogs.length > 0
       ? (totalWaitHours / patientsWithLogs.length).toFixed(1)
-      : 0    return (
+      : 0;
+
+    return (
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header Simples e Profissional */}
