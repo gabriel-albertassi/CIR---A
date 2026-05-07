@@ -3,6 +3,7 @@ import ClientQueue from './ClientQueue'
 import { calculatePatientScore } from '../../lib/scoring'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/sb-server'
+import { ListTodo, Plus, Sparkles } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
