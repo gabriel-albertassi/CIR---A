@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
                     children: [
                       new TextRun({
                         text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                        bold: true, size: 28, font: { name: 'Arial' }, color: '000000',
+                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
                   }),
@@ -140,7 +140,7 @@ export async function GET(req: NextRequest) {
                     children: [
                       new TextRun({
                         text: 'DCRAA – SMSVR – DEPARTAMENTO DE CONTROLE E REGULAÇÃO',
-                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
+                        bold: true, size: 20, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
                   }),
