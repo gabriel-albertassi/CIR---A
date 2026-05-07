@@ -66,64 +66,59 @@ export default function InteractiveCirilaPanel() {
         alignItems: 'center',
         padding: '1.25rem 1.5rem',
         cursor: 'pointer',
-        background: expression === 'alert' ? 'rgba(69, 10, 10, 0.9)' : 'rgba(4, 12, 28, 0.85)',
-        borderRadius: '24px',
-        border: expression === 'alert' ? '1px solid #ef4444' : '1px solid rgba(0, 216, 255, 0.35)',
-        boxShadow: expression === 'alert' ? '0 0 50px rgba(239, 68, 68, 0.3)' : '0 0 40px rgba(0, 216, 255, 0.08), inset 0 0 30px rgba(0,0,0,0.2)',
-        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        minHeight: '120px',
+        background: expression === 'alert' ? '#450a0a' : '#0b192c',
+        borderRadius: '16px',
+        border: expression === 'alert' ? '2px solid #ef4444' : '1px solid #1e3a8a',
+        transition: 'all 0.2s ease',
+        minHeight: '110px',
         gap: '1.5rem',
         position: 'relative',
         overflow: 'hidden'
       }}
       onMouseEnter={e => {
         if (expression !== 'alert') {
-          (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,216,255,0.6)';
-          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 60px rgba(0,216,255,0.18), inset 0 0 30px rgba(0,0,0,0.2)';
+          (e.currentTarget as HTMLDivElement).style.borderColor = '#00b4d8';
+          (e.currentTarget as HTMLDivElement).style.background = '#0f223b';
         }
-        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
       }}
       onMouseLeave={e => {
         if (expression !== 'alert') {
-          (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,216,255,0.35)';
-          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 40px rgba(0, 216, 255, 0.08), inset 0 0 30px rgba(0,0,0,0.2)';
+          (e.currentTarget as HTMLDivElement).style.borderColor = '#1e3a8a';
+          (e.currentTarget as HTMLDivElement).style.background = '#0b192c';
         }
-        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
       }}
     >
       {/* AVATAR PIXAR */}
-      <div style={{ width: '90px', flexShrink: 0 }}>
+      <div style={{ width: '85px', flexShrink: 0 }}>
         <CirilaAvatar
           expression={expression}
           size="100%"
-          showAura={expression === 'alert'}
+          showAura={false}
         />
       </div>
 
       {/* TEXTOS DINÂMICOS */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <h3 style={{ fontSize: '1.4rem', fontWeight: 900, margin: 0, color: '#ffffff', letterSpacing: '-0.3px' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.3px' }}>
             CIR-A
           </h3>
-          <span style={{ fontSize: '0.65rem', background: 'rgba(0,229,255,0.15)', color: '#00e5ff', padding: '2px 8px', borderRadius: '999px', fontWeight: 800, textTransform: 'uppercase' }}>
-            Cirila I.A
+          <span style={{ fontSize: '0.65rem', background: '#1e40af', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, textTransform: 'uppercase' }}>
+            Assistente IA
           </span>
         </div>
 
         <div style={{ minHeight: '1.5rem' }}>
-          <span style={{ fontSize: '1rem', color: '#f1f5f9', fontWeight: 600, lineHeight: 1.2, display: 'block' }}>
+          <span style={{ fontSize: '0.95rem', color: '#f8fafc', fontWeight: 500, lineHeight: 1.3, display: 'block' }}>
             {displayedText}
           </span>
         </div>
 
-        <span style={{ fontSize: '0.75rem', color: 'rgba(0,216,255,0.6)', fontWeight: 500, marginTop: '0.5rem', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          Clique para abrir o terminal ›
+        <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500, marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          Clique para abrir o painel ›
         </span>
       </div>
-
-      {/* Decorativo */}
-      <div style={{ position: 'absolute', right: '-20px', bottom: '-20px', width: '100px', height: '100px', background: 'radial-gradient(circle, rgba(0,216,255,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
     </div>
+
   );
 }

@@ -5,34 +5,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Cirila & CIR-A Premium Palette - Dashboard Institucional */
+  /* CIR-A Dashboard Institucional - Cores Base */
   --background-deep: #071826;
   --background-slate: #0f172a;
   --background-navy: #0b2540;
-  --accent-blue: #1e3a8a;
-  --cyan-neon: #00d8ff;
   
   --background: #071826;
-  --surface: rgba(11, 25, 44, 0.65);
-  --surface-hover: rgba(15, 34, 59, 0.85);
+  --surface: #0b192c;
+  --surface-hover: #0f223b;
   
-  /* Audit / NIR Colors */
-  --nir-cyan: #00d8ff;
+  --cyan-institutional: #00b4d8;
+  
+  /* Cores de Auditoria / NIR */
+  --nir-cyan: #00b4d8;
   --nir-blue: #1e40af;
-  --nir-glow: rgba(0, 216, 255, 0.2);
   
-  /* Text & Borders */
+  /* Texto & Bordas */
   --text-main: #f8fafc;
   --text-secondary: #94a3b8;
   --border: rgba(30, 58, 138, 0.3);
-  --border-focus: #00d8ff;
+  --border-focus: #00b4d8;
 
   --primary: #1e3a8a;
   --primary-hover: #1e40af;
   --danger: #ef4444;
   --warning: #f59e0b;
   
-  /* Severity Colors Premium */
+  /* Cores de Gravidade */
   --sev-low: #3b82f6;
   --sev-medium: #eab308;
   --sev-high: #f97316;
@@ -55,14 +54,12 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #080e1a;
-  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #071426;
+  color: #f8fafc;
   min-height: 100vh;
-  background-attachment: fixed;
-  position: relative;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -78,143 +75,36 @@ a {
    BACKGROUND SYSTEM CIR-A — Opção 1
    Dark Navy + Teal glow + Hex grid
    ════════════════════════════════════ */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  /* Foto de processo hospitalar ghostadas - Otimizado para performance */
-  background-image:
-    url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=1600&q=40&auto=format&fit=crop');
-  background-size: cover;
-  background-position: center;
-  filter: brightness(0.18) saturate(0.5); /* Removido blur fixo do body para performance */
-  transform: none;
+/* Fundo institucional limpo */
+body {
+  background-color: #071426;
 }
 
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  /* Overlay com gradiente dark navy + teal + rede de nós */
-  background:
-    /* Glows de luz teal nos cantos */
-    radial-gradient(ellipse at 15% 50%, rgba(0, 180, 216, 0.12) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 20%, rgba(0, 150, 199, 0.10) 0%, transparent 40%),
-    radial-gradient(ellipse at 60% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-    /* Base gradient escura */
-    linear-gradient(135deg,
-      rgba(8, 14, 26, 0.97) 0%,
-      rgba(11, 43, 54, 0.93) 35%,
-      rgba(13, 55, 75, 0.90) 65%,
-      rgba(8, 18, 30, 0.97) 100%
-    );
-}
-
-/* Grid hexagonal SVG sutil */
-@keyframes hex-drift {
-  0% { background-position: 0 0; }
-  100% { background-position: 60px 104px; }
-}
+/* Removido hex-drift para sobriedade */
 
 /* ════════════════════════════════
-   Premium Institutional Design
+   Institutional Layout Elements
    ════════════════════════════════ */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-}
-
-.glow-blue {
-  box-shadow: 0 0 20px rgba(30, 58, 138, 0.2);
-}
-
-.glow-cyan {
-  box-shadow: 0 0 15px rgba(0, 216, 255, 0.15);
-}
-
-.premium-card {
-  @apply glass-panel transition-all duration-500 ease-out;
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
+.card {
+  background: #0b192c;
   border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.premium-card:hover {
-  transform: translateY(-4px);
-  background: rgba(20, 38, 64, 0.8);
-  border-color: rgba(0, 216, 255, 0.3);
-  box-shadow: 0 10px 30px -10px rgba(0, 216, 255, 0.15), 0 0 15px rgba(0, 216, 255, 0.05);
+  border-radius: 12px;
 }
 
 .kpi-card {
-  @apply premium-card relative overflow-hidden;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  transition: all 0.2s;
 }
 
-.kpi-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 216, 255, 0.3), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.8s;
-}
-
-.kpi-card:hover::after {
-  transform: translateX(100%);
-}
-
-.glow-text-cyan {
-  text-shadow: 0 0 10px rgba(0, 216, 255, 0.4);
-}
-
-.glow-text-blue {
-  text-shadow: 0 0 10px rgba(30, 64, 175, 0.4);
-}
-
-.technical-grid {
-  background-image: 
-    linear-gradient(rgba(0, 216, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 216, 255, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-.scanline {
-  width: 100%;
-  height: 100px;
-  z-index: 10;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 216, 255, 0.02) 50%, rgba(0, 0, 0, 0) 100%);
-  opacity: 0.1;
-  position: absolute;
-  bottom: 100%;
-  animation: scanline 10s linear infinite;
-}
-
-@keyframes scanline {
-  0% { bottom: 100%; }
-  100% { bottom: -100px; }
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-active {
-  background: linear-gradient(90deg, rgba(30, 58, 138, 0.4) 0%, transparent 100%);
-  border-left: 3px solid var(--cyan-neon);
-  color: var(--cyan-neon) !important;
+.kpi-card:hover {
+  border-color: rgba(0, 180, 216, 0.3);
 }
 
 .bg-institutional {
-  background: radial-gradient(circle at 50% 0%, #0b2540 0%, #071826 100%);
+  background: #071426;
 }
 
 /* Base Styles */
@@ -403,13 +293,7 @@ td select option {
 }
 
 .logo-container-glow::before {
-  content: '';
-  position: absolute;
-  width: 80%;
-  height: 60%;
-  background: radial-gradient(circle, rgba(0, 180, 216, 0.15) 0%, rgba(0, 180, 216, 0) 70%);
-  filter: blur(25px);
-  z-index: -1;
+  display: none;
 }
 
 /* Sidebar Dark Tech Menu */
@@ -431,11 +315,10 @@ td select option {
 }
 
 .sidebar-link:hover {
-  background-color: rgba(0, 180, 216, 0.12);
-  color: #00d8ff;
+  background-color: rgba(0, 180, 216, 0.1);
+  color: #00b4d8;
   transform: translateX(4px);
-  box-shadow: inset 0 0 0 1px rgba(0,216,255,0.25);
-  text-shadow: 0 0 12px rgba(0,216,255,0.4);
+  border-right: 2px solid #00b4d8;
 }
 
 /* only-print: oculto na tela, visível ao imprimir */
@@ -644,11 +527,8 @@ td select option {
 
 .sidebar-main {
   width: 260px;
-  background: rgba(8, 20, 35, 0.98);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-right: 1px solid rgba(0, 180, 216, 0.2);
-  box-shadow: 4px 0 30px rgba(0,0,0,0.4);
+  background: #0f172a;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
@@ -656,11 +536,15 @@ td select option {
   height: 100vh;
   left: 0;
   top: 0;
-  z-index: 2000; /* Aumentado para cobrir tudo */
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
+  transition: all 0.3s ease;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 216, 255, 0.2) transparent;
+}
+
+.sidebar-main img {
+  max-width: 140px;
+  height: auto;
+  object-fit: contain;
 }
 
 .sidebar-link {
@@ -693,10 +577,13 @@ td select option {
 
 .main-viewport {
   flex: 1;
-  padding: 2.5rem;
+  padding: 0;
   margin-left: 260px;
   min-height: 100vh;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #071426;
+  width: calc(100% - 260px);
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-main.collapsed + .main-viewport {
@@ -860,19 +747,22 @@ td select option {
 }
 
 .premium-glass {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    0 10px 15px -3px rgba(0, 0, 0, 0.3), 
-    0 4px 6px -2px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 .toast-premium {
-  @apply premium-glass rounded-2xl p-5 flex gap-4 items-start max-w-sm pointer-events-auto relative overflow-hidden;
-  animation: toast-slide-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+  max-width: 24rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-left: 4px solid var(--primary);
 }
 

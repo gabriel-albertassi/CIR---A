@@ -5,6 +5,8 @@ export const metadata = {
   title: 'Auditoria de TC | CIR-A',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function TCKeysPage() {
   return (
     <div className="p-8">

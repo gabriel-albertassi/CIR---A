@@ -62,17 +62,16 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
 
         <div className="flex flex-1 pt-0">
           <aside className={`sidebar-main ${isMobileMenuOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-            <div className="logo-container-glow mb-6 mt-6 relative h-[120px] w-full">
-              <Image
-                src="/logo.png"
-                alt="Logo CIR-A"
-                fill
-                priority
-                className="object-contain logo-hover"
-                style={{
-                  filter: 'drop-shadow(0 0 12px rgba(0,216,255,0.3))'
-                }}
-              />
+            <div className="flex justify-center items-center mb-6 mt-4 px-4">
+              <div className="relative w-[140px] h-[70px]">
+                <Image
+                  src="/logo.png"
+                  alt="Logo CIR-A"
+                  fill
+                  priority
+                  className="object-contain"
+                />
+              </div>
             </div>
 
             <div className="mx-0 my-6 h-[1px] bg-gradient-to-r from-transparent via-[rgba(0,216,255,0.15)] to-transparent" />
@@ -163,7 +162,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
 
               <div className="p-2 flex flex-col gap-1 text-center">
                 <div className="text-[9px] text-slate-500 font-bold opacity-60 letter-spacing-[0.5px]">
-                  SMSVR • CIR-A • v1.5 Premium
+                  SMSVR • CIR-A • v1.5
                 </div>
                 <a 
                   href="https://www.instagram.com/gabriel.albertassi" 
@@ -178,7 +177,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
           </aside>
 
           <main className="main-viewport relative">
-            <header className="flex justify-end items-center px-8 py-4 bg-gradient-to-b from-[#081423]/40 to-transparent sticky top-0 z-50 backdrop-blur-md">
+            <header className="flex justify-end items-center px-8 py-4 bg-[#071426] sticky top-0 z-50 border-b border-white/5">
               <NotificationBell />
             </header>
 
@@ -186,11 +185,11 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               {children}
             </div>
 
-            <footer className="mt-auto p-8 flex flex-col gap-4 bg-white/5 border-t border-white/5 items-center text-center">
-              <div className="logo-container-glow relative w-[200px] h-[60px]">
-                <Image src="/logo.png" alt="Logo CIR-A" fill className="object-contain opacity-80" />
+            <footer className="mt-auto p-8 flex flex-col gap-4 border-t border-white/5 items-center text-center bg-slate-900/40">
+              <div className="relative w-[100px] h-[30px] opacity-40">
+                <Image src="/logo.png" alt="Logo CIR-A" fill className="object-contain grayscale brightness-200" />
               </div>
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-[1.5px] opacity-60">
+              <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[2px]">
                 SMSVR • SECRETARIA MUNICIPAL DE SAÚDE • VOLTA REDONDA
               </div>
             </footer>

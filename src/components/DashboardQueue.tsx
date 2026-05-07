@@ -58,16 +58,16 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
   const priorityPatients = localPatients;
 
   return (
-    <div style={{ marginTop: '1rem' }}>
-      <div className="card" style={{ padding: '1.5rem 1.25rem', background: 'rgba(8, 20, 40, 0.65)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-            <AlertCircle size={18} color="#f87171" strokeWidth={3} /> Fila de Regulação em Tempo Real
+    <div className="mt-4">
+      <div className="card p-6">
+        <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+          <h2 className="text-base font-extrabold text-slate-100 uppercase tracking-wider flex items-center gap-2 m-0">
+            <AlertCircle size={18} className="text-red-500" strokeWidth={3} /> Fila de Regulação em Tempo Real
           </h2>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>{priorityPatients.length} pacientes</span>
-            <Link href="/patients/new" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)', textDecoration: 'none' }}>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-slate-400 font-bold">{priorityPatients.length} pacientes</span>
+            <Link href="/patients/new" className="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all no-underline flex items-center gap-1.5">
               <Plus size={14} /> Nova Regulação
             </Link>
           </div>
@@ -79,133 +79,82 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
           </div>
         ) : (
           <div className="table-container">
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table className="w-full border-collapse text-left">
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Gravidade</th>
-                  <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Paciente</th>
-                  <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Origem</th>
-                  <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Espera</th>
-                  <th style={{ padding: '0.75rem 0.5rem', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', textAlign: 'right' }}>Ações de Comunicação</th>
+                <tr className="border-b border-white/5">
+                  <th className="py-3 px-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Gravidade</th>
+                  <th className="py-3 px-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Paciente</th>
+                  <th className="py-3 px-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Origem</th>
+                  <th className="py-3 px-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Espera</th>
+                  <th className="py-3 px-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest text-right">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {priorityPatients.map((p) => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '1rem 0.5rem' }}>
-                      <span className={`badge badge-${p.severity}`} style={{ fontSize: '0.7rem' }}>{p.severity}</span>
+                  <tr key={p.id} className="border-b border-white/5">
+                    <td className="py-4 px-2">
+                      <span className={`badge badge-${p.severity}`}>{p.severity}</span>
                     </td>
-                    <td style={{ padding: '1rem 0.5rem' }}>
-                      <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: '0.9rem' }}>{p.name}</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
-                        <div style={{ fontSize: '0.75rem', color: p.status === 'WAITING' ? '#94a3b8' : '#818cf8', fontWeight: 600 }}>
+                    <td className="py-4 px-2">
+                      <div className="text-slate-100 font-bold text-sm">{p.name}</div>
+                      <div className="flex flex-col gap-1.5 mt-1.5">
+                        <div className={`text-[10px] font-bold uppercase tracking-wider ${p.status === 'WAITING' ? 'text-slate-500' : 'text-indigo-400'}`}>
                           {p.status === 'WAITING' ? 'Aguardando Vaga' : 'Vaga Solicitada'}
                         </div>
                         
                         <button 
                           onClick={() => handleTogglePrivate(p.id, p.is_private ?? false)}
-                          style={{ 
-                            background: p.is_private ? 'rgba(245, 158, 11, 0.15)' : 'rgba(148, 163, 184, 0.1)', 
-                            color: p.is_private ? '#fbbf24' : '#94a3b8', 
-                            border: `1px solid ${p.is_private ? 'rgba(245, 158, 11, 0.4)' : 'rgba(148, 163, 184, 0.2)'}`, 
-                            padding: '4px 12px', 
-                            borderRadius: '8px', 
-                            fontSize: '0.7rem', 
-                            fontWeight: 800, 
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                            width: 'fit-content',
-                            marginTop: '8px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                          }}
-                          title={p.is_private ? "Clique para mudar para perfil SUS" : "Clique para mudar para perfil Privado"}
+                          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all w-fit mt-2 ${
+                            p.is_private 
+                              ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' 
+                              : 'bg-slate-500/10 text-slate-500 border border-slate-500/10'
+                          }`}
+                          title={p.is_private ? "Mudar para perfil SUS" : "Mudar para perfil Privado"}
                         >
-                          {p.is_private ? <ShieldCheck size={13} strokeWidth={2.5} /> : <ShieldAlert size={13} strokeWidth={2.5} />}
+                          {p.is_private ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
                           {p.is_private ? 'PERFIL PRIVADO' : 'PERFIL SUS'}
                         </button>
                       </div>
                     </td>
-                    <td style={{ padding: '1rem 0.5rem', color: '#cbd5e1', fontSize: '0.85rem' }}>
+                    <td className="py-4 px-2 text-slate-400 text-xs">
                       {p.origin_hospital}
                     </td>
-                    <td style={{ padding: '1rem 0.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <td className="py-4 px-2 text-slate-500 text-xs">
+                      <div className="flex items-center gap-1.5">
                         <Clock size={12} /> {formatHours(p.created_at)}
                       </div>
                     </td>
-                    <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    <td className="py-4 px-2 text-right">
+                      <div className="flex gap-2 justify-end">
                         <button 
                           onClick={() => setAttachModal({ id: p.id, name: p.name })}
-                          style={{ 
-                            background: 'rgba(59, 130, 246, 0.1)', 
-                            color: '#60a5fa', 
-                            border: '1px solid rgba(59, 130, 246, 0.25)', 
-                            padding: '0.65rem 1.1rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.85rem', 
-                            fontWeight: 600, 
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s',
-                            textDecoration: 'none'
-                          }}
-                          title="Anexar Evolução Médica (PDF/Laudos)"
+                          className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all"
+                          title="Anexar Evolução"
                         >
-                          <Paperclip size={16} /> ANEXAR
+                          <Paperclip size={14} /> ANEXAR
                         </button>
 
                         <button 
                           onClick={() => setChargeModal({ id: p.id, origin: p.origin_hospital })}
-                          style={{ 
-                            background: 'rgba(34, 197, 94, 0.1)', 
-                            color: '#4ade80', 
-                            border: '1px solid rgba(34, 197, 94, 0.25)', 
-                            padding: '0.65rem 1.1rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.85rem', 
-                            fontWeight: 600, 
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s',
-                            textDecoration: 'none'
-                          }}
-                          title="Cobrar Evolução (WhatsApp/Email)"
+                          className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all"
+                          title="Cobrar Evolução"
                         >
-                          <MessageCircle size={16} /> COBRAR
+                          <MessageCircle size={14} /> COBRAR
                         </button>
                         
                         <button 
                           onClick={() => {
                             if (canAction) setBlastModal({ id: p.id, severity: p.severity, is_private: p.is_private })
                           }}
-                          style={{ 
-                            background: canAction ? 'rgba(0, 180, 216, 0.1)' : 'rgba(148, 163, 184, 0.05)', 
-                            color: canAction ? '#00e5ff' : '#64748b', 
-                            border: `1px solid ${canAction ? 'rgba(0, 180, 216, 0.25)' : 'rgba(148, 163, 184, 0.15)'}`, 
-                            padding: '0.65rem 1.1rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.85rem', 
-                            fontWeight: 600, 
-                            cursor: canAction ? 'pointer' : 'not-allowed',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            opacity: canAction ? 1 : 0.6,
-                            transition: 'all 0.2s',
-                            textDecoration: 'none'
-                          }}
-                          title={canAction ? "Disparo (Busca de Vaga)" : "Acesso Restrito: Requer liberação do Administrador"}
+                          disabled={!canAction}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                            canAction 
+                              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20' 
+                              : 'bg-slate-500/10 text-slate-500 border border-slate-500/10 opacity-50 cursor-not-allowed'
+                          }`}
+                          title={canAction ? "Disparo (Busca de Vaga)" : "Acesso Restrito"}
                         >
-                          <Send size={16} /> DISPARO
+                          <Send size={14} /> DISPARO
                         </button>
                       </div>
                     </td>

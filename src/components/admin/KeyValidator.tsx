@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, ShieldCheck, ShieldAlert, Loader2, User, FileText, Hospital } from 'lucide-react';
+import { Search, ShieldCheck, ShieldAlert, Loader2, User, FileText, Hospital, Target } from 'lucide-react';
 
 export function KeyValidator() {
   const [key, setKey] = useState('');

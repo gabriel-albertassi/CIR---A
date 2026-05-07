@@ -395,29 +395,28 @@ export default function CirilaBotWidget() {
       </div>
 
       {/* Chat Area */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'rgba(248, 250, 252, 0.95)', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', background: '#f1f5f9', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {messages.map((m, idx) => (
-          <div key={idx} style={{ alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', gap: '1.25rem', alignItems: 'flex-end' }}>
+          <div key={idx} style={{ alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '90%', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
             
             {m.sender === 'ai' && (
-              <div style={{ width: '40px', height: '40px', flexShrink: 0, marginBottom: '4px' }}>
-                <img src="/cirila_3D_neutral.png" alt="Cirila Pixar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain', border: '2px solid rgba(56, 189, 248, 0.2)', background: 'white', padding: '2px' }} />
+              <div style={{ width: '32px', height: '32px', flexShrink: 0, marginTop: '4px' }}>
+                <img src="/cirila_icone_chat.png" alt="Cirila" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain', background: 'white', padding: '2px', border: '1px solid #e2e8f0' }} />
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ 
-                background: m.sender === 'user' ? 'linear-gradient(135deg, #0f172a, #1e293b)' : 'white', 
+                background: m.sender === 'user' ? '#0f172a' : 'white', 
                 color: m.sender === 'user' ? 'white' : '#1e293b',
-                padding: '1.25rem 1.75rem',
-                borderRadius: m.sender === 'user' ? '28px 28px 6px 28px' : '28px 28px 28px 6px',
-                border: m.sender === 'user' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(226, 232, 240, 0.8)',
-                boxShadow: '0 12px 24px -6px rgba(0,0,0,0.08)',
-                fontSize: '0.95rem',
-                lineHeight: '1.6',
-                fontWeight: 400
+                padding: '0.75rem 1rem',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                fontSize: '0.9rem',
+                lineHeight: '1.5'
               }}>
-                <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<span style="color: inherit; font-weight: 500;">$1</span>') }} />
+                <span dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                 
                 {(m as CirilaResponse).file && (
                   <div style={{ 
@@ -464,31 +463,6 @@ export default function CirilaBotWidget() {
                 )}
               </div>
 
-              {/* PROJEÇÃO HOLOGRÁFICA DE EMERGÊNCIA */}
-              {m.text.includes('ALERTA CLÍNICO MÁXIMO') && (
-                <div style={{ 
-                  marginTop: '1rem', 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  position: 'relative',
-                  animation: 'hologram-flicker 0.2s infinite alternate',
-                  filter: 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.4))'
-                }}>
-                  <div style={{ width: '280px', height: '280px', position: 'relative', opacity: 0.85 }}>
-                    <CirilaAvatar expression="alert" size="100%" showAura={true} />
-                    {/* Efeito de Scanlines Digitais */}
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03))',
-                      backgroundSize: '100% 2px, 3px 100%',
-                      pointerEvents: 'none',
-                      zIndex: 10,
-                      borderRadius: '50%'
-                    }} />
-                  </div>
-                </div>
-              )}
 
               {m.actions && m.actions.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
@@ -496,23 +470,15 @@ export default function CirilaBotWidget() {
                         <button 
                           key={act.label}
                           onClick={() => handleActionClick(act.payload)}
-                          className="cirila-action-btn"
+                          className="btn-secondary"
                           style={{ 
-                            background: 'rgba(255, 255, 255, 0.8)', 
-                            color: '#1e293b', 
-                            border: '1px solid rgba(56, 189, 248, 0.3)', 
-                            padding: '0.65rem 1.25rem', 
-                            borderRadius: '14px', 
-                            fontSize: '0.75rem', 
-                            fontWeight: 500, 
-                            cursor: 'pointer', 
-                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            padding: '0.5rem 1rem', 
+                            borderRadius: '8px', 
+                            fontSize: '0.7rem', 
+                            fontWeight: 700, 
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
-                            boxShadow: '0 4px 12px rgba(56, 189, 248, 0.1)',
-                            letterSpacing: '0.2px',
-                            backdropFilter: 'blur(10px)'
+                            gap: '6px'
                           }}
                         >
                           {getActionIcon(act.payload)}
@@ -640,24 +606,7 @@ export default function CirilaBotWidget() {
 
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes hologram-flicker {
-          0% { opacity: 0.8; transform: skewY(0deg) scale(1); }
-          5% { opacity: 0.9; transform: skewY(1deg) scale(1.01); }
-          10% { opacity: 0.7; transform: skewY(-1deg) scale(0.99); }
-          15% { opacity: 1; transform: skewY(0deg) scale(1); }
-        }
         .animate-spin { animation: spin 1s linear infinite; }
-        .cirila-action-btn:hover {
-          background: linear-gradient(135deg, #ffffff, #f1f5f9) !important;
-          border-color: #38bdf8 !important;
-          color: #0284c7 !important;
-          transform: translateY(-2px) scale(1.05);
-          box-shadow: 0 10px 20px -5px rgba(56, 189, 248, 0.3) !important;
-        }
-        .cirila-action-btn:active {
-          transform: translateY(0) scale(0.95);
-          box-shadow: none !important;
-        }
         @media (max-width: 768px) {
           .cirila-chat-container { width: 100vw !important; height: 100vh !important; max-width: none !important; border-radius: 0 !important; top: 0 !important; left: 0 !important; transform: none !important; }
         }

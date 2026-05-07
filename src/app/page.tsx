@@ -124,75 +124,35 @@ export default async function DashboardPage() {
     const avgWaitHours = patientsWithLogs.length > 0
       ? (totalWaitHours / patientsWithLogs.length).toFixed(1)
       : 0    return (
-      <div className="space-y-8 pb-12 animate-in fade-in duration-700 relative">
-        <div className="absolute inset-0 technical-grid pointer-events-none opacity-20 -m-8" />
+      <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* UPPER HEADER: Actions & Status */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-              <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] font-outfit">SISTEMA CIR-A • MONITORAMENTO LIVE</span>
-            </div>
-            <h1 className="text-5xl font-black text-white tracking-tighter leading-none font-outfit">
-              Dashboard <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400">Institucional</span>
-            </h1>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.25em] mt-3 flex items-center gap-2">
-              <ShieldCheck size={12} className="text-blue-500/50" />
-              Central de Regulação de Acesso • SMSVR / DCRAA
-            </p>
+        {/* Header Simples e Profissional */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Painel Geral CIR-A</h1>
+            <p className="text-slate-400 text-sm">Central de Regulação de Acesso • SMSVR / DCRAA</p>
           </div>
 
-          <div className="flex flex-wrap gap-3 w-full lg:w-auto no-print">
-            <Link href="/patients/new" className="group relative overflow-hidden px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]">
-              <div className="relative z-10 flex items-center gap-2 font-black text-xs uppercase tracking-widest">
-                <Plus size={18} strokeWidth={3} />
-                Nova Regulação
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          <div className="flex flex-wrap gap-2 no-print">
+            <Link href="/patients/new" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-all">
+              + Nova Regulação
             </Link>
-            <div className="flex gap-2">
-              <Link href="/api/cirila/relatorio?type=MONTHLY" className="px-5 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 text-[10px] font-black uppercase tracking-widest transition-all border border-white/10 hover:border-white/20">
-                Relatório Mensal
-              </Link>
-              <Link href="/api/cirila/relatorio?type=ANNUAL" className="px-5 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 text-[10px] font-black uppercase tracking-widest transition-all border border-white/10 hover:border-white/20">
-                Anual
-              </Link>
-            </div>
             <PrintButton user={dbUser} />
           </div>
         </div>
 
-        {/* HERO AI STATUS - REFINED */}
-        <div className="premium-card p-6 border-l-4 border-l-blue-500 relative overflow-hidden group technical-grid bg-slate-900/40">
-          <div className="scanline" />
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12 group-hover:rotate-0 duration-700">
-            <Bot size={120} />
+        {/* Status AI Simplificado */}
+        <div className="bg-blue-500/5 border border-blue-500/10 p-4 rounded-xl flex items-center gap-4">
+          <div className="p-2.5 bg-blue-500/10 rounded-lg text-blue-400">
+            <Bot size={20} />
           </div>
-          <div className="flex items-center gap-6 relative z-10">
-            <div className="relative">
-              <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
-                <Bot size={32} />
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#071826] animate-pulse" />
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-black text-white uppercase tracking-tight font-outfit">Cirila Intelligence Unit</h2>
-                <span className="text-[9px] font-black bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30 tracking-tighter">v1.5 PREMIUM</span>
-              </div>
-              <div className="flex flex-col md:flex-row md:items-center gap-4">
-                <span className={`flex items-center gap-2 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${criticalCount > 2 ? 'bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'}`}>
-                  <span className={`w-2 h-2 rounded-full ${criticalCount > 2 ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
-                  {criticalCount > 2 ? 'ALERTA DE SOBRECARGA' : 'ESTADO OPERACIONAL NOMINAL'}
-                </span>
-                <p className="text-slate-400 text-xs font-medium max-w-2xl leading-relaxed">
-                  {criticalCount > 2
-                    ? `SISTEMA EM ALERTA: Detectadas ${criticalCount} vagas zero prioritárias necessitando intervenção imediata da auditoria.`
-                    : `Fluxo de regulação transcorrendo dentro dos parâmetros de normalidade. Tempo médio de resposta: ${avgWaitHours}h.`}
-                </p>
-              </div>
-            </div>
+          <div>
+            <h2 className="text-xs font-bold text-slate-100 uppercase tracking-wider">Status Operacional</h2>
+            <p className="text-slate-400 text-[10px] font-medium">
+              {criticalCount > 2 
+                ? `ALERTA: ${criticalCount} casos de risco máximo detectados.` 
+                : "Fluxo de regulação normal."}
+            </p>
           </div>
         </div>
 
@@ -202,89 +162,43 @@ export default async function DashboardPage() {
           {/* LEFT: KPIs & Charts (8 Cols) */}
           <div className="xl:col-span-8 space-y-8">
             
-            {/* KPI GRID */}
-            <div className="kpi-grid">
-              <Link href="/patients" className="kpi-card p-6 group">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-blue-500/5">
-                    <Clock size={24} strokeWidth={2.5} />
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Pendência</span>
-                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">Auditando Agora</span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest">Aguardando Vaga</p>
-                  <h3 className="text-5xl font-black text-white tabular-nums tracking-tighter group-hover:text-blue-400 transition-colors">{totalWaiting}</h3>
-                </div>
-              </Link>
+        {/* Grid de KPIs - 4 colunas fixas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-slate-900/40 border border-white/5 p-6 rounded-xl">
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Aguardando Vaga</p>
+            <h3 className="text-3xl font-bold text-white mt-2">{totalWaiting}</h3>
+          </div>
 
-              <Link href="/patients" className="kpi-card p-6 group">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-indigo-500/5">
-                    <Ambulance size={24} strokeWidth={2.5} />
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Operacional</span>
-                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">Em Fluxo</span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest">Vagas Solicitadas</p>
-                  <h3 className="text-5xl font-black text-white tabular-nums tracking-tighter group-hover:text-indigo-400 transition-colors">{totalOffered}</h3>
-                </div>
-              </Link>
+          <div className="bg-slate-900/40 border border-white/5 p-6 rounded-xl">
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Vagas Solicitadas</p>
+            <h3 className="text-3xl font-bold text-white mt-2">{totalOffered}</h3>
+          </div>
 
-              <Link href="/patients" className={`kpi-card p-6 group border-t-2 ${criticalCount > 0 ? 'border-t-red-500/60' : 'border-t-transparent'}`}>
-                <div className="flex justify-between items-start mb-6">
-                  <div className={`p-3 rounded-xl ${criticalCount > 0 ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-slate-500/10 text-slate-400 border-white/10'} border group-hover:scale-110 transition-transform duration-500`}>
-                    <AlertCircle size={24} strokeWidth={2.5} />
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Prioridade</span>
-                    <span className={`text-[10px] font-black uppercase tracking-tighter ${criticalCount > 0 ? 'text-red-400' : 'text-slate-400'}`}>
-                      {criticalCount > 0 ? 'INTERVENÇÃO' : 'NOMINAL'}
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest">Risco Máximo</p>
-                  <h3 className={`text-5xl font-black tabular-nums tracking-tighter transition-colors ${criticalCount > 0 ? 'text-red-400 glow-text-cyan' : 'text-white'}`}>{criticalCount}</h3>
-                </div>
-              </Link>
+          <div className="bg-slate-900/40 border border-white/5 p-6 rounded-xl">
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Risco Máximo</p>
+            <h3 className={`text-3xl font-bold mt-2 ${criticalCount > 0 ? 'text-red-500' : 'text-white'}`}>{criticalCount}</h3>
+          </div>
 
-              <Link href="/transferidos" className="kpi-card p-6 group">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-emerald-500/5">
-                    <CheckCircle2 size={24} strokeWidth={2.5} />
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Desfecho</span>
-                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-tighter">Concluídos</span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest">Total Transferidos</p>
-                  <h3 className="text-5xl font-black text-white tabular-nums tracking-tighter group-hover:text-emerald-400 transition-colors">{totalTransferred}</h3>
-                </div>
-              </Link>
-            </div>
+          <div className="bg-slate-900/40 border border-white/5 p-6 rounded-xl">
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Total Transferidos</p>
+            <h3 className="text-3xl font-bold text-white mt-2">{totalTransferred}</h3>
+          </div>
+        </div>
 
             {/* CHARTS CONTAINER */}
-            <div className="premium-card p-8 technical-grid">
+            <div className="card p-8">
               <div className="flex items-center gap-3 mb-8 border-b border-white/5 pb-4">
                 <FileBarChart className="text-blue-500" size={20} />
                 <div>
-                  <h2 className="text-lg font-black text-white uppercase tracking-tighter">Análise Preditiva e Fluxo</h2>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Distribuição de gravidade e volume hospitalar</p>
+                  <h2 className="text-lg font-bold text-white uppercase tracking-tight">Análise de Fluxo</h2>
+                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">Distribuição de gravidade e volume hospitalar</p>
                 </div>
               </div>
               <DashboardCharts transferredData={transferredData} severityData={severityData} />
             </div>
 
             {/* PRIVATE HOSPITALS TREND */}
-            <div className="premium-card p-8">
+            <div className="card p-8">
               <PrivateHospitalsChart data={privateData} totals={privateTotals} />
             </div>
           </div>
@@ -293,13 +207,12 @@ export default async function DashboardPage() {
           <div className="xl:col-span-4 space-y-8 no-print">
             
             {/* INTERACTIVE PANEL */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-[28px] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
+            <div className="relative">
               <InteractiveCirilaPanel />
             </div>
 
             {/* BEDS MAP */}
-            <div className="premium-card p-8 technical-grid border-blue-500/10">
+            <div className="card p-8">
               <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
@@ -329,9 +242,9 @@ export default async function DashboardPage() {
                     const totalVagas = (h.cti_masc || 0) + (h.cti_fem || 0) + (h.clinica_masc || 0) + (h.clinica_fem || 0);
 
                     return (
-                      <div key={h.id} className="p-5 rounded-2xl bg-slate-900/40 border border-white/5 hover:border-blue-500/30 transition-all duration-300 group/item">
-                        <div className="flex justify-between items-center mb-4">
-                          <h4 className={`text-[11px] font-black uppercase tracking-tight ${h.sem_vagas || totalVagas === 0 ? 'text-slate-500' : 'text-slate-100'}`}>
+                      <div key={h.id} className="p-4 rounded-xl bg-slate-900/40 border border-white/5">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className={`text-[10px] font-bold uppercase tracking-wide ${h.sem_vagas || totalVagas === 0 ? 'text-slate-500' : 'text-slate-200'}`}>
                             {h.hospital_name.replace('Hospital', '').trim()}
                           </h4>
                           {h.sem_vagas || totalVagas === 0 ? (
@@ -376,77 +289,6 @@ export default async function DashboardPage() {
           <DashboardQueue patients={patientsWithLogs} user={dbUser} />
         </div>
 
-        {/* CIRILA BRAND SECTION - ULTRA PREMIUM */}
-        <section className="premium-card p-16 relative overflow-hidden group technical-grid mt-12 bg-[#0a1628]/60">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-[120px] translate-x-1/3 -translate-y-1/3 animate-pulse" />
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] -translate-x-1/4 translate-y-1/2" />
-          
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-10">
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20">
-                  <Sparkles size={14} className="text-blue-400" />
-                  <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em]">Manifesto de Inovação</span>
-                </div>
-                <h2 className="text-7xl font-black text-white leading-none tracking-tighter font-outfit">
-                  Somos a <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 glow-text-cyan">Cirila</span>
-                </h2>
-                <p className="text-2xl text-slate-400 font-medium leading-relaxed max-w-xl font-manrope">
-                  A face humana da inteligência artificial na saúde de Volta Redonda. Compromisso inegociável com a agilidade e a vida.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-                {[
-                  { icon: Zap, title: 'Agilidade', desc: 'SLA de resposta instantâneo', color: 'blue' },
-                  { icon: Brain, title: 'IA Auditiva', desc: 'Precisão em dados clínicos', color: 'indigo' },
-                  { icon: ShieldCheck, title: 'Segurança', desc: 'Conformidade NIR total', color: 'emerald' },
-                ].map((feat, i) => (
-                  <div key={i} className="space-y-4 group/feat">
-                    <div className={`w-14 h-14 rounded-2xl bg-${feat.color}-500/10 flex items-center justify-center text-${feat.color}-400 border border-${feat.color}-500/20 shadow-xl shadow-${feat.color}-500/5 group-hover/feat:scale-110 group-hover/feat:border-${feat.color}-500/40 transition-all duration-500`}>
-                      <feat.icon size={28} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-black text-sm uppercase tracking-widest">{feat.title}</h4>
-                      <p className="text-slate-500 text-[11px] font-bold mt-1 uppercase tracking-tight leading-snug">{feat.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-10 border-t border-white/5 flex items-center gap-8">
-                <div className="space-y-1">
-                  <p className="text-3xl font-black text-white tracking-tighter font-outfit">CIR-A</p>
-                  <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em] opacity-80">A Inteligência que Regula</p>
-                </div>
-                <div className="h-12 w-px bg-white/10" />
-                <div className="space-y-1">
-                  <p className="text-3xl font-black text-white tracking-tighter font-outfit">Cirila</p>
-                  <p className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em] opacity-80">O Coração que Cuida</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-center lg:justify-end">
-              <div className="relative w-full max-w-[500px] aspect-square flex items-center justify-center group/avatar">
-                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-[120px] animate-pulse group-hover/avatar:bg-blue-500/30 transition-colors duration-1000" />
-                <div className="absolute inset-0 border-2 border-dashed border-blue-500/20 rounded-full animate-[spin_20s_linear_infinite]" />
-                <div className="relative z-10 transform hover:scale-110 transition-transform duration-1000 rotate-0 group-hover/avatar:rotate-2">
-                  <CirilaAvatar expression="neutral" size="400px" />
-                </div>
-                
-                {/* Floating Tech Tags */}
-                <div className="absolute top-10 right-0 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl animate-bounce delay-700">
-                  <Sparkles size={16} className="text-cyan-400" />
-                </div>
-                <div className="absolute bottom-20 left-0 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl animate-bounce delay-1000">
-                  <ShieldCheck size={16} className="text-emerald-400" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
     )
   } catch (err) {

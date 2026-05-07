@@ -15,7 +15,7 @@ interface CirilaAvatarProps {
 export default function CirilaAvatar({
   expression = 'neutral',
   size = '100%',
-  showAura = true,
+  showAura = false,
   className = ''
 }: CirilaAvatarProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -26,20 +26,16 @@ export default function CirilaAvatar({
 
   if (!isMounted) return null;
 
-  // Cores da Aura baseadas no estado
-  const auraColors: Record<CirilaExpression, string> = {
-    neutral: 'rgba(0, 216, 255, 0.15)',
-    smiling: 'rgba(16, 185, 129, 0.2)', // Verde
-    thinking: 'rgba(0, 216, 255, 0.3)', // Ciano mais forte
-    alert: 'rgba(245, 158, 11, 0.25)' // Laranja/Ambar
-  };
+  // No estilo institucional, usamos o ícone flat original
+  const iconSrc = '/cirila_icone.png';
 
-  const images = [
-    { key: 'neutral', src: '/cirila_3D_neutral.png' },
-    { key: 'smiling', src: '/cirila_3D_smiling.png' },
-    { key: 'thinking', src: '/cirila_3D_thinking.png' },
-    { key: 'alert', src: '/cirila_3D_alert.png' }
-  ];
+  // Cores de status sutis para a borda
+  const statusColors: Record<CirilaExpression, string> = {
+    neutral: '#e2e8f0',
+    smiling: '#10b981',
+    thinking: '#0ea5e9',
+    alert: '#ef4444'
+  };
 
   return (
     <div className={`cirila-avatar-wrapper ${className}`} style={{
@@ -50,46 +46,31 @@ export default function CirilaAvatar({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      overflow: 'visible'
+      overflow: 'visible',
+      background: 'white',
+      borderRadius: '50%',
+      padding: '4px',
+      border: `2px solid ${statusColors[expression]}`,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+      transition: 'all 0.3s ease'
     }}>
-      {/* Conjunto de Imagens com Cross-Fade Otimizado */}
-      {images.map((img) => (
-        <div 
-          key={img.key}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: expression === img.key ? 1 : 0,
-            transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            zIndex: expression === img.key ? 2 : 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            willChange: 'opacity'
-          }}
-        >
-          <Image
-            src={img.src}
-            alt={`Cirila ${img.key}`}
-            width={500}
-            height={500}
-            priority={img.key === 'neutral'}
-            style={{
-              width: '85%',
-              height: '85%',
-              objectFit: 'contain',
-              filter: expression === img.key ? `drop-shadow(0 0 20px ${auraColors[expression]})` : 'none',
-              transition: 'filter 0.5s ease'
-            }}
-          />
-        </div>
-      ))}
+      <Image
+        src={iconSrc}
+        alt="Cirila"
+        width={128}
+        height={128}
+        priority
+        style={{
+          width: '80%',
+          height: '80%',
+          objectFit: 'contain',
+        }}
+      />
 
       <style jsx>{`
         .cirila-avatar-wrapper {
           user-select: none;
           pointer-events: none;
-          will-change: transform;
         }
       `}</style>
     </div>
