@@ -14,40 +14,33 @@ type Props = {
   severityData: StatusData[];
 };
 
-const COLORS = ['#38bdf8', '#34d399', '#a78bfa', '#fbbf24', '#f472b6', '#fb923c'];
+const COLORS = ['#0ea5e9', '#6366f1', '#06b6d4', '#8b5cf6', '#3b82f6', '#2dd4bf'];
 
 function CustomPieLegend({ data, total }: { data: PatientDest[]; total: number }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+    <div className="flex flex-col gap-3">
       {data.map((entry, index) => {
         const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
         const color = COLORS[index % COLORS.length];
-        const barWidth = Math.max(pct * 0.8, 6);
+        const barWidth = Math.max(pct * 0.8, 4);
         return (
-          <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {/* Dot */}
-            <div style={{
-              width: '10px', height: '10px', borderRadius: '50%',
-              background: color, flexShrink: 0,
-              boxShadow: `0 0 8px ${color}99`
-            }} />
-            {/* Hospital name */}
-            <div style={{
-              flex: 1, fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-            }}>
+          <div key={entry.name} className="flex items-center gap-3">
+            <div 
+              className="w-2 h-2 rounded-full flex-shrink-0" 
+              style={{ background: color, boxShadow: `0 0 10px ${color}80` }} 
+            />
+            <div className="flex-1 text-[11px] font-black text-slate-400 truncate uppercase tracking-tighter">
               {entry.name}
             </div>
-            {/* Bar + percentage + count */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-              <div style={{
-                width: `${barWidth}px`, height: '5px', borderRadius: '3px',
-                background: color, opacity: 0.6
-              }} />
-              <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#f1f5f9', minWidth: '34px', textAlign: 'right' }}>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div 
+                className="h-1 rounded-full opacity-30" 
+                style={{ width: `${barWidth}px`, background: color }} 
+              />
+              <span className="text-[11px] font-black text-white min-w-[30px] text-right">
                 {pct}%
               </span>
-              <span style={{ fontSize: '0.73rem', color: '#475569', minWidth: '26px' }}>
+              <span className="text-[9px] font-bold text-slate-600 min-w-[20px]">
                 ({entry.value})
               </span>
             </div>
@@ -62,161 +55,154 @@ export default function DashboardCharts({ transferredData, severityData }: Props
   const totalTransferred = transferredData.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
-
-        {/* GRÁFICO 1: Destinos de Transferência */}
-        <div className="card chart-card" style={{ display: 'flex', flexDirection: 'column', height: '480px', padding: '1.5rem', overflow: 'hidden' }}>
-          
-          {/* Header */}
-          <div style={{ flexShrink: 0, marginBottom: '0.5rem' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#e2e8f0', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Destino das Transferências
-            </h3>
-            <p style={{ fontSize: '0.75rem', color: '#475569', margin: '0.2rem 0 0 0' }}>
-              {totalTransferred} pacientes regulados no total
-            </p>
-          </div>
-
-          {transferredData.length === 0 ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '0.9rem' }}>
-              Aguardando primeiras transferências.
-            </div>
-          ) : (
-            <>
-              {/* PIE — 58% da altura */}
-              <div style={{ flex: '0 0 58%', minHeight: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart margin={{ top: 6, right: 6, left: 6, bottom: 0 }}>
-                    <Pie
-                      data={transferredData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={65}
-                      outerRadius={108}
-                      paddingAngle={4}
-                      dataKey="value"
-                      stroke="none"
-                      cornerRadius={6}
-                    >
-                      {transferredData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                          style={{ filter: `drop-shadow(0px 0px 10px ${COLORS[index % COLORS.length]}88)` }}
-                        />
-                      ))}
-                    </Pie>
-                    <PieTooltip
-                      contentStyle={{
-                        backgroundColor: '#0f172a',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(0,180,216,0.3)',
-                        color: 'white',
-                        fontSize: '13px',
-                        fontWeight: 600
-                      }}
-                      itemStyle={{ color: '#f8fafc' }}
-                      cursor={{ fill: 'transparent' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* LEGENDA customizada — restante da altura */}
-              <div style={{
-                flex: 1, minHeight: 0, overflowY: 'auto',
-                borderTop: '1px solid rgba(255,255,255,0.06)',
-                paddingTop: '0.75rem'
-              }}>
-                <CustomPieLegend data={transferredData} total={totalTransferred} />
-              </div>
-            </>
-          )}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* CHART 1: Destinos de Transferência */}
+      <div className="premium-card p-6 flex flex-col h-[520px]">
+        <div className="mb-4">
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+            Destino das Transferências
+          </h3>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter mt-1">
+            Volume histórico acumulado (30 dias)
+          </p>
         </div>
 
-        {/* GRÁFICO 2: Carga da Fila por Retaguarda Médica */}
-        <div className="card chart-card" style={{ display: 'flex', flexDirection: 'column', height: '480px', padding: '1.5rem' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#e2e8f0', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>
-            Carga da Fila por Retaguarda Médica
-          </h3>
-          <div style={{ flex: 1, width: '100%', minHeight: 0 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={severityData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="colorRed" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.9} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.4} />
-                  </linearGradient>
-                  <linearGradient id="colorOrange" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.9} />
-                    <stop offset="95%" stopColor="#f97316" stopOpacity={0.4} />
-                  </linearGradient>
-                  <linearGradient id="colorBlue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.4} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
-                <XAxis
-                  dataKey="name"
-                  axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
-                  tickLine={false}
-                  tick={{ fontSize: 13, fill: '#94a3b8', fontWeight: 600 }}
-                  dy={10}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                />
-                <BarTooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                  contentStyle={{
-                    backgroundColor: '#0f172a',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(0,180,216,0.3)',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                    color: 'white',
-                    fontSize: '13px'
-                  }}
-                  itemStyle={{ color: '#f8fafc', fontWeight: 600 }}
-                />
-                <Bar dataKey="qtd" radius={[10, 10, 10, 10]} barSize={52}>
-                  {severityData.map((entry, index) => {
-                    let fill = 'url(#colorBlue)';
-                    if (entry.name === 'S. Vermelha') fill = 'url(#colorRed)';
-                    if (entry.name === 'CTI') fill = 'url(#colorOrange)';
-                    return (
+        {transferredData.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 opacity-20">
+            <div className="w-20 h-20 rounded-full border-2 border-dashed border-slate-500 flex items-center justify-center text-slate-500">
+              ?
+            </div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Aguardando dados...</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex-1 min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={transferredData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={110}
+                    paddingAngle={6}
+                    dataKey="value"
+                    stroke="none"
+                    cornerRadius={8}
+                  >
+                    {transferredData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={fill}
-                        style={{ filter: 'drop-shadow(0px 4px 10px rgba(0,0,0,0.25))' }}
+                        fill={COLORS[index % COLORS.length]}
+                        style={{ filter: `drop-shadow(0 0 12px ${COLORS[index % COLORS.length]}40)` }}
                       />
-                    );
-                  })}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                    ))}
+                  </Pie>
+                  <PieTooltip
+                    contentStyle={{
+                      backgroundColor: '#071826',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                    }}
+                    itemStyle={{ color: '#fff', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-white/5 overflow-y-auto custom-scrollbar pr-2 h-[180px]">
+              <CustomPieLegend data={transferredData} total={totalTransferred} />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* CHART 2: Carga da Fila */}
+      <div className="premium-card p-6 flex flex-col h-[520px]">
+        <div className="mb-8">
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+            Carga da Fila Operacional
+          </h3>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter mt-1">
+            Distribuição por nível de complexidade
+          </p>
         </div>
 
+        <div className="flex-1 w-full min-h-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={severityData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+              <defs>
+                <linearGradient id="barRed" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0.2} />
+                </linearGradient>
+                <linearGradient id="barOrange" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f97316" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#f97316" stopOpacity={0.2} />
+                </linearGradient>
+                <linearGradient id="barBlue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.2} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }}
+                dy={15}
+              />
+              <YAxis
+                allowDecimals={false}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fill: '#475569' }}
+              />
+              <BarTooltip
+                cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                contentStyle={{
+                  backgroundColor: '#071826',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                }}
+                itemStyle={{ color: '#fff', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}
+              />
+              <Bar dataKey="qtd" radius={[8, 8, 8, 8]} barSize={60}>
+                {severityData.map((entry, index) => {
+                  let fill = 'url(#barBlue)';
+                  if (entry.name === 'S. Vermelha') fill = 'url(#barRed)';
+                  if (entry.name === 'CTI') fill = 'url(#barOrange)';
+                  return (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={fill}
+                      style={{ filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.3))` }}
+                    />
+                  );
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="mt-8 flex justify-center gap-8 border-t border-white/5 pt-8">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-md bg-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.4)]" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Crítico</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-md bg-orange-500/80 shadow-[0_0_10px_rgba(249,115,22,0.4)]" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Monitorado</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-md bg-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.4)]" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Regular</span>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
-}
-
-const responsiveStyles = `
-  @media (max-width: 640px) {
-    .chart-card {
-      height: 400px !important;
-    }
-  }
-`;
-
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.innerHTML = responsiveStyles;
-  document.head.appendChild(style);
 }

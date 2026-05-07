@@ -2,24 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Cirila & CIR-A Premium Palette */
-  --background: #080e1a;
-  --surface: rgba(255, 255, 255, 0.06);
-  --surface-hover: rgba(255, 255, 255, 0.1);
+  /* Cirila & CIR-A Premium Palette - Dashboard Institucional */
+  --background-deep: #071826;
+  --background-slate: #0f172a;
+  --background-navy: #0b2540;
+  --accent-blue: #1e3a8a;
+  --cyan-neon: #00d8ff;
   
-  /* Dark teal mode */
-  --text-main: #e2e8f0;
+  --background: #071826;
+  --surface: rgba(11, 25, 44, 0.65);
+  --surface-hover: rgba(15, 34, 59, 0.85);
+  
+  /* Audit / NIR Colors */
+  --nir-cyan: #00d8ff;
+  --nir-blue: #1e40af;
+  --nir-glow: rgba(0, 216, 255, 0.2);
+  
+  /* Text & Borders */
+  --text-main: #f8fafc;
   --text-secondary: #94a3b8;
-  
-  --border: rgba(0, 180, 216, 0.15);
-  --border-focus: #00D8FF;
+  --border: rgba(30, 58, 138, 0.3);
+  --border-focus: #00d8ff;
 
-  /* Ciano Tecnológico */
-  --primary: #00b4d8;
-  --primary-hover: #0096c7;
+  --primary: #1e3a8a;
+  --primary-hover: #1e40af;
   --danger: #ef4444;
   --warning: #f59e0b;
   
@@ -110,24 +119,102 @@ body::after {
 }
 
 /* ════════════════════════════════
-   Glassmorphism Cards — Dark Mode
+   Premium Institutional Design
    ════════════════════════════════ */
-.card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 180, 216, 0.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+.glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  padding: 1.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--text-main);
 }
 
-.card:hover {
-  box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,180,216,0.2);
-  transform: translateY(-2px);
-  border-color: rgba(0,180,216,0.25);
+.glow-blue {
+  box-shadow: 0 0 20px rgba(30, 58, 138, 0.2);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 15px rgba(0, 216, 255, 0.15);
+}
+
+.premium-card {
+  @apply glass-panel transition-all duration-500 ease-out;
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.premium-card:hover {
+  transform: translateY(-4px);
+  background: rgba(20, 38, 64, 0.8);
+  border-color: rgba(0, 216, 255, 0.3);
+  box-shadow: 0 10px 30px -10px rgba(0, 216, 255, 0.15), 0 0 15px rgba(0, 216, 255, 0.05);
+}
+
+.kpi-card {
+  @apply premium-card relative overflow-hidden;
+}
+
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 216, 255, 0.3), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.8s;
+}
+
+.kpi-card:hover::after {
+  transform: translateX(100%);
+}
+
+.glow-text-cyan {
+  text-shadow: 0 0 10px rgba(0, 216, 255, 0.4);
+}
+
+.glow-text-blue {
+  text-shadow: 0 0 10px rgba(30, 64, 175, 0.4);
+}
+
+.technical-grid {
+  background-image: 
+    linear-gradient(rgba(0, 216, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 216, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.scanline {
+  width: 100%;
+  height: 100px;
+  z-index: 10;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 216, 255, 0.02) 50%, rgba(0, 0, 0, 0) 100%);
+  opacity: 0.1;
+  position: absolute;
+  bottom: 100%;
+  animation: scanline 10s linear infinite;
+}
+
+@keyframes scanline {
+  0% { bottom: 100%; }
+  100% { bottom: -100px; }
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-active {
+  background: linear-gradient(90deg, rgba(30, 58, 138, 0.4) 0%, transparent 100%);
+  border-left: 3px solid var(--cyan-neon);
+  color: var(--cyan-neon) !important;
+}
+
+.bg-institutional {
+  background: radial-gradient(circle at 50% 0%, #0b2540 0%, #071826 100%);
 }
 
 /* Base Styles */

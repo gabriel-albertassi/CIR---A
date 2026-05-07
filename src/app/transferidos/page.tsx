@@ -2,6 +2,7 @@ import { prisma } from '../../lib/db'
 import PrintButton from '../../components/PrintButton'
 import FinalStatusActions from './FinalStatusActions'
 import { createClient } from '../../lib/supabase/sb-server'
+import { History, CheckCircle, ShieldCheck } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,45 +35,60 @@ export default async function TransferidosPage() {
     })
 
     return (
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="space-y-8 animate-in fade-in duration-700 relative">
+        <div className="absolute inset-0 technical-grid pointer-events-none opacity-20 -m-8" />
         
         {/* HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#f1f5f9', marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
-              Histórico de Saídas
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] font-outfit">ARQUIVO MORTO • HISTÓRICO DE SAÍDAS</span>
+            </div>
+            <h1 className="text-5xl font-black text-white tracking-tighter leading-none font-outfit">
+              Fluxo de <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-slate-200 to-slate-500">Desfechos</span>
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '1rem', fontWeight: 500 }}>
-              Histórico completo de pacientes transferidos, altas, óbitos ou cancelamentos.
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.25em] mt-3 flex items-center gap-2">
+              <History size={12} className="text-slate-500/50" />
+              Altas, Transferências e Óbitos • Auditoria Passada
             </p>
           </div>
-          <div className="no-print" style={{ paddingTop: '0.5rem' }}>
+
+          <div className="flex gap-3 no-print">
             <PrintButton user={user} />
           </div>
         </div>
 
+        {/* INFO CARD */}
+        <div className="premium-card p-4 border-l-4 border-l-slate-500 bg-slate-900/40 relative z-10 overflow-hidden">
+          <div className="scanline opacity-5" />
+          <p className="text-slate-400 text-xs font-medium leading-relaxed flex items-center gap-3">
+            <CheckCircle size={14} className="text-slate-400" />
+            <span>Histórico completo de pacientes que deixaram a regulação ativa.</span>
+          </p>
+        </div>
+
         {/* TABELA */}
-        <div className="card" style={{ padding: '0', backgroundColor: 'var(--surface)' }}>
-          <div className="table-container">
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              
-              <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '2px solid var(--border)' }}>
+        <div className="premium-card relative z-10 overflow-hidden bg-slate-900/20">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-white/5 border-b border-white/10">
                 <tr>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Paciente</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Diagnóstico</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Hospital de Origem</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600, borderLeft: '1px dashed var(--border)' }}>Hospital de Destino</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data da Transferência</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Data do Desfecho</th>
-                  <th className="no-print" style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Status Final</th>
+                  <th className="p-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Paciente</th>
+                  <th className="p-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Diagnóstico</th>
+                  <th className="p-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Origem</th>
+                  <th className="p-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-l border-white/5">Destino</th>
+                  <th className="p-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Transferência</th>
+                  <th className="p-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Desfecho</th>
+                  <th className="p-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest no-print">Ação</th>
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody className="divide-y divide-white/5">
                 {patients.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                      Nenhum registro encontrado.
+                    <td colSpan={7} className="p-12 text-center text-slate-500 text-xs font-bold uppercase tracking-widest opacity-50">
+                      Nenhum registro encontrado no arquivo.
                     </td>
                   </tr>
                 ) : null}
@@ -95,63 +111,54 @@ export default async function TransferidosPage() {
                                               : null);
 
                   return (
-                    <tr key={p.id} style={{ 
-                      borderBottom: '1px solid var(--border)',
-                      backgroundColor: idx % 2 === 0 ? 'transparent' : 'var(--surface-hover)' 
-                    }}>
-                      
-                      <td style={{ padding: '1.25rem 1.5rem' }}>
-                        <div style={{ fontWeight: 600 }}>{p.name}</div>
-                        <span className={`badge badge-${p.severity}`} style={{ marginTop: '0.5rem', display: 'inline-block' }}>
+                    <tr key={p.id} className="hover:bg-white/5 transition-colors group">
+                      <td className="p-4 px-6">
+                        <div className="font-black text-white text-sm uppercase tracking-tight group-hover:text-blue-400 transition-colors">{p.name}</div>
+                        <span className={`badge badge-${p.severity} mt-2`}>
                           {p.severity}
                         </span>
                       </td>
 
-                      <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
+                      <td className="p-4 px-6 text-slate-400 text-xs font-medium max-w-[200px] truncate">
                         {p.diagnosis}
                       </td>
 
-                      <td style={{ padding: '1.25rem 1.5rem', fontWeight: 500 }}>
+                      <td className="p-4 px-6 text-slate-300 text-xs font-bold uppercase">
                         {p.origin_hospital}
                       </td>
 
-                      <td style={{ padding: '1.25rem 1.5rem', fontWeight: 600, color: '#16a34a', borderLeft: '1px dashed var(--border)' }}>
-                        {destination}
+                      <td className="p-4 px-6 text-emerald-400 text-xs font-black uppercase tracking-tight border-l border-white/5">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle size={10} />
+                          {destination}
+                        </div>
                       </td>
 
-                      <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
+                      <td className="p-4 px-6 text-slate-500 text-[10px] font-bold">
                         {transferDateToUse ? (
-                          <>
-                            {transferDateToUse.toLocaleDateString('pt-BR')} 
-                            <br/>
-                            <small>{transferDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
-                          </>
-                        ) : (
-                          <span style={{ color: '#94a3b8' }}>—</span>
-                        )}
+                          <div className="space-y-0.5">
+                            <div className="text-slate-300">{transferDateToUse.toLocaleDateString('pt-BR')}</div>
+                            <div className="opacity-50">{transferDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                          </div>
+                        ) : '—'}
                       </td>
 
-                      <td style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>
+                      <td className="p-4 px-6 text-slate-500 text-[10px] font-bold">
                         {outcomeDateToUse ? (
-                          <>
-                            {outcomeDateToUse.toLocaleDateString('pt-BR')}
-                            <br/>
-                            <small>{outcomeDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
-                          </>
-                        ) : (
-                          <span style={{ color: '#94a3b8' }}>-</span>
-                        )}
+                          <div className="space-y-0.5">
+                            <div className="text-slate-300">{outcomeDateToUse.toLocaleDateString('pt-BR')}</div>
+                            <div className="opacity-50">{outcomeDateToUse.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                          </div>
+                        ) : '—'}
                       </td>
 
-                      <td className="no-print" style={{ padding: '1.25rem 1.5rem' }}>
+                      <td className="p-4 px-6 no-print">
                         <FinalStatusActions patientId={p.id} currentStatus={p.status} />
                       </td>
-
                     </tr>
                   )
                 })}
               </tbody>
-
             </table>
           </div>
         </div>
@@ -160,10 +167,15 @@ export default async function TransferidosPage() {
   } catch (err) {
     console.error('Transferidos Page Error:', err);
     return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <h1 style={{ color: '#ef4444' }}>Erro ao carregar histórico</h1>
-        <p style={{ color: '#94a3b8' }}>{err instanceof Error ? err.message : String(err)}</p>
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="premium-card p-8 border-red-500/20 text-center">
+          <h1 className="text-red-500 font-black uppercase tracking-widest mb-2">Erro ao carregar histórico</h1>
+          <p className="text-slate-500 text-xs">{err instanceof Error ? err.message : String(err)}</p>
+        </div>
       </div>
     );
+  }
+}
+   );
   }
 }

@@ -124,23 +124,38 @@ export async function GET(req: NextRequest) {
                         color: "000000",
                         space: 4,
                         style: BorderStyle.SINGLE,
-                        size: 6,
+                        size: 12,
                       },
                     },
                     children: [
                       new TextRun({
-                        text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
+                        text: prof.name.toUpperCase(),
+                        bold: true,
+                        size: 24, // 12pt conforme solicitado
+                        font: { name: 'Arial' },
+                        color: '000000',
+                      }),
+                      new TextRun({
+                        text: ` – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
+                        bold: true,
+                        size: 24, // 12pt conforme solicitado
+                        font: { name: 'Arial' },
+                        color: '000000',
                       }),
                     ],
                   }),
+                  // Linha separadora (Parágrafo vazio para criar espaço)
+                  new Paragraph({ children: [] }),
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
-                    spacing: { before: 120 },
+                    spacing: { before: 40, after: 80 },
                     children: [
                       new TextRun({
                         text: 'DCRAA – SMSVR – DEPARTAMENTO DE CONTROLE E REGULAÇÃO',
-                        bold: true, size: 20, font: { name: 'Arial' }, color: '000000',
+                        bold: true,
+                        size: 20, // 10pt conforme solicitado
+                        font: { name: 'Arial' },
+                        color: '000000',
                       }),
                     ],
                   }),
@@ -165,7 +180,7 @@ export async function GET(req: NextRequest) {
     const labelElements: any[] = [];
     const generatedKeys: string[] = [];
 
-    for (const [index, examName] of finalExams.slice(0, 1).entries()) {
+    for (const [index, examName] of finalExams.slice(0, 2).entries()) {
       const authKey = (index === 0 && providedKey) ? providedKey : await generateSecureKey();
       generatedKeys.push(authKey);
       const destination = getDestination(examName);

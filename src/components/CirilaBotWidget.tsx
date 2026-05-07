@@ -211,6 +211,13 @@ export default function CirilaBotWidget() {
       }
 
       setMessages(prev => [...prev, reply]);
+
+      // Automação: Se houver uma ação de download de etiqueta, dispara imediatamente
+      const downloadAction = reply.actions?.find(a => a.payload.startsWith('DOWNLOAD_ETIQUETA_DOCX:::'));
+      if (downloadAction) {
+        console.log('[CIRILA_WIDGET] Automação: Disparando download imediato...');
+        handleActionClick(downloadAction.payload);
+      }
     } catch (err) {
       setMessages(prev => [...prev, { text: '❌ Erro ao conectar com o servidor da Cirila.', sender: 'ai' }]);
     } finally {

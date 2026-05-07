@@ -70,7 +70,7 @@ const ROW_HEIGHT = 900;
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const count = Math.max(1, Math.min(300, parseInt(searchParams.get('count') || '30')));
+    const count = Math.max(1, Math.min(300, parseInt(searchParams.get('count') || '10')));
 
     const now         = new Date();
     const dateFileStr = now.toISOString().slice(0, 10).replace(/-/g, '');
