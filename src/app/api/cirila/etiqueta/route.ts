@@ -119,25 +119,34 @@ export async function GET(req: NextRequest) {
                 children: [
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
+                    border: {
+                      bottom: {
+                        color: "000000",
+                        space: 4,
+                        style: BorderStyle.SINGLE,
+                        size: 6,
+                      },
+                    },
                     children: [
                       new TextRun({
                         text: `${prof.name.toUpperCase()} – ${prof.registro.toUpperCase()} – ${prof.cargo.toUpperCase()}`,
-                        bold: true, size: 20, font: { name: 'Arial' }, color: '000000',
+                        bold: true, size: 28, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
                   }),
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
+                    spacing: { before: 120 },
                     children: [
                       new TextRun({
                         text: 'DCRAA – SMSVR – DEPARTAMENTO DE CONTROLE E REGULAÇÃO',
-                        bold: true, size: 16, font: { name: 'Arial' }, color: '000000',
+                        bold: true, size: 24, font: { name: 'Arial' }, color: '000000',
                       }),
                     ],
                   }),
                   new Paragraph({
                     alignment: AlignmentType.LEFT,
-                    spacing: { before: 100 },
+                    spacing: { before: 120 },
                     children: [
                       new TextRun({
                         text: `${dateStr} : ${authKey} - ${pName.toUpperCase()} – ${hOrigin.toUpperCase()} - ${examName.toUpperCase()} AUTORIZADO PARA ${destination.toUpperCase()}`,
@@ -156,7 +165,7 @@ export async function GET(req: NextRequest) {
     const labelElements: any[] = [];
     const generatedKeys: string[] = [];
 
-    for (const [index, examName] of finalExams.entries()) {
+    for (const [index, examName] of finalExams.slice(0, 1).entries()) {
       const authKey = (index === 0 && providedKey) ? providedKey : await generateSecureKey();
       generatedKeys.push(authKey);
       const destination = getDestination(examName);
@@ -207,8 +216,8 @@ export async function GET(req: NextRequest) {
       }
 
       labelElements.push(createLabelTable(examName, authKey, destination, patient, hospitalOrigin));
-      if (index < finalExams.length - 1) {
-        labelElements.push(new Paragraph({ spacing: { before: 400, after: 400 } }));
+      if (index < finalExams.slice(0, 2).length - 1) {
+        labelElements.push(new Paragraph({ spacing: { before: 100, after: 100 } }));
       }
     }
 
