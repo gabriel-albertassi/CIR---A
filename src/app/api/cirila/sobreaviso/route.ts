@@ -156,7 +156,21 @@ export async function GET(req: NextRequest) {
         cantSplit: true,
         height: { value: ROW_HEIGHT, rule: HeightRule.ATLEAST },
         children: [
-          emptyCell(0, `${now.toLocaleDateString('pt-BR')} \n ${key}`), // DATA / CHAVE
+          new TableCell({
+            width: { size: COL_WIDTHS[0], type: WidthType.DXA },
+            shading: { fill, color: fill, type: 'solid' },
+            verticalAlign: VerticalAlign.CENTER,
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { before: 0, after: 0 },
+                children: [
+                  new TextRun({ text: '___/___/___', bold: true, size: 20, font: { name: 'Arial' } }),
+                  new TextRun({ text: key, bold: true, size: 20, font: { name: 'Arial' }, break: 1 }),
+                ],
+              }),
+            ],
+          }),
           emptyCell(1),                         // CLIENTE
           emptyCell(2),                         // DIAGNÓSTICO
           emptyCell(3),                         // HOSPITAL ORIGEM

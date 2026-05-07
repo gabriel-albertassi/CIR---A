@@ -133,45 +133,111 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
       };
     }
 
-    // 2. Lógica de Etiqueta com Parsing Robusto e Fluxo Assistido
-    const etiquetaMatch = lowerQuery.match(/(?:etiqueta|autorizar|autoriza|gera etiqueta|faz etiqueta)\s+(?:para\s+)?(.*?)(?:\s+(?:do|no)\s+hospital\s+(.*?))?$/i);
-    if (etiquetaMatch && !lowerQuery.includes('chave')) {
-      const patientName = sanitizeCirila(etiquetaMatch[1]);
-      const hospitalName = sanitizeCirila(etiquetaMatch[2] || '');
-
-      if (!patientName || patientName.length < 3) {
-        return {
-          text: "Para gerar a etiqueta, eu preciso do **nome do paciente**. Pode me informar?",
-          sender: 'ai'
-        };
+    // 2. Lógica de Etiqueta com Parsing Robusto (NOVO PADRÃO: NOME HOSP EXAME DETALHE ETIQUETA DESTINO)
+    if (lowerQuery.includes('etiqueta') || lowerQuery.includes('autorizar')) {
+      const parts = lowerQuery.split(/etiqueta|autorizar|autoriza/);
+      const leftSide = parts[0].trim();
+      const rightSide = parts[1]?.trim() || '';
+      
+      const hospitals = ['hmmr', 'hsjb', 'radio vida', 'hospital', 'hjv', 'nelson', 'retomada'];
+      const exams = ['tc', 'rnm', 'rmn', 'ressonancia', 'tomografia', 'angiotc', 'colangio', 'ultrassom', 'eco'];
+      
+      let foundHospital = '';
+      let foundExam = '';
+      
+      const words = leftSide.split(/\s+/);
+      let hospitalIdx = -1;
+      let examIdx = -1;
+      
+      for (let i = 0; i < words.length; i++) {
+        const w = words[i].toLowerCase();
+        if (hospitals.some(h => w === h || w.includes(h))) {
+          foundHospital = words[i].toUpperCase();
+          hospitalIdx = i;
+        }
+        if (exams.some(e => w === e || w.includes(e))) {
+          foundExam = words[i].toUpperCase();
+          examIdx = i;
+        }
       }
-
-      if (!hospitalName) {
-        // Busca paciente no banco para tentar inferir hospital
-        const possiblePatient = await prisma.patient.findFirst({
-          where: { name: { contains: patientName, mode: 'insensitive' } },
-          orderBy: { created_at: 'desc' }
+      
+      // Se encontrou hospital e exame, é o novo padrão completo
+      if (foundHospital && foundExam && hospitalIdx !== -1) {
+        const firstKeywordIdx = Math.min(hospitalIdx, examIdx);
+        const patientName = words.slice(0, firstKeywordIdx).join(' ').toUpperCase();
+        const lastKeywordIdx = Math.max(hospitalIdx, examIdx);
+        const details = words.slice(lastKeywordIdx + 1).join(' ').toUpperCase();
+        const fullExam = `${foundExam} ${details}`.trim();
+        const destination = rightSide.toUpperCase() || 'SISTEMA';
+        
+        // Geração imediata de chave
+        const newKey = await generateUniqueKey();
+        const now = new Date();
+        
+        await prisma.authorizationKey.create({
+          data: {
+            key: newKey,
+            patient: patientName || 'AVULSA',
+            exam: fullExam,
+            origin: foundHospital,
+            destination: destination,
+            professional: destination,
+            type: (fullExam.includes('RNM') || fullExam.includes('RMN')) ? 'RNM' : 'TC',
+            user_created: userId,
+            month: now.getMonth() + 1,
+            year: now.getFullYear(),
+            status: 'ATIVO'
+          }
         });
 
-        if (possiblePatient) {
-          const sanName = sanitizeCirila(possiblePatient.name);
-          const sanDiag = sanitizeCirila(possiblePatient.diagnosis);
-          const sanHosp = sanitizeCirila(possiblePatient.origin_hospital);
+        return {
+          text: `✅ **Chave Gerada: ${newKey}**\n\nIdentifiquei a solicitação:\n- Paciente: **${patientName}**\n- Exame: **${fullExam}**\n- Origem: **${foundHospital}**\n- Destino: **${destination}**\n\nO documento institucional foi preparado com a chave persistida e auditada.`,
+          sender: 'ai',
+          actions: [
+            { label: 'Baixar Etiqueta Oficial', payload: `DOWNLOAD_ETIQUETA_DOCX:::${sanitizeCirila(patientName)}:::${sanitizeCirila(fullExam)}:::${sanitizeCirila(destination)}:::${newKey}::::::1:::bottom:::${sanitizeCirila(foundHospital)}:::1:::${userId}` }
+          ]
+        };
+      }
+      
+      // Fallback para o padrão antigo assistido
+      const etiquetaMatch = lowerQuery.match(/(?:etiqueta|autorizar|autoriza|gera etiqueta|faz etiqueta)\s+(?:para\s+)?(.*?)(?:\s+(?:do|no)\s+hospital\s+(.*?))?$/i);
+      if (etiquetaMatch) {
+        const patientName = sanitizeCirila(etiquetaMatch[1]);
+        const hospitalName = sanitizeCirila(etiquetaMatch[2] || '');
 
+        if (!patientName || patientName.length < 3) {
           return {
-            text: `Localizei **${sanName}** no hospital **${sanHosp}**. Deseja gerar a etiqueta com esses dados?`,
-            sender: 'ai',
-            actions: [
-              { label: 'Sim, Gerar Etiqueta', payload: `DOWNLOAD_ETIQUETA_DOCX:::${sanName}:::${sanDiag}:::Dr. Plantonista:::${possiblePatient.id}::::::1:::bottom:::${sanHosp}:::1` },
-              { label: 'Não, informar outro', payload: 'ASK_MANUAL_ETIQUETA' }
-            ]
+            text: "Para gerar a etiqueta, eu preciso do **nome do paciente**. Pode me informar?",
+            sender: 'ai'
           };
         }
 
-        return {
-          text: `Entendido. Vou preparar a etiqueta para **${patientName}**. Qual é o **Hospital de Origem**? (Obrigatório para o layout institucional)`,
-          sender: 'ai'
-        };
+        if (!hospitalName) {
+          const possiblePatient = await prisma.patient.findFirst({
+            where: { name: { contains: patientName, mode: 'insensitive' } },
+            orderBy: { created_at: 'desc' }
+          });
+
+          if (possiblePatient) {
+            const sanName = sanitizeCirila(possiblePatient.name);
+            const sanDiag = sanitizeCirila(possiblePatient.diagnosis);
+            const sanHosp = sanitizeCirila(possiblePatient.origin_hospital);
+
+            return {
+              text: `Localizei **${sanName}** no hospital **${sanHosp}**. Deseja gerar a etiqueta com esses dados?`,
+              sender: 'ai',
+              actions: [
+                { label: 'Sim, Gerar Etiqueta', payload: `DOWNLOAD_ETIQUETA_DOCX:::${sanName}:::${sanDiag}:::Dr. Plantonista:::${possiblePatient.id}::::::1:::bottom:::${sanHosp}:::1` },
+                { label: 'Não, informar outro', payload: 'ASK_MANUAL_ETIQUETA' }
+              ]
+            };
+          }
+
+          return {
+            text: `Entendido. Vou preparar a etiqueta para **${patientName}**. Qual é o **Hospital de Origem**? (Obrigatório para o layout institucional)`,
+            sender: 'ai'
+          };
+        }
       }
     }
 
