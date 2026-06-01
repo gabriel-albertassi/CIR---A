@@ -21,6 +21,10 @@ import { prisma } from '@/lib/db';
 import { createClient } from '@/lib/supabase/sb-server';
 import { sanitizeCirila } from '@/lib/sanitization';
 
+// Força execução dinâmica — impede cache do Next.js/Vercel nesta rota
+export const dynamic = 'force-dynamic';
+
+
 /**
  * Gera uma chave única com retry em caso de colisão no banco
  */
@@ -441,7 +445,10 @@ export async function GET(req: NextRequest) {
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="Autorizacao_${patient.replace(/\s/g, '_')}.docx"`,
+        'Content-Disposition': `attachment; filename="Autorizacao_${patient.replace(/\s/g, '_')}_${Date.now()}.docx"`,
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
 
