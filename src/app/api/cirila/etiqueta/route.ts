@@ -140,322 +140,316 @@ export async function GET(req: NextRequest) {
       const labelBorder = { style: BorderStyle.SINGLE, size: 6, color: '000000' };
 
       const authLines = exams.map((ex) => {
-        // Limpeza agressiva de caracteres fantasmas, hífens soltos ou resíduos no texto do exame
-        const cleanExamName = ex.name.toUpperCase()
-          .replace(/\bE\b/g, '') // Remove "E" isolado que aparece em multi-exames
-          .replace(/^[–\-\s,eE\.]+/g, '') // Início
-          .replace(/[–\-\s,eE\.]+$/g, '') // Fim
-          .replace(/\s+/g, ' ')
-          .trim()
-          // ⚠️ CONTRASTE deve vir DEPOIS da limpeza de bordas, senão o 'E' final é removido pela regex acima
-          .replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
 
-        return new Paragraph({
-          alignment: AlignmentType.LEFT,
-          spacing: { before: 120, after: 0 }, // Espaçamento compacto entre autorizações
+      // ⚠️ CONTRASTE deve vir DEPOIS da limpeza de bordas, senão o 'E' final é removido pela regex acima
+        .replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
+
+      return new Paragraph({
+        alignment: AlignmentType.LEFT,
+        spacing: { before: 120, after: 0 }, // Espaçamento compacto entre autorizações
+        children: [
+          new TextRun({
+            text: `${dateStr} : ${ex.key} - ${pName.toUpperCase()} - ${hOrigin.toUpperCase()} - ${cleanExamName} AUTORIZADO PARA ${ex.dest.toUpperCase()}`,
+            bold: true,
+            size: 18, // 9pt — cabe em uma linha sem quebrar
+            font: { name: 'Arial' },
+            color: '000000',
+          }),
+        ],
+      });
+    });
+
+    const cleanRegistro = (prof.registro || '').replace('REGISTRO', '').trim();
+    const cleanCargo = (prof.cargo || '').replace('CARGO', '').trim();
+    const profLine = `${prof.name.toUpperCase()}${cleanRegistro ? ` – ${cleanRegistro.toUpperCase()}` : ''}${cleanCargo ? ` – ${cleanCargo.toUpperCase()}` : ''}`;
+
+    // Separador horizontal longo e visível
+    const lineSeparator = "__________________________________________________________________________________";
+
+    return new Table({
+      width: { size: 9500, type: WidthType.DXA },
+      layout: TableLayoutType.FIXED,
+      columnWidths: [9500],
+      alignment: AlignmentType.CENTER,
+      borders: {
+        top: labelBorder, bottom: labelBorder, left: labelBorder, right: labelBorder,
+        insideHorizontal: labelBorder, insideVertical: labelBorder,
+      },
+      rows: [
+        new TableRow({
           children: [
-            new TextRun({
-              text: `${dateStr} : ${ex.key} - ${pName.toUpperCase()} - ${hOrigin.toUpperCase()} - ${cleanExamName} AUTORIZADO PARA ${ex.dest.toUpperCase()}`,
-              bold: true,
-              size: 18, // 9pt — cabe em uma linha sem quebrar
-              font: { name: 'Arial' },
-              color: '000000',
+            new TableCell({
+              margins: { top: 200, bottom: 200, left: 150, right: 150 },
+              children: [
+                // 1. Assinatura do Profissional (CAIXA ALTA, NEGRITO, PRETO)
+                new Paragraph({
+                  alignment: AlignmentType.LEFT,
+                  spacing: { before: 0, after: 0 },
+                  children: [
+                    new TextRun({
+                      text: profLine,
+                      bold: true,
+                      size: 20, // 12pt
+                      font: { name: 'Arial' },
+                      color: '000000',
+                    }),
+                  ],
+                }),
+                // 2. Linha Divisória
+                new Paragraph({
+                  alignment: AlignmentType.LEFT,
+                  spacing: { before: 0, after: 50 },
+                  children: [
+                    new TextRun({
+                      text: lineSeparator,
+                      bold: true,
+                      size: 20,
+                      font: { name: 'Arial' },
+                      color: '000000',
+                    }),
+                  ],
+                }),
+                // 3. Departamento (Fonte 16pt - 32 half-points)
+                new Paragraph({
+                  alignment: AlignmentType.LEFT,
+                  spacing: { before: 100, after: 0 },
+                  children: [
+                    new TextRun({
+                      text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR",
+                      bold: true,
+                      size: 28, // 12pt
+                      font: { name: 'Arial' },
+                      color: '000000',
+                    }),
+                  ],
+                }),
+                // Espaçamento em branco entre departamento e autorização
+                new Paragraph({
+                  spacing: { before: 200, after: 0 },
+                  children: [new TextRun("")],
+                }),
+                // 4. Linhas de Autorização (10pt, Negrito, Preto)
+                ...authLines
+              ],
             }),
           ],
-        });
+        }),
+      ],
+    });
+  };
+
+
+  // ── Auditoria e Usuário ──────────────────────────────────────────────────
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id || 'CIRILA_SYSTEM';
+
+  const labelElements: any[] = [];
+  const now = new Date();
+
+  const examsToProcess = finalExams.slice(0, 2);
+  const resolvedExams = [];
+
+  for (const [index, examName] of examsToProcess.entries()) {
+    const authKey = (providedKeys[index]) ? providedKeys[index] : await generateSecureKey();
+    const destination = getDestination(examName);
+    const examType = examName.toUpperCase().includes('RNM') ? 'RNM' : examName.toUpperCase().includes('TC') ? 'TC' : 'OUTRO';
+
+    const existingKey = await prisma.authorizationKey.findUnique({ where: { key: authKey } });
+    if (!existingKey) {
+      await prisma.authorizationKey.create({
+        data: {
+          key: authKey,
+          patient: patient.toUpperCase(),
+          exam: examName.toUpperCase(),
+          procedure: examName.toUpperCase(),
+          origin: hospitalOrigin.toUpperCase(),
+          destination: destination.toUpperCase(),
+          professional: prof.name.toUpperCase(),
+          user_created: userId,
+          type: examType,
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+          date: now,
+          status: 'ATIVO',
+          cns: cns
+        }
       });
+    }
+    resolvedExams.push({ name: examName, key: authKey, dest: destination });
+  }
 
-      const cleanRegistro = (prof.registro || '').replace('REGISTRO', '').trim();
-      const cleanCargo = (prof.cargo || '').replace('CARGO', '').trim();
-      const profLine = `${prof.name.toUpperCase()}${cleanRegistro ? ` – ${cleanRegistro.toUpperCase()}` : ''}${cleanCargo ? ` – ${cleanCargo.toUpperCase()}` : ''}`;
+  if (resolvedExams.length > 0) {
+    labelElements.push(createLabelTable(resolvedExams, patient, hospitalOrigin));
+  }
 
-      // Separador horizontal longo e visível
-      const lineSeparator = "__________________________________________________________________________________";
+  // ── Layout de Blindagem (Fixed Footer) ───────────────────────────────────
+  const USABLE_HEIGHT = 15500;
+  const LABEL_HEIGHT = 3000;
 
-      return new Table({
-        width: { size: 9500, type: WidthType.DXA },
-        layout: TableLayoutType.FIXED,
-        columnWidths: [9500],
-        alignment: AlignmentType.CENTER,
-        borders: {
-          top: labelBorder, bottom: labelBorder, left: labelBorder, right: labelBorder,
-          insideHorizontal: labelBorder, insideVertical: labelBorder,
+  const createFinalDocument = (contentElements: any[]) => {
+    return new Document({
+      title: "Autorização Cirila",
+      creator: "Cirila Bot",
+      description: "Documento de Autorização Institucional",
+      compatibility: {
+        doNotExpandShiftReturn: true,
+        useNormalStyleForList: true,
+      },
+      sections: [{
+        properties: {
+          page: {
+            size: {
+              width: 11906, // A4 Width in twips
+              height: 16838, // A4 Height in twips
+              orientation: PageOrientation.PORTRAIT,
+            },
+            margin: { top: 500, right: 500, bottom: 500, left: 500 }
+          }
         },
-        rows: [
-          new TableRow({
-            children: [
-              new TableCell({
-                margins: { top: 200, bottom: 200, left: 150, right: 150 },
+        children: [
+          new Table({
+            width: { size: 10466, type: WidthType.DXA },
+            layout: TableLayoutType.FIXED,
+            columnWidths: [10466],
+            borders: {
+              top: { style: BorderStyle.NONE },
+              bottom: { style: BorderStyle.NONE },
+              left: { style: BorderStyle.NONE },
+              right: { style: BorderStyle.NONE },
+              insideHorizontal: { style: BorderStyle.NONE },
+              insideVertical: { style: BorderStyle.NONE },
+            },
+            rows: [
+              // LINHA 1: CONTEÚDO (Imagem ou Texto)
+              new TableRow({
+                height: { value: USABLE_HEIGHT - LABEL_HEIGHT, rule: HeightRule.ATLEAST },
                 children: [
-                  // 1. Assinatura do Profissional (CAIXA ALTA, NEGRITO, PRETO)
-                  new Paragraph({
-                    alignment: AlignmentType.LEFT,
-                    spacing: { before: 0, after: 0 },
-                    children: [
-                      new TextRun({
-                        text: profLine,
-                        bold: true,
-                        size: 20, // 12pt
-                        font: { name: 'Arial' },
-                        color: '000000',
-                      }),
-                    ],
+                  new TableCell({
+                    verticalAlign: VerticalAlign.TOP,
+                    margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                    children: contentElements.length > 0 ? contentElements : [new Paragraph("")],
                   }),
-                  // 2. Linha Divisória
-                  new Paragraph({
-                    alignment: AlignmentType.LEFT,
-                    spacing: { before: 0, after: 50 },
-                    children: [
-                      new TextRun({
-                        text: lineSeparator,
-                        bold: true,
-                        size: 20,
-                        font: { name: 'Arial' },
-                        color: '000000',
-                      }),
-                    ],
+                ],
+              }),
+              // LINHA 2: ETIQUETA (Sempre no final)
+              new TableRow({
+                height: { value: LABEL_HEIGHT, rule: HeightRule.ATLEAST },
+                children: [
+                  new TableCell({
+                    verticalAlign: VerticalAlign.BOTTOM,
+                    margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                    children: labelElements,
                   }),
-                  // 3. Departamento (Fonte 16pt - 32 half-points)
-                  new Paragraph({
-                    alignment: AlignmentType.LEFT,
-                    spacing: { before: 100, after: 0 },
-                    children: [
-                      new TextRun({
-                        text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR",
-                        bold: true,
-                        size: 28, // 12pt
-                        font: { name: 'Arial' },
-                        color: '000000',
-                      }),
-                    ],
-                  }),
-                  // Espaçamento em branco entre departamento e autorização
-                  new Paragraph({
-                    spacing: { before: 200, after: 0 },
-                    children: [new TextRun("")],
-                  }),
-                  // 4. Linhas de Autorização (10pt, Negrito, Preto)
-                  ...authLines
                 ],
               }),
             ],
           }),
         ],
-      });
-    };
-
-
-    // ── Auditoria e Usuário ──────────────────────────────────────────────────
-
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id || 'CIRILA_SYSTEM';
-
-    const labelElements: any[] = [];
-    const now = new Date();
-
-    const examsToProcess = finalExams.slice(0, 2);
-    const resolvedExams = [];
-
-    for (const [index, examName] of examsToProcess.entries()) {
-      const authKey = (providedKeys[index]) ? providedKeys[index] : await generateSecureKey();
-      const destination = getDestination(examName);
-      const examType = examName.toUpperCase().includes('RNM') ? 'RNM' : examName.toUpperCase().includes('TC') ? 'TC' : 'OUTRO';
-
-      const existingKey = await prisma.authorizationKey.findUnique({ where: { key: authKey } });
-      if (!existingKey) {
-        await prisma.authorizationKey.create({
-          data: {
-            key: authKey,
-            patient: patient.toUpperCase(),
-            exam: examName.toUpperCase(),
-            procedure: examName.toUpperCase(),
-            origin: hospitalOrigin.toUpperCase(),
-            destination: destination.toUpperCase(),
-            professional: prof.name.toUpperCase(),
-            user_created: userId,
-            type: examType,
-            month: now.getMonth() + 1,
-            year: now.getFullYear(),
-            date: now,
-            status: 'ATIVO',
-            cns: cns
-          }
-        });
-      }
-      resolvedExams.push({ name: examName, key: authKey, dest: destination });
-    }
-
-    if (resolvedExams.length > 0) {
-      labelElements.push(createLabelTable(resolvedExams, patient, hospitalOrigin));
-    }
-
-    // ── Layout de Blindagem (Fixed Footer) ───────────────────────────────────
-    const USABLE_HEIGHT = 15500;
-    const LABEL_HEIGHT = 3000;
-
-    const createFinalDocument = (contentElements: any[]) => {
-      return new Document({
-        title: "Autorização Cirila",
-        creator: "Cirila Bot",
-        description: "Documento de Autorização Institucional",
-        compatibility: {
-          doNotExpandShiftReturn: true,
-          useNormalStyleForList: true,
-        },
-        sections: [{
-          properties: {
-            page: {
-              size: {
-                width: 11906, // A4 Width in twips
-                height: 16838, // A4 Height in twips
-                orientation: PageOrientation.PORTRAIT,
-              },
-              margin: { top: 500, right: 500, bottom: 500, left: 500 }
-            }
-          },
-          children: [
-            new Table({
-              width: { size: 10466, type: WidthType.DXA },
-              layout: TableLayoutType.FIXED,
-              columnWidths: [10466],
-              borders: {
-                top: { style: BorderStyle.NONE },
-                bottom: { style: BorderStyle.NONE },
-                left: { style: BorderStyle.NONE },
-                right: { style: BorderStyle.NONE },
-                insideHorizontal: { style: BorderStyle.NONE },
-                insideVertical: { style: BorderStyle.NONE },
-              },
-              rows: [
-                // LINHA 1: CONTEÚDO (Imagem ou Texto)
-                new TableRow({
-                  height: { value: USABLE_HEIGHT - LABEL_HEIGHT, rule: HeightRule.ATLEAST },
-                  children: [
-                    new TableCell({
-                      verticalAlign: VerticalAlign.TOP,
-                      margins: { top: 0, bottom: 0, left: 0, right: 0 },
-                      children: contentElements.length > 0 ? contentElements : [new Paragraph("")],
-                    }),
-                  ],
-                }),
-                // LINHA 2: ETIQUETA (Sempre no final)
-                new TableRow({
-                  height: { value: LABEL_HEIGHT, rule: HeightRule.ATLEAST },
-                  children: [
-                    new TableCell({
-                      verticalAlign: VerticalAlign.BOTTOM,
-                      margins: { top: 0, bottom: 0, left: 0, right: 0 },
-                      children: labelElements,
-                    }),
-                  ],
-                }),
-              ],
-            }),
-          ],
-        }],
-      });
-    };
-
-    // ── Lógica de Anexo ─────────────────────────────────────────────────────
-    let bodyElements: any[] = [];
-
-    if (templateUrl) {
-      const response = await fetch(templateUrl);
-      if (response.ok) {
-        const fileBuffer = Buffer.from(await response.arrayBuffer());
-        const contentType = response.headers.get('content-type') || '';
-        const isImage = contentType.includes('image/') || /\.(jpg|jpeg|png)$/i.test(templateUrl);
-
-        if (isImage) {
-          const metadata = await sharp(fileBuffer).metadata();
-          // Redução adicional para garantir página única (aprox. 40% do tamanho anterior)
-          const MAX_WIDTH = 250;
-          const MAX_HEIGHT = 350;
-
-          let width = metadata.width || MAX_WIDTH;
-          let height = metadata.height || MAX_HEIGHT;
-
-          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-          const finalWidth = Math.round(width * ratio);
-          const finalHeight = Math.round(height * ratio);
-
-          const processedImageBuffer = await sharp(fileBuffer)
-            .resize(finalWidth, finalHeight)
-            .toFormat('png')
-            .toBuffer();
-
-          bodyElements = [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              spacing: { before: 0, after: 0 },
-              children: [
-                new ImageRun({
-                  data: processedImageBuffer,
-                  transformation: { width: finalWidth, height: finalHeight },
-                } as any),
-              ],
-            })
-          ];
-        } else {
-          // Bloqueio de DOCX/PDF direto conforme o plano de refatoração
-          bodyElements = [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              spacing: { before: 2000 },
-              children: [
-                new TextRun({
-                  text: "ANEXO BLOQUEADO: ENVIE COMO IMAGEM",
-                  bold: true,
-                  color: "FF0000",
-                  size: 24
-                }),
-                new TextRun({
-                  text: "Para garantir que a etiqueta permaneça na mesma folha,",
-                  break: 1,
-                  size: 20
-                }),
-                new TextRun({
-                  text: "documentos DOCX ou PDF devem ser convertidos para imagem (JPG/PNG).",
-                  break: 1,
-                  size: 20
-                })
-              ]
-            })
-          ];
-        }
-      }
-    } else {
-      // Modo texto / Limpo (Totalmente em branco para colagem manual)
-      bodyElements = [
-        new Paragraph({
-          spacing: { before: 1 },
-          children: [
-            new TextRun({
-              text: "",
-            })
-          ]
-        })
-      ];
-    }
-
-    const doc = createFinalDocument(bodyElements);
-    const buffer = await Packer.toBuffer(doc);
-
-    return new NextResponse(new Uint8Array(buffer), {
-      headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="Autorizacao_${patient.replace(/\s/g, '_')}_${Date.now()}.docx"`,
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      },
+      }],
     });
+  };
 
-  } catch (err: any) {
-    console.error('[CIRILA_ETIQUETA_ERROR]', err);
-    return new NextResponse(JSON.stringify({
-      error: 'Erro na geração do documento. Tente converter o anexo para imagem.'
-    }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  // ── Lógica de Anexo ─────────────────────────────────────────────────────
+  let bodyElements: any[] = [];
+
+  if (templateUrl) {
+    const response = await fetch(templateUrl);
+    if (response.ok) {
+      const fileBuffer = Buffer.from(await response.arrayBuffer());
+      const contentType = response.headers.get('content-type') || '';
+      const isImage = contentType.includes('image/') || /\.(jpg|jpeg|png)$/i.test(templateUrl);
+
+      if (isImage) {
+        const metadata = await sharp(fileBuffer).metadata();
+        // Redução adicional para garantir página única (aprox. 40% do tamanho anterior)
+        const MAX_WIDTH = 250;
+        const MAX_HEIGHT = 350;
+
+        let width = metadata.width || MAX_WIDTH;
+        let height = metadata.height || MAX_HEIGHT;
+
+        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+        const finalWidth = Math.round(width * ratio);
+        const finalHeight = Math.round(height * ratio);
+
+        const processedImageBuffer = await sharp(fileBuffer)
+          .resize(finalWidth, finalHeight)
+          .toFormat('png')
+          .toBuffer();
+
+        bodyElements = [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 0, after: 0 },
+            children: [
+              new ImageRun({
+                data: processedImageBuffer,
+                transformation: { width: finalWidth, height: finalHeight },
+              } as any),
+            ],
+          })
+        ];
+      } else {
+        // Bloqueio de DOCX/PDF direto conforme o plano de refatoração
+        bodyElements = [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 2000 },
+            children: [
+              new TextRun({
+                text: "ANEXO BLOQUEADO: ENVIE COMO IMAGEM",
+                bold: true,
+                color: "FF0000",
+                size: 24
+              }),
+              new TextRun({
+                text: "Para garantir que a etiqueta permaneça na mesma folha,",
+                break: 1,
+                size: 20
+              }),
+              new TextRun({
+                text: "documentos DOCX ou PDF devem ser convertidos para imagem (JPG/PNG).",
+                break: 1,
+                size: 20
+              })
+            ]
+          })
+        ];
+      }
+    }
+  } else {
+    // Modo texto / Limpo (Totalmente em branco para colagem manual)
+    bodyElements = [
+      new Paragraph({
+        spacing: { before: 1 },
+        children: [
+          new TextRun({
+            text: "",
+          })
+        ]
+      })
+    ];
   }
+
+  const doc = createFinalDocument(bodyElements);
+  const buffer = await Packer.toBuffer(doc);
+
+  return new NextResponse(new Uint8Array(buffer), {
+    headers: {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Disposition': `attachment; filename="Autorizacao_${patient.replace(/\s/g, '_')}_${Date.now()}.docx"`,
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
+  });
+
+} catch (err: any) {
+  console.error('[CIRILA_ETIQUETA_ERROR]', err);
+  return new NextResponse(JSON.stringify({
+    error: 'Erro na geração do documento. Tente converter o anexo para imagem.'
+  }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+}
 }
