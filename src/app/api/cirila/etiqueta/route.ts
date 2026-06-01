@@ -190,13 +190,13 @@ export async function GET(req: NextRequest) {
 
       return new Table({
         width: {
-          size: 9500,
+          size: 10400,
           type: WidthType.DXA,
         },
 
         layout: TableLayoutType.FIXED,
 
-        columnWidths: [9500],
+        columnWidths: [10400],
 
         alignment: AlignmentType.CENTER,
 
@@ -227,45 +227,56 @@ export async function GET(req: NextRequest) {
                 },
 
                 children: [
-                  // PROFISSIONAL
+                  // 1. Nome do Profissional — centralizado, bold
                   new Paragraph({
                     alignment: AlignmentType.CENTER,
-                    spacing: {
-                      before: 120,
-                      after: 250,
-                    },
+                    spacing: { before: 0, after: 0 },
                     children: [
                       new TextRun({
                         text: profLine,
                         bold: true,
-                        size: 26,
-                        font: "Arial",
-                        color: "000000",
+                        size: 20, // 10pt
+                        font: { name: 'Arial' },
+                        color: '000000',
                       }),
                     ],
                   }),
-
-                  // DEPARTAMENTO
+                  // 2. Linha separadora de underscores
                   new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    spacing: {
-                      before: 0,
-                      after: 350,
-                    },
+                    alignment: AlignmentType.LEFT,
+                    spacing: { before: 50, after: 50 },
                     children: [
                       new TextRun({
-                        text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR",
-                        bold: true,
-                        size: 26,
-                        font: "Arial",
-                        color: "000000",
+                        text: '________________________________________________________________________________',
+                        size: 16,
+                        font: { name: 'Arial' },
+                        color: '000000',
                       }),
                     ],
                   }),
-
-                  // AUTORIZAÇÕES
+                  // 3. Departamento — alinhado à esquerda, bold
+                  new Paragraph({
+                    alignment: AlignmentType.LEFT,
+                    spacing: { before: 0, after: 0 },
+                    children: [
+                      new TextRun({
+                        text: 'Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR',
+                        bold: true,
+                        size: 22, // 11pt
+                        font: { name: 'Arial' },
+                        color: '000000',
+                      }),
+                    ],
+                  }),
+                  // 4. Espaço entre departamento e autorização
+                  new Paragraph({
+                    spacing: { before: 160, after: 0 },
+                    children: [new TextRun('')],
+                  }),
+                  // 5. Linhas de Autorização
                   ...authLines,
                 ],
+
               }),
             ],
           }),
