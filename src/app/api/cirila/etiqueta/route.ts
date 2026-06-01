@@ -136,16 +136,15 @@ export async function GET(req: NextRequest) {
       const labelBorder = { style: BorderStyle.SINGLE, size: 6, color: '000000' };
 
       const authLines = exams.map((ex) => {
-        // Correção ortográfica ANTES da limpeza de bordas
-        const fixedName = ex.name.replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
-
         // Limpeza agressiva de caracteres fantasmas, hífens soltos ou resíduos no texto do exame
-        const cleanExamName = fixedName.toUpperCase()
+        const cleanExamName = ex.name.toUpperCase()
           .replace(/\bE\b/g, '') // Remove "E" isolado que aparece em multi-exames
           .replace(/^[–\-\s,eE\.]+/g, '') // Início
           .replace(/[–\-\s,eE\.]+$/g, '') // Fim
           .replace(/\s+/g, ' ')
-          .trim();
+          .trim()
+          // ⚠️ CONTRASTE deve vir DEPOIS da limpeza de bordas, senão o 'E' final é removido pela regex acima
+          .replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
 
         return new Paragraph({
           alignment: AlignmentType.LEFT,
