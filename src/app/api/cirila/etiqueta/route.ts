@@ -61,6 +61,9 @@ export async function GET(req: NextRequest) {
     const examsList = examsRaw.split(',').map(e => {
       let ex = e.trim().toUpperCase();
 
+      // Correção ortográfica de "CONTRAST" para "CONTRASTE"
+      ex = ex.replace(/\bCONTRAST\b/g, 'CONTRASTE');
+
       // 1. Prioridade COLANGIO: deve ser COLANGIO RNM e não pode ter TC
       if (ex.includes('COLANGIO')) {
         ex = ex.replace(/\bTC\b/g, ''); // Remove TC intruso
@@ -146,7 +149,7 @@ export async function GET(req: NextRequest) {
           spacing: { before: 240, after: 0 }, // Espaçamento entre autorizações
           children: [
             new TextRun({
-              text: `${dateStr} : ${ex.key} - ${pName.toUpperCase()} - ${hOrigin.toUpperCase()} - ${cleanExamName} AUTORIZADO PARA ${ex.dest.toUpperCase()}`,
+              text: `[${ex.key}]  ${dateStr}  •  ${pName.toUpperCase()}  •  ${hOrigin.toUpperCase()}  •  ${cleanExamName}  ->  ${ex.dest.toUpperCase()}`,
               bold: true,
               size: 20, // 10pt (Padrão institucional)
               font: { name: 'Arial' },
@@ -212,7 +215,7 @@ export async function GET(req: NextRequest) {
                     spacing: { before: 100, after: 0 },
                     children: [
                       new TextRun({
-                        text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR",
+                        text: "DCRAA – SMSVR",
                         bold: true,
                         size: 32, // 16pt
                         font: { name: 'Arial' },

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { sendHospitalNotification } from '@/lib/mail'
 import { sanitizeCirila } from '@/lib/sanitization'
 import { createClient } from '@/lib/supabase/sb-server'
+import { cookies } from 'next/headers'
 
 export type CirilaResponse = {
   text: string;
@@ -48,9 +49,21 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
   const sanitizedQuery = query.trim();
   const lowerQuery = sanitizedQuery.toLowerCase();
 
+  // Obter ou definir protocolo via cookies
+  const cookieStore = await cookies();
+  let currentProtocol = cookieStore.get('cirila_protocolo')?.value || '1';
+
   // Detecção de Protocolo (Padrão 1: HSJB, Padrão 2: HMMR para TCs)
   const isProtocolo2 = lowerQuery.includes('protocolo 2') || lowerQuery.includes('protocolo2');
-  const currentProtocol = isProtocolo2 ? '2' : '1';
+  const isProtocolo1 = lowerQuery.includes('protocolo 1') || lowerQuery.includes('protocolo1');
+
+  if (isProtocolo2) {
+    currentProtocol = '2';
+    cookieStore.set('cirila_protocolo', '2');
+  } else if (isProtocolo1) {
+    currentProtocol = '1';
+    cookieStore.set('cirila_protocolo', '1');
+  }
 
   try {
     // Obter usuário atual para auditoria NIR (DENTRO do try para capturar falhas de env/auth)
@@ -299,6 +312,9 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         const finalExamsList = rawExamsList.map(ex => {
           let e = ex.toUpperCase();
 
+          // Correção ortográfica de "CONTRAST" para "CONTRASTE"
+          e = e.replace(/\bCONTRAST\b/g, 'CONTRASTE');
+
           // Limpeza profunda de bordas e resíduos
           e = e.replace(/^[–\-\s,eE\.]+/g, '') // Início (remove 'E' órfão)
                .replace(/[–\-\s,eE\.]+$/g, '') // Fim
@@ -339,8 +355,8 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
             return 'RADIO VIDA';
           }
 
-          // 2. ANGIO TC -> sempre HMMR
-          if (e.includes('ANGIO TC')) {
+          // 2. ANGIO -> sempre HMMR
+          if (e.includes('ANGIO')) {
             return 'HMMR';
           }
 
