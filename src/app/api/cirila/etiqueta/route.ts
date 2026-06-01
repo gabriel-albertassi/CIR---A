@@ -149,7 +149,7 @@ export async function GET(req: NextRequest) {
           spacing: { before: 240, after: 0 }, // Espaçamento entre autorizações
           children: [
             new TextRun({
-              text: `[${ex.key}]  ${dateStr}  •  ${pName.toUpperCase()}  •  ${hOrigin.toUpperCase()}  •  ${cleanExamName}  ->  ${ex.dest.toUpperCase()}`,
+              text: `${dateStr} : ${ex.key} - ${pName.toUpperCase()} - ${hOrigin.toUpperCase()} - ${cleanExamName} AUTORIZADO PARA ${ex.dest.toUpperCase()}`,
               bold: true,
               size: 20, // 10pt (Padrão institucional)
               font: { name: 'Arial' },
@@ -215,7 +215,7 @@ export async function GET(req: NextRequest) {
                     spacing: { before: 100, after: 0 },
                     children: [
                       new TextRun({
-                        text: "DCRAA – SMSVR",
+                        text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR",
                         bold: true,
                         size: 32, // 16pt
                         font: { name: 'Arial' },
