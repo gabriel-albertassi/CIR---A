@@ -241,18 +241,18 @@ export async function GET(req: NextRequest) {
                       }),
                     ],
                   }),
-                  // 2. Linha separadora de underscores
+                  // 2. Linha separadora profissional e responsiva
                   new Paragraph({
-                    alignment: AlignmentType.LEFT,
                     spacing: { before: 50, after: 50 },
-                    children: [
-                      new TextRun({
-                        text: '________________________________________________________________________________',
-                        size: 16,
-                        font: { name: 'Arial' },
+                    border: {
+                      bottom: {
                         color: '000000',
-                      }),
-                    ],
+                        space: 1,
+                        style: BorderStyle.SINGLE,
+                        size: 8, // Espessura da linha
+                      },
+                    },
+                    children: [new TextRun('')],
                   }),
                   // 3. Departamento — alinhado à esquerda, bold
                   new Paragraph({

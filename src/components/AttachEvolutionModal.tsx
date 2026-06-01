@@ -23,58 +23,40 @@ export default function AttachEvolutionModal({ patientId, patientName, onClose }
     setError(null);
 
     try {
-      // VALIDAÇÃO PREVENTIVA (Limite Vercel: 4.5MB)
-      const MAX_SIZE = 4.5 * 1024 * 1024;
-      if (file.size > MAX_SIZE) {
-        throw new Error(`Arquivo muito grande (${(file.size / 1024 / 1024).toFixed(1)}MB). O limite é de 4.5MB.`);
-      }
+      // Import dinâmico para não quebrar a compilação do componente caso haja problema
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('patientId', patientId);
+      // Montar nome único
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      // Remover caracteres especiais e espaços do nome original (limitando tamanho)
+      const cleanOriginalName = file.name.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+      const fileName = `${patientId}_${Date.now()}_${cleanOriginalName}.${fileExt}`;
 
-      // 1. UPLOAD VIA API ROUTE (ESTÁVEL)
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      // Upload direto pelo cliente para a bucket
+      const { data, error: uploadError } = await supabase.storage
+        .from('malotes-pacientes')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      // EVITA O ERRO DE RESPOSTA INESPERADA
-      if (!response.ok) {
-        let errorMessage = `Erro no servidor (${response.status})`;
-        try {
-          const errorData = await response.json();
-          // Prioriza a mensagem de erro específica do backend
-          if (errorData.error) {
-            errorMessage = errorData.error;
-            if (errorData.details && typeof errorData.details === 'string') {
-              console.error('[UPLOAD_DETAIL]', errorData.details);
-            }
-          }
-        } catch (e) {
-          try {
-            const errorText = await response.text();
-            if (errorText) errorMessage = errorText.substring(0, 100);
-          } catch (e2) {}
+      if (uploadError) {
+        console.error('[SUPABASE_UPLOAD_ERROR]', uploadError);
+        // Exibir erro claro caso haja bloqueio de RLS (Permissões) ou limite do bucket
+        if (uploadError.message.includes('Row level security')) {
+          throw new Error('Sem permissão (RLS) para enviar arquivos. Faça login novamente ou verifique as políticas do bucket.');
         }
-        
-        throw new Error(errorMessage);
+        throw new Error(`Erro no Supabase: ${uploadError.message}`);
       }
 
-      // PROTEÇÃO EXTRA: GARANTE QUE É JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType?.includes('application/json')) {
-        throw new Error('O servidor retornou uma resposta inválida (HTML).');
-      }
+      // Obter URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('malotes-pacientes')
+        .getPublicUrl(fileName);
 
-      const uploadResult = await response.json();
-
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.error || 'Falha ao processar arquivo.');
-      }
-
-      // 2. ATUALIZAÇÃO NO BANCO VIA SERVER ACTION (LEVE)
-      const dbResult = await updatePatientEvolution(patientId, uploadResult.url, uploadResult.fileName);
+      // ATUALIZAÇÃO NO BANCO VIA SERVER ACTION (LEVE)
+      const dbResult = await updatePatientEvolution(patientId, publicUrl, fileName);
 
       if (dbResult.success) {
         setSuccess(true);
