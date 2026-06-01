@@ -241,18 +241,18 @@ export async function GET(req: NextRequest) {
                       }),
                     ],
                   }),
-                  // 2. Linha separadora profissional e responsiva
+                  // 2. Linha separadora de underscores
                   new Paragraph({
+                    alignment: AlignmentType.LEFT,
                     spacing: { before: 50, after: 50 },
-                    border: {
-                      bottom: {
+                    children: [
+                      new TextRun({
+                        text: '_____________________________________________________________________________________________________________________________',
+                        size: 16,
+                        font: { name: 'Arial' },
                         color: '000000',
-                        space: 1,
-                        style: BorderStyle.SINGLE,
-                        size: 8, // Espessura da linha
-                      },
-                    },
-                    children: [new TextRun('')],
+                      }),
+                    ],
                   }),
                   // 3. Departamento — alinhado à esquerda, bold
                   new Paragraph({
@@ -260,11 +260,11 @@ export async function GET(req: NextRequest) {
                     spacing: { before: 0, after: 0 },
                     children: [
                       new TextRun({
-                        text: 'Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR',
+                        text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR",
                         bold: true,
-                        size: 22, // 11pt
-                        font: { name: 'Arial' },
-                        color: '000000',
+                        size: 22,
+                        font: "Arial",
+                        color: "000000",
                       }),
                     ],
                   }),
@@ -293,7 +293,7 @@ export async function GET(req: NextRequest) {
     const labelElements: any[] = [];
     const now = new Date();
 
-    const examsToProcess = finalExams.slice(0, 2);
+    const examsToProcess = finalExams.slice(0, 5);
     const resolvedExams = [];
 
     for (const [index, examName] of examsToProcess.entries()) {
@@ -331,7 +331,8 @@ export async function GET(req: NextRequest) {
 
     // ── Layout de Blindagem (Fixed Footer) ───────────────────────────────────
     const USABLE_HEIGHT = 15500;
-    const LABEL_HEIGHT = 3000;
+    // Cálculo dinâmico para garantir que a etiqueta nunca pule para a página 2
+    const LABEL_HEIGHT = 2000 + (resolvedExams.length * 500);
 
     const createFinalDocument = (contentElements: any[]) => {
       return new Document({

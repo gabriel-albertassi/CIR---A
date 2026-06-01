@@ -317,9 +317,9 @@ export default function ClientQueue({ initialPatients, user }: { initialPatients
           </div>
         </div>
 
-        <div className={styles.tableContainerNoScrollbar}>
+        <div className={`${styles.tableContainerNoScrollbar} overflow-x-auto`} style={{ overflowX: 'auto' }}>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
 
             <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
               <tr>

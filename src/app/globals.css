@@ -47,12 +47,18 @@ html {
   html {
     font-size: 13px;
   }
+  /* Tamanhos de Toque Otimizados (Touch Targets) para Mobile */
+  .btn, .input, button {
+    min-height: 44px;
+  }
+  .sidebar-link {
+    min-height: 48px;
+  }
 }
 
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #071426;
   color: #f8fafc;
   min-height: 100vh;
   max-width: 100vw;
@@ -155,18 +161,60 @@ section {
   max-width: 100% !important;
 }
 
+.animated-bg {
+  position: relative;
+  /* Gradiente linear rico (Ciano profundo e Azul) sem pontos de luz fortes */
+  background: linear-gradient(
+    -45deg,
+    #030914,
+    #13285c, /* Azul mais sutil */
+    #08334e, /* Ciano mais sutil */
+    #030914
+  );
+  background-size: 300% 300% !important;
+  /* Tempo de animação dobrado (30s) para o movimento ficar super suave e lento */
+  animation: gradientAura 30s ease infinite !important;
+  background-attachment: fixed !important;
+}
+
+/* Malha (Grid/Lente) futurista super sutil */
+.animated-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Certificar que os filhos fiquem acima do grid */
+.animated-bg>* {
+  position: relative;
+  z-index: 1;
+}
+
 body {
   overflow-x: hidden !important;
   max-width: 100vw !important;
   margin: 0;
   padding: 0;
-  /* Fundo institucional com profundidade e padrão de grade */
-  background-color: #071426 !important;
-  background-image:
-    radial-gradient(circle at 10% 10%, rgba(0, 180, 216, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(30, 58, 138, 0.04) 0%, transparent 40%),
-    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10H90V90H10z' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3C/svg%3E") !important;
-  background-attachment: fixed !important;
+}
+
+@keyframes gradientAura {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  50% {
+    background-position: 100% 100%;
+  }
+
+  100% {
+    background-position: 0% 100%;
+  }
 }
 
 body::before,
@@ -554,7 +602,7 @@ a {
    ════════════════════════════════════ */
 /* Fundo institucional limpo */
 body {
-  background-color: #071426;
+  background-color: transparent;
 }
 
 /* Removido hex-drift para sobriedade */
@@ -596,7 +644,7 @@ body {
 }
 
 .bg-institutional {
-  background: #071426;
+  background: transparent;
 }
 
 /* Base Styles */
@@ -1108,8 +1156,11 @@ td select option {
 
 .sidebar-main {
   width: 260px;
-  background: #0f172a;
-  border-right: none;
+  /* Glassmorphism na Sidebar para absorver o fundo animado */
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
   padding: 0.75rem 0.5rem;
   display: flex;
   flex-direction: column;
@@ -1120,7 +1171,7 @@ td select option {
   z-index: 50;
   transition: all 0.3s ease;
   overflow-y: auto;
-  box-shadow: 1px 0 15px rgba(0, 0, 0, 0.3), 1px 0 1px rgba(0, 180, 216, 0.04);
+  box-shadow: 1px 0 25px rgba(0, 0, 0, 0.3);
 }
 
 .sidebar-main img {
@@ -1171,7 +1222,8 @@ td select option {
   padding: 0;
   margin-left: 260px;
   min-height: 100vh;
-  background: #071426;
+  background: transparent;
+  /* Permite ver o mesh gradient do body */
   width: calc(100% - 260px);
   max-width: 100%;
   overflow-x: hidden;

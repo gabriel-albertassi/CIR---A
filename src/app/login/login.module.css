@@ -561,19 +561,23 @@
   }
 
   .loginCirilaSpeech {
-    position: relative;
-    order: 2;
-    bottom: auto;
-    left: auto;
-    transform: none;
+    position: absolute !important;
+    bottom: 30% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     min-width: 260px;
     width: 90%;
-    max-width: 300px;
-    margin-top: -5.5rem;
-    padding: 0.6rem 1rem;
-    border-radius: 14px;
+    max-width: 400px;
+    padding: 0.8rem 1.2rem;
+    border-radius: 18px;
+    z-index: 999;
   }
-
+  
+  .loginFormContainer {
+    padding: 2rem;
+    width: 95%;
+  }
+  
   .loginHolo {
     position: relative;
     order: 3;

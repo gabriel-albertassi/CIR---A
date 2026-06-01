@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Menu, X, LayoutDashboard, ListTodo, Layers, CheckCircle, Building2, Users, Info, LogOut, User as UserIcon, Settings } from 'lucide-react'
+import { Menu, X, LayoutDashboard, ListTodo, Layers, CheckCircle, Building2, Users, Info, LogOut, User as UserIcon, Settings, Key } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -48,7 +48,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
 
   return (
     <NotificationProvider>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col animated-bg">
 
         {!isLoginPage && (
           <button
@@ -61,7 +61,7 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
         )}
 
         <div className="flex flex-1 pt-0">
-          <aside className={`sidebar-main ${isMobileMenuOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+          <aside className={`sidebar-main ${isMobileMenuOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''} print:hidden`}>
             <div className="flex justify-center items-center mb-8 mt-7 px-8">
               <div className="relative w-[190px] h-[120px] sidebar-logo-container">
                 <Image
@@ -100,6 +100,10 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
               <Link href="/pacientes" className={`sidebar-link ${pathname === '/pacientes' ? 'sidebar-active' : ''}`}>
                 <Users size={20} className={pathname === '/pacientes' ? 'text-[#00d8ff]' : 'text-[#00b4d8]'} />
                 <span>Prontuário Geral</span>
+              </Link>
+              <Link href="/relatorio-chaves" className={`sidebar-link ${pathname === '/relatorio-chaves' ? 'sidebar-active' : ''}`}>
+                <Key size={20} className={pathname === '/relatorio-chaves' ? 'text-[#00d8ff]' : 'text-[#00b4d8]'} />
+                <span>Controle de Chaves</span>
               </Link>
               <div className="mt-4 mb-2 px-4">
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Administração</span>
@@ -173,15 +177,15 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
           </aside>
 
           <main className="main-viewport relative">
-            <header className="flex justify-end items-center px-8 py-2 bg-[#071426] sticky top-0 z-50" style={{ boxShadow: '0 1px 15px rgba(0,0,0,0.3)' }}>
+            <header className="flex justify-end items-center px-4 md:px-8 py-2 sticky top-0 z-50 print:hidden" style={{ background: 'rgba(7, 20, 38, 0.4)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)' }}>
               <NotificationBell />
             </header>
 
-            <div className="px-8 pb-8">
+            <div className="px-4 md:px-8 pb-8">
               {children}
             </div>
 
-            <footer className="mt-auto p-8 flex flex-col gap-3 items-center text-center bg-slate-900/40" style={{ boxShadow: '0 -1px 15px rgba(0,0,0,0.2)' }}>
+            <footer className="mt-auto p-4 md:p-8 flex flex-col gap-3 items-center text-center print:hidden" style={{ background: 'transparent' }}>
               <Image src="/logo.png" alt="Logo CIR-A" width={100} height={30} className="object-contain grayscale brightness-200 opacity-40" />
               <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[2px]">
                 SMSVR • SECRETARIA MUNICIPAL DE SAÚDE • VOLTA REDONDA

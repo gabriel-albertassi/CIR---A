@@ -87,8 +87,8 @@ export default function DashboardQueue({ patients, user }: { patients: Patient[]
             Não há pacientes na fila no momento.
           </div>
         ) : (
-          <div className="table-container custom-scrollbar" style={{ overflowY: 'auto' as any, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <table className="w-full border-collapse text-left">
+          <div className="table-container custom-scrollbar overflow-x-auto" style={{ overflowY: 'auto' as any, overflowX: 'auto' as any, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <table className="w-full border-collapse text-left min-w-[700px]">
               <thead>
                 <tr className="border-b border-white/5">
                   <th className="py-3 px-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Gravidade</th>

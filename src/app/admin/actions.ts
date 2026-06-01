@@ -49,7 +49,7 @@ export async function getAllUsers() {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' }
     })
-    
+
     return { success: true, data: users }
   } catch (error: any) {
     console.error('[GET_ALL_USERS_ERROR]', error)
@@ -82,7 +82,7 @@ export async function deleteUserAction(userId: string) {
     await prisma.user.delete({
       where: { id: userId }
     })
-    
+
     revalidatePath('/admin/users')
     return { success: true }
   } catch (error: any) {

@@ -307,7 +307,7 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         }
 
 
-        const rawExamsList = detectedExams.slice(0, 2);
+        const rawExamsList = detectedExams.slice(0, 5);
 
         const finalExamsList = rawExamsList.map(ex => {
           let e = ex.toUpperCase();

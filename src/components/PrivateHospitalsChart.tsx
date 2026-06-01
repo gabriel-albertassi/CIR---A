@@ -25,7 +25,7 @@ export default function PrivateHospitalsChart({ data, totals }: { data: any[], t
   const hasData = chartData.some(d => d.value > 0);
 
   return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', height: 'auto', minHeight: '320px', padding: '1.5rem', marginTop: '1.5rem', breakInside: 'avoid' }}>
+    <div className="card" style={{ height: 'auto', minHeight: '320px', padding: '1.5rem', marginTop: '1.5rem', breakInside: 'avoid' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
         <div>
           <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.5rem' }}>
@@ -59,13 +59,13 @@ export default function PrivateHospitalsChart({ data, totals }: { data: any[], t
         </div>
       </div>
 
-      <div style={{ flex: 1, width: '100%', height: '220px', minHeight: '220px', position: 'relative' }}>
+      <div style={{ width: '100%', height: '220px', position: 'relative', display: 'block' }}>
         {!mounted ? (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
             Carregando gráfico...
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="99%" height="100%">
             <BarChart
               data={chartData}
               margin={{ top: 10, right: 30, left: 0, bottom: 20 }}

@@ -53,8 +53,8 @@ export default function AdminUsersPage() {
     setUpdatingId(null)
   }
 
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredUsers = users.filter(u =>
+    u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -66,7 +66,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      
+
       {/* HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
         <div>
@@ -80,16 +80,16 @@ export default function AdminUsersPage() {
 
         <div style={{ position: 'relative', width: '320px' }}>
           <Search size={18} color="#64748b" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
-          <input 
-            type="text" 
-            placeholder="Buscar por nome ou e-mail..." 
+          <input
+            type="text"
+            placeholder="Buscar por nome ou e-mail..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: '0.75rem 1rem 0.75rem 3rem', 
-              background: 'rgba(15, 23, 42, 0.6)', 
-              border: '1px solid rgba(255,255,255,0.1)', 
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem 0.75rem 3rem',
+              background: 'rgba(15, 23, 42, 0.6)',
+              border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '14px',
               color: 'white',
               fontSize: '0.9rem',
@@ -106,7 +106,7 @@ export default function AdminUsersPage() {
             <thead>
               <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                 <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Operador</th>
-                <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Cargo (Role)</th>
+                <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Função</th>
                 <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Cancelar Pac.</th>
                 <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Imprimir Rel.</th>
                 <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', textAlign: 'center' }}>Excluir</th>
@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>Nenhum operador encontrado.</td>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>Nenhum operador encontrado.</td>
                 </tr>
               ) : (
                 filteredUsers.map(u => (
@@ -132,15 +132,15 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                     <td style={{ padding: '1.25rem 1.5rem' }}>
-                      <select 
+                      <select
                         value={u.role}
                         onChange={(e) => handleToggle(u.id, 'role', e.target.value)}
                         disabled={updatingId === `${u.id}-role`}
-                        style={{ 
-                          background: 'rgba(255,255,255,0.05)', 
-                          border: '1px solid rgba(255,255,255,0.1)', 
-                          borderRadius: '8px', 
-                          color: '#e2e8f0', 
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '8px',
+                          color: '#e2e8f0',
                           padding: '0.4rem 0.6rem',
                           fontSize: '0.85rem'
                         }}
@@ -152,15 +152,15 @@ export default function AdminUsersPage() {
                       </select>
                     </td>
                     <td style={{ padding: '1.25rem 1.5rem' }}>
-                      <PermissionToggle 
-                        isActive={u.canCancelPatient} 
+                      <PermissionToggle
+                        isActive={u.canCancelPatient}
                         isLoading={updatingId === `${u.id}-canCancelPatient`}
                         onClick={() => handleToggle(u.id, 'canCancelPatient', !u.canCancelPatient)}
                       />
                     </td>
                     <td style={{ padding: '1.25rem 1.5rem' }}>
-                      <PermissionToggle 
-                        isActive={u.canPrintReports} 
+                      <PermissionToggle
+                        isActive={u.canPrintReports}
                         isLoading={updatingId === `${u.id}-canPrintReports`}
                         onClick={() => handleToggle(u.id, 'canPrintReports', !u.canPrintReports)}
                       />
@@ -203,7 +203,7 @@ export default function AdminUsersPage() {
 
 function PermissionToggle({ isActive, isLoading, onClick }: { isActive: boolean, isLoading: boolean, onClick: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       disabled={isLoading}
       style={{
