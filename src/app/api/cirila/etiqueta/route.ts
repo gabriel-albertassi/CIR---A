@@ -136,8 +136,11 @@ export async function GET(req: NextRequest) {
       const labelBorder = { style: BorderStyle.SINGLE, size: 6, color: '000000' };
 
       const authLines = exams.map((ex) => {
+        // Correção ortográfica ANTES da limpeza de bordas
+        const fixedName = ex.name.replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
+
         // Limpeza agressiva de caracteres fantasmas, hífens soltos ou resíduos no texto do exame
-        const cleanExamName = ex.name.toUpperCase()
+        const cleanExamName = fixedName.toUpperCase()
           .replace(/\bE\b/g, '') // Remove "E" isolado que aparece em multi-exames
           .replace(/^[–\-\s,eE\.]+/g, '') // Início
           .replace(/[–\-\s,eE\.]+$/g, '') // Fim
@@ -146,12 +149,12 @@ export async function GET(req: NextRequest) {
 
         return new Paragraph({
           alignment: AlignmentType.LEFT,
-          spacing: { before: 240, after: 0 }, // Espaçamento entre autorizações
+          spacing: { before: 120, after: 0 }, // Espaçamento compacto entre autorizações
           children: [
             new TextRun({
               text: `${dateStr} : ${ex.key} - ${pName.toUpperCase()} - ${hOrigin.toUpperCase()} - ${cleanExamName} AUTORIZADO PARA ${ex.dest.toUpperCase()}`,
               bold: true,
-              size: 20, // 10pt (Padrão institucional)
+              size: 18, // 9pt — cabe em uma linha sem quebrar
               font: { name: 'Arial' },
               color: '000000',
             }),
@@ -223,9 +226,9 @@ export async function GET(req: NextRequest) {
                       }),
                     ],
                   }),
-                  // Espaçamento em branco maior entre departamento e autorização (conforme pedido)
+                  // Espaçamento em branco entre departamento e autorização
                   new Paragraph({
-                    spacing: { before: 600, after: 200 },
+                    spacing: { before: 200, after: 0 },
                     children: [new TextRun("")],
                   }),
                   // 4. Linhas de Autorização (10pt, Negrito, Preto)
