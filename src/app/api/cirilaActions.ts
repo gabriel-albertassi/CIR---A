@@ -312,8 +312,8 @@ export async function askCirila(query: string): Promise<CirilaResponse> {
         const finalExamsList = rawExamsList.map(ex => {
           let e = ex.toUpperCase();
 
-          // Correção ortográfica de "CONTRAST" para "CONTRASTE"
-          e = e.replace(/\bCONTRAST\b/g, 'CONTRASTE');
+          // Correção ortográfica de "CONTRAST" para "CONTRASTE" (não substitui quando já tem 'E' no final)
+          e = e.replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
 
           // Limpeza profunda de bordas e resíduos
           e = e.replace(/^[–\-\s,eE\.]+/g, '') // Início (remove 'E' órfão)

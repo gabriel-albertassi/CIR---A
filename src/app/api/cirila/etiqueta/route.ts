@@ -61,8 +61,8 @@ export async function GET(req: NextRequest) {
     const examsList = examsRaw.split(',').map(e => {
       let ex = e.trim().toUpperCase();
 
-      // Correção ortográfica de "CONTRAST" para "CONTRASTE"
-      ex = ex.replace(/\bCONTRAST\b/g, 'CONTRASTE');
+      // Correção ortográfica de "CONTRAST" para "CONTRASTE" (não substitui quando já tem 'E' no final)
+      ex = ex.replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
 
       // 1. Prioridade COLANGIO: deve ser COLANGIO RNM e não pode ter TC
       if (ex.includes('COLANGIO')) {
@@ -162,9 +162,9 @@ export async function GET(req: NextRequest) {
       const cleanRegistro = (prof.registro || '').replace('REGISTRO', '').trim();
       const cleanCargo = (prof.cargo || '').replace('CARGO', '').trim();
       const profLine = `${prof.name.toUpperCase()}${cleanRegistro ? ` – ${cleanRegistro.toUpperCase()}` : ''}${cleanCargo ? ` – ${cleanCargo.toUpperCase()}` : ''}`;
-      
+
       // Separador horizontal longo e visível
-      const lineSeparator = "__________________________________________________________________________________________";
+      const lineSeparator = "__________________________________________________________________________________";
 
       return new Table({
         width: { size: 9500, type: WidthType.DXA },
@@ -189,7 +189,7 @@ export async function GET(req: NextRequest) {
                       new TextRun({
                         text: profLine,
                         bold: true,
-                        size: 20, // 10pt
+                        size: 20, // 12pt
                         font: { name: 'Arial' },
                         color: '000000',
                       }),
@@ -217,7 +217,7 @@ export async function GET(req: NextRequest) {
                       new TextRun({
                         text: "Departamento, Controle, Regulação – Avaliação e Auditoria – DCRAA – SMSVR",
                         bold: true,
-                        size: 32, // 16pt
+                        size: 28, // 12pt
                         font: { name: 'Arial' },
                         color: '000000',
                       }),
