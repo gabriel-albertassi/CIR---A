@@ -140,24 +140,31 @@ export async function GET(req: NextRequest) {
       const labelBorder = { style: BorderStyle.SINGLE, size: 6, color: '000000' };
 
       const authLines = exams.map((ex) => {
+        // Limpeza de caracteres fantasmas, hífens soltos ou resíduos no texto do exame
+        const cleanExamName = ex.name.toUpperCase()
+          .replace(/\bE\b/g, '') // Remove "E" isolado que aparece em multi-exames
+          .replace(/^[–\-\s,eE\.]+/g, '') // Início
+          .replace(/[–\-\s,eE\.]+$/g, '') // Fim
+          .replace(/\s+/g, ' ')
+          .trim()
+          // ⚠️ CONTRASTE deve vir DEPOIS da limpeza de bordas (o 'E' final seria removido antes)
+          .replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
 
-      // ⚠️ CONTRASTE deve vir DEPOIS da limpeza de bordas, senão o 'E' final é removido pela regex acima
-        .replace(/CONTRAST(?!E)/gi, 'CONTRASTE');
-
-      return new Paragraph({
-        alignment: AlignmentType.LEFT,
-        spacing: { before: 120, after: 0 }, // Espaçamento compacto entre autorizações
-        children: [
-          new TextRun({
-            text: `${dateStr} : ${ex.key} - ${pName.toUpperCase()} - ${hOrigin.toUpperCase()} - ${cleanExamName} AUTORIZADO PARA ${ex.dest.toUpperCase()}`,
-            bold: true,
-            size: 18, // 9pt — cabe em uma linha sem quebrar
-            font: { name: 'Arial' },
-            color: '000000',
-          }),
-        ],
+        return new Paragraph({
+          alignment: AlignmentType.LEFT,
+          spacing: { before: 120, after: 0 },
+          children: [
+            new TextRun({
+              text: `${dateStr} : ${ex.key} - ${pName.toUpperCase()} - ${hOrigin.toUpperCase()} - ${cleanExamName} AUTORIZADO PARA ${ex.dest.toUpperCase()}`,
+              bold: true,
+              size: 18, // 9pt
+              font: { name: 'Arial' },
+              color: '000000',
+            }),
+          ],
+        });
       });
-    });
+
 
     const cleanRegistro = (prof.registro || '').replace('REGISTRO', '').trim();
     const cleanCargo = (prof.cargo || '').replace('CARGO', '').trim();
