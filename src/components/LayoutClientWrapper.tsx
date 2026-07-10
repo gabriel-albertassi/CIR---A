@@ -61,6 +61,9 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
         )}
 
         <div className="flex flex-1 pt-0">
+          {isMobileMenuOpen && (
+            <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)} />
+          )}
           <aside className={`sidebar-main ${isMobileMenuOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''} print:hidden`}>
             <div className="flex justify-center items-center mb-8 mt-7 px-8">
               <div className="relative w-[190px] h-[120px] sidebar-logo-container">
@@ -193,10 +196,6 @@ export default function LayoutClientWrapper({ children, user }: { children: Reac
             </footer>
           </main>
         </div>
-
-        {isMobileMenuOpen && (
-          <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)} />
-        )}
 
         {!isLoginPage && (
           <>

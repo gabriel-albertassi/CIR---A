@@ -381,31 +381,41 @@
 }
 
 .holo3 {
-  top: 18%;
-  left: 18%;
+  top: 12%;
+  left: 5%;
   animation-duration: 8s;
   animation-delay: -1s;
 }
 
 .holo4 {
-  bottom: 25%;
-  left: 15%;
+  bottom: 20%;
+  left: 5%;
   animation-duration: 10s;
   animation-delay: -4s;
 }
 
 .holo5 {
-  top: 18%;
-  right: 18%;
+  top: 12%;
+  right: 5%;
   animation-duration: 9s;
   animation-delay: -2s;
 }
 
 .holo6 {
-  bottom: 25%;
-  right: 15%;
+  bottom: 20%;
+  right: 5%;
   animation-duration: 11s;
   animation-delay: -6s;
+}
+
+.avatarWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 550px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .loginAvatar {
@@ -430,21 +440,20 @@
 
 .loginCirilaSpeech {
   position: absolute;
-  bottom: 30%;
-  /* !!! NUNCA ALTERAR: POSIÇÃO INSTITUCIONAL FIXA (30%) !!! */
+  bottom: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 40%);
   background: rgba(2, 6, 23, 0.9);
-  border: 1px solid rgba(0, 216, 255, 0.4); /* Reforçado para contraste */
+  border: 1px solid rgba(0, 216, 255, 0.4);
   padding: 1rem 1.5rem;
   border-radius: 24px;
   z-index: 15;
   display: flex;
   gap: 1rem;
   align-items: center;
-  width: 100%;
+  width: 90%;
   min-width: 300px;
-  max-width: 520px;
+  max-width: 480px;
   backdrop-filter: blur(24px);
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.7),
@@ -544,6 +553,11 @@
   .loginLeftInner {
     max-width: 320px;
     gap: 1rem;
+    padding-bottom: 4rem;
+  }
+
+  .loginFooter {
+    bottom: 0;
   }
 
   .loginTitle {
@@ -558,13 +572,23 @@
     width: 100%;
     height: auto;
     margin-top: 1rem;
+    padding-bottom: 20px;
+  }
+
+  .avatarWrapper {
+    max-width: 360px;
+  }
+
+  .loginAvatar {
+    width: 100% !important;
+    height: auto !important;
   }
 
   .loginCirilaSpeech {
     position: absolute !important;
-    bottom: 30% !important;
+    bottom: 0 !important;
     left: 50% !important;
-    transform: translateX(-50%) !important;
+    transform: translate(-50%, 40%) !important;
     min-width: 260px;
     width: 90%;
     max-width: 400px;

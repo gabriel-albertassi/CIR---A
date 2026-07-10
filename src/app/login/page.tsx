@@ -315,25 +315,27 @@ function LoginForm() {
             <div className={`${styles.loginHolo} ${styles.holo5}`}><Sparkles size={14} /><span>Conte sempre comigo</span></div>
             <div className={`${styles.loginHolo} ${styles.holo6}`}><HeartPulse size={14} /><span>Sempre pronta para te ajudar</span></div>
 
-            <CirilaAvatar
-              expression={expression}
-              size="550px"
-              className={`${styles.loginAvatar} ${expression}`}
-            />
-
-            <div
-              className={`${styles.loginCirilaSpeech} ${isTyping ? styles.typingIcon : ''}`}
-            >
-              <Image
-                src="/cirila_3D_icon.png"
-                alt="ícone Cirila"
-                width={36}
-                height={36}
-                style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0,216,255,0.4)' }}
+            <div className={styles.avatarWrapper}>
+              <CirilaAvatar
+                expression={expression}
+                size="100%"
+                className={`${styles.loginAvatar} ${expression}`}
               />
-              <div>
-                <strong>Olá! Sou a Cirila.</strong>
-                <span>{displayedText}</span>
+
+              <div
+                className={`${styles.loginCirilaSpeech} ${isTyping ? styles.typingIcon : ''}`}
+              >
+                <Image
+                  src="/cirila_3D_icon.png"
+                  alt="ícone Cirila"
+                  width={36}
+                  height={36}
+                  style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0,216,255,0.4)' }}
+                />
+                <div>
+                  <strong>Olá! Sou a Cirila.</strong>
+                  <span>{displayedText}</span>
+                </div>
               </div>
             </div>
           </div>
