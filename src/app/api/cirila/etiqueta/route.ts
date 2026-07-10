@@ -62,21 +62,20 @@ export async function GET(req: NextRequest) {
       }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
-    // PROTEÇÃO ANTI-LOOP (Deduplicação de 2 minutos por paciente)
-    // Impede que IAs/Bots estourem o banco de dados com requisições repetidas
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-    const recentDuplicate = await prisma.authorizationKey.findFirst({
-      where: {
-        patient: patient.toUpperCase(),
-        date: { gte: twoMinutesAgo }
-      }
-    });
-
-    if (recentDuplicate) {
-      return new NextResponse(JSON.stringify({
-        error: 'Anti-Spam: Um procedimento já foi gerado para este paciente há menos de 2 minutos. Aguarde para gerar novamente.'
-      }), { status: 429, headers: { 'Content-Type': 'application/json' } });
-    }
+    // PROTEÇÃO ANTI-LOOP (Desativada temporariamente a pedido do usuário)
+    // const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    // const recentDuplicate = await prisma.authorizationKey.findFirst({
+    //   where: {
+    //     patient: patient.toUpperCase(),
+    //     date: { gte: twoMinutesAgo }
+    //   }
+    // });
+    //
+    // if (recentDuplicate) {
+    //   return new NextResponse(JSON.stringify({
+    //     error: 'Anti-Spam: Um procedimento já foi gerado para este paciente há menos de 2 minutos. Aguarde para gerar novamente.'
+    //   }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+    // }
 
     const examsList = examsRaw.split(',').map(e => {
       let ex = e.trim().toUpperCase();
