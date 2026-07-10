@@ -243,12 +243,8 @@ export default function CirilaBotWidget() {
 
       setMessages(prev => [...prev, reply]);
 
-      // Automação: Se houver uma ação de download de etiqueta, dispara imediatamente
-      const downloadAction = reply.actions?.find(a => a.payload.startsWith('DOWNLOAD_ETIQUETA_DOCX:::'));
-      if (downloadAction) {
-        console.log('[CIRILA_WIDGET] Automação: Disparando download imediato...');
-        handleActionClick(downloadAction.payload);
-      }
+      // (Removido o disparo automático de download para evitar bloqueio do navegador e conflito com Anti-Spam)
+      // O usuário deve sempre clicar no botão para garantir a intenção de download.
     } catch (err: any) {
       console.error('[CIRILA_WIDGET_ERROR] Falha ao enviar mensagem:', err);
       setMessages(prev => [...prev, { 
